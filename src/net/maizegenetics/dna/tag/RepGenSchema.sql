@@ -2,13 +2,39 @@
 CREATE TABLE tag (
     tagid    INTEGER PRIMARY KEY,
     tagName VARCHAR,
+    --convert sequence to VARCHAR if possible
     sequence BLOB NOT NULL,
     seqlen INTEGER NOT NULL,
+    --remove if reference if possible
     isReference BOOLEAN,
     qualityScore TEXT,
     numTagInstances INTEGER,
-    UNIQUE (sequence, seqlen)
+    UNIQUE (sequence)
 );
+
+-- Table: tagMapping
+-- Junction (link) table between reftag, and physicalMapPosition
+CREATE TABLE tagMapping2 (
+    tagid       INTEGER NOT NULL,
+    physicalMapPosition_id  INTEGER NOT NULL,
+    method_id    INTEGER NOT NULL,
+    bp_error	INTEGER,
+    cm_error	FLOAT(2),
+    PRIMARY KEY (tagid, physicalMapPosition_id)
+);
+
+-- Table: tagTagAlignments
+CREATE TABLE tag_tag_stats (
+    tagtagstatId INTEGER   PRIMARY KEY,
+    tag1id	INTEGER NOT NULL,
+    tag2id  INTEGER NOT NULL,
+    method_id INTEGER NOT NULL,
+    stat_value FLOAT,
+    stats VARCHAR,
+    UNIQUE (tag1id, tag2id, method_id)
+);
+
+
 
 -- Table: reftag
 CREATE TABLE reftag (
