@@ -6,59 +6,23 @@
 
 package net.maizegenetics.dna.tag;
 
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.sqlite.SQLiteConfig;
-
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.*;
 import com.google.common.io.CharStreams;
-
 import net.maizegenetics.analysis.gbs.repgen.AlignmentInfo;
 import net.maizegenetics.analysis.gbs.repgen.RefTagData;
 import net.maizegenetics.analysis.gbs.repgen.TagCorrelationInfo;
-import net.maizegenetics.dna.WHICH_ALLELE;
-import net.maizegenetics.dna.map.Chromosome;
-import net.maizegenetics.dna.map.GeneralPosition;
-import net.maizegenetics.dna.map.Position;
-import net.maizegenetics.dna.map.PositionList;
-import net.maizegenetics.dna.map.PositionListBuilder;
-import net.maizegenetics.dna.snp.Allele;
-import net.maizegenetics.dna.snp.SimpleAllele;
+import net.maizegenetics.dna.map.*;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
-import net.maizegenetics.util.GeneralAnnotation;
 import net.maizegenetics.util.Tuple;
-import net.maizegenetics.util.db.SQL;
+import org.sqlite.SQLiteConfig;
+
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.*;
+import java.util.*;
 
 
 public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
@@ -81,27 +45,15 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
     private Map<String,Integer> mappingApproachToIDMap;
     private BiMap<String,Integer> referenceGenomeToIDMap;
     private SortedMap<Position,Integer> physicalMapPositionToIDMap;
-    public BiMap<Position,Integer> snpPosToIDMap;
-    private BiMap<Allele,Integer> alleleToIDMap;
+
 
     private TaxaList myTaxaList;
 
     PreparedStatement tagTaxaDistPS;
-    PreparedStatement allelePairWithTagid1PS;
     PreparedStatement posTagMappingInsertPS;
     PreparedStatement taxaDistWhereTagMappingIDPS;
-    PreparedStatement snpPositionsForChromosomePS;
-        
-    PreparedStatement snpQualityInsertPS;
-    
-    PreparedStatement allelePairInsertPS;
     PreparedStatement tagtagAlignmentInsertPS;
-    PreparedStatement tagReftagAlignmentInsertPS;
-    PreparedStatement refRefAlignmentInsertPS;
     PreparedStatement tagAlignForNonRefTagPS;
-    PreparedStatement refAlignForRefTagPS;
-    PreparedStatement nonReftagAlignmentsForRefTagPS;
-    PreparedStatement refTagAlignsForNonRefTagPS;
     PreparedStatement tagTagCorrelationInsertPS;
     PreparedStatement tagCorrelationsForTag1PS;
     PreparedStatement tagCorrelationsForTag2PS;
@@ -158,32 +110,9 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
                     " values(?,?,?,?,?)");
             
             tagTaxaDistPS=connection.prepareStatement("select depthsRLE from tagtaxadistribution where tagid=?");
-            allelePairInsertPS = connection.prepareStatement(
-                    "INSERT into allelepair (tagid_1,tagid_2,qualityscore)" + 
-                    " values(?,?,?)");
-            allelePairWithTagid1PS=connection.prepareStatement("select * from allelepair where tagid_1=?");
-//            taxaDistWhereTagMappingIDPS=connection.prepareStatement(
-//                    "select tagtaxadistribution.* from tagMapping, tagtaxadistribution where tagMapping.position_id=? and " +
-//                    "tagMapping.tagid=tagtaxadistribution.tagid");
-            snpPositionsForChromosomePS=connection.prepareStatement(
-                    "select position, qualityScore, refAllele from snpposition where chromosome=?");
 
-            snpQualityInsertPS=connection.prepareStatement(
-                    "INSERT into snpQuality (snpid, taxasubset ,avgDepth, minorDepthProp, minor2DepthProp, gapDepthProp, " +
-                            "propCovered, propCovered2, taxaCntWithMinorAlleleGE2, minorAlleleFreqGE2, inbredF_DGE2)" +
-                    " values(?,?,?,?,?,?,?,?,?,?,?)");
-            //                snpQualityInsertPS=connection.prepareStatement(
-            //                        "INSERT into snpQuality (snpid, taxasubset)" +
-            //                                " values(?,?)");
-            
             tagtagAlignmentInsertPS=connection.prepareStatement(
                     "INSERT into tag_tag_Alignments (tag1id, tag2id, score )" +
-                    " values(?,?,?)");
-            tagReftagAlignmentInsertPS = connection.prepareStatement(
-                    "INSERT into tag_reftag_Alignments(tag1id, refTagID, score,ref_align_start_pos,ref_align_strand )" +
-                    " values(?,?,?,?,?)");
-            refRefAlignmentInsertPS = connection.prepareStatement(
-                    "INSERT into reftag_reftag_Alignments(tag1id, tag2id, score )" +
                     " values(?,?,?)");
             tagTagCorrelationInsertPS=connection.prepareStatement(
                     "INSERT into tagCorrelations (tag1id, tag2id, t1t2_pearson, t1t2_spearman, pres_abs_pearson, r2 )" +
@@ -196,16 +125,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             tagAlignForNonRefTagPS= connection.prepareStatement(
                     "select tag2id,  score " +
                     "from tag_tag_Alignments where tag1id=? and score >= ?");
-            // For this query, tag1_isref is true:  the tag1id is a tag from the refTagRefTagIDMap
-            refAlignForRefTagPS = connection.prepareStatement(
-                    "select tag2id, score " +
-                    "from reftag_reftag_Alignments where tag1id=? and score >= ?");
-            nonReftagAlignmentsForRefTagPS = connection.prepareStatement(
-                    "select tag1id, score, ref_align_start_pos, ref_align_strand " +
-                    "from tag_refTag_Alignments where refTagID=? and score >= ?");
-            refTagAlignsForNonRefTagPS = connection.prepareStatement(
-                    "select refTagID, score, ref_align_start_pos, ref_align_strand " +
-                    "from tag_reftag_Alignments where tag1id=? and score >= ?");
             tagCorrelationsForTag1PS = connection.prepareStatement(
                     "select tag2id, t1t2_pearson, t1t2_spearman, pres_abs_pearson, r2 " +
                     "from tagCorrelations where tag1id=?");
@@ -281,54 +200,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             size=rs.getInt(1);
             System.out.println("After loading new positions, size of all positions in physicalMapPosiiton table="
             +size + ", size of physicalMapPositionToIDMAP: " + physicalMapPositionToIDMap.size());
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void loadSNPPositionHash(boolean force) {
-        if (force) { // reload as quality scores have changed.
-            if (snpPosToIDMap != null) snpPosToIDMap.clear(); 
-        }
-        try{
-            ResultSet rs=connection.createStatement().executeQuery("select count(*) from snpposition");
-            int size=rs.getInt(1);
-            System.out.println("size of all positions in snpPosition table="+size);
-            if(snpPosToIDMap==null) {snpPosToIDMap=HashBiMap.create(size);}
-            else if(size==snpPosToIDMap.size()) return;
-            rs=connection.createStatement().executeQuery("select * from snpposition");
-            while(rs.next()) {
-                // LCJ - this needs to add .allele(WHICH_ALLELE.Reference,refAllele)
-                // WHich means you need a way to know what is the ref allele
-                byte refAllele = (byte)rs.getInt("refAllele");
-                Position p=new GeneralPosition
-                        .Builder(new Chromosome(rs.getString("chromosome")),rs.getInt("position"))
-                        .strand(rs.getByte("strand"))
-                        .addAnno("QualityScore", rs.getFloat("qualityScore"))
-                        .allele(WHICH_ALLELE.Reference,refAllele)
-                        .build();
-                snpPosToIDMap.putIfAbsent(p, rs.getInt("snpid"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void loadAlleleHash() {
-        try{
-            loadSNPPositionHash(false);
-            ResultSet rs=connection.createStatement().executeQuery("select count(*) from allele");
-            int size=rs.getInt(1);
-            System.out.println("size of all alleles in allele table="+size);
-            if(alleleToIDMap==null) {alleleToIDMap=HashBiMap.create(size);}
-            if(size==alleleToIDMap.size()) return;
-            rs=connection.createStatement().executeQuery("select * from allele");
-            while(rs.next()) {
-                int snpid=rs.getInt("snpid");
-                Position p=snpPosToIDMap.inverse().get(snpid);
-                Allele a=new SimpleAllele(rs.getByte("allelecall"),p);
-                alleleToIDMap.putIfAbsent(a, rs.getInt("alleleid"));
-            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -484,54 +355,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         return true;
     }
 
-    
-    // Only when called from RepGenLoadSeqToDBPLugin do we have the number of instances
-    // and the quality score.  Other places (from within this file) don't have that data.
-    // Populate table based on information sent in.
-    @Override
-    public boolean putAllRefTag(Multimap<Tag,Position> refTagPositionMap, String refGenome) {
-        int batchCount=0, totalCount=0;
-        try {
-            connection.setAutoCommit(false);
-            int refGenomeID = referenceGenomeToIDMap.get(refGenome);
-            PreparedStatement refTagInsertPS=
-                    connection.prepareStatement("insert into reftag (sequence, seqlen, chromosome,position,refGenomeID) values(?,?,?,?,?)");
-            for (Map.Entry<Tag, Position> entry : refTagPositionMap.entries()) {
-                Tag tag = entry.getKey();
-                Position pos =  entry.getValue();
-                String chromosome = pos.getChromosome().getName();
-                int posInt = pos.getPosition();
-                RefTagData rtd = new RefTagData(tag,chromosome,posInt,refGenome);
-                if(reftagReftagIDMap.containsKey(rtd)) continue;  //it is already in the DB skip                    
-                refTagInsertPS.setBytes(1, tag.seq2BitAsBytes());
-                refTagInsertPS.setShort(2, tag.seqLength());
-                refTagInsertPS.setString(3, pos.getChromosome().getName());
-                refTagInsertPS.setInt(4, pos.getPosition());
-                refTagInsertPS.setInt(5, refGenomeID);
-                
-                refTagInsertPS.addBatch();
-                batchCount++;
-                totalCount++;
-                if(batchCount>100000) {
-                   // System.out.println("tagInsertPS.executeBatch() "+batchCount);
-                    refTagInsertPS.executeBatch();
-                    //connection.commit();
-                    batchCount=0;
-                }
-            }
-            refTagInsertPS.executeBatch();
-            connection.setAutoCommit(true);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
 
-        if(totalCount>0) {
-            System.out.println("RepGenSQLite:putAllRefTag, totalCount=" + totalCount + ",loadingHash\n");
-            loadRefTagHash();
-        } 
-        return true;
-    }
     @Override
     public boolean putAllNamesTag(Map<Tag, String> tagNameMap) {
         int batchCount=0, totalCount=0;
@@ -584,10 +408,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         }
     }
 
-    @Override
-    public void putSNPPositionQS(PositionList qsPosL) {
-
-    }
 
     @Override
     public void putTaxaDistribution(Map<Tag, TaxaDistribution> tagTaxaDistributionMap) {
@@ -656,19 +476,11 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         }
     }
 
-    @Override
-    public void putTagRefTagAlignments(Multimap<Tag, AlignmentInfo> tagAlignInfoMap, String refGenome) {
-
-    }
-
-    @Override
-    public void putRefRefAlignments(Multimap<RefTagData, AlignmentInfo> tagAlignInfoMap, String refGenome) {
-
-    }
 
     //THis method is called from RepGenAlignerPlugin to add reference kmers
     // to the db.  This method adds data to the tag, physicalMapPosition, and
     // tagMapping tables.
+    //KEEP THIS ED
     @Override
     public void putRefTagMapping(Multimap<Tag, Position> refTagPositionMap, String refGenome) {
         int batchCount=0;
@@ -785,11 +597,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
     }
 
     @Override
-    public void putAllelePairs(Multimap<Tag, Tuple<Tag, Integer>> tagTagAlignMap) {
-
-    }
-
-    @Override
     public void addMappingApproach(String name) {
         Integer val=mappingApproachToIDMap.get(name);
         if(val==null) {
@@ -810,11 +617,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
     }
 
     @Override
-    public boolean putTagAlleles(Multimap<Tag, Allele> tagAlleleMap) {
-        return false;
-    }
-
-    @Override
     public boolean putTagAlignmentApproach(String tagAlignmentName, String protocol) {
         return false;
     }
@@ -831,81 +633,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         }
         return null;
     }
-
-    @Override
-    public Set<Allele> getAlleles(Tag tag) {if(alleleToIDMap==null) loadAlleleHash();
-    ImmutableSet.Builder<Allele> alleleBuilder=new ImmutableSet.Builder<>();
-    try{
-        allelePairWithTagid1PS.setInt(1,tagTagIDMap.get(tag));
-        ResultSet rs=allelePairWithTagid1PS.executeQuery();
-        while(rs.next()) {
-            alleleBuilder.add(alleleToIDMap.inverse().get(rs.getInt("alleleid")));
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-    return alleleBuilder.build();
-    }
-
-    @Override
-    public Multimap<Tag, Allele> getAlleleMap() {
-        //if slow consider caching the hash and equal codes
-        if(alleleToIDMap==null) loadAlleleHash();
-        ImmutableMultimap.Builder<Tag, Allele> tagAlleleBuilder=new ImmutableMultimap.Builder<>();
-        try{
-            ResultSet rs=connection.createStatement().executeQuery("select * from tagallele");;
-            while(rs.next()) {
-                tagAlleleBuilder.put(tagTagIDMap.inverse().get(rs.getInt("tagid")), alleleToIDMap.inverse().get(rs.getInt("alleleid")));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return tagAlleleBuilder.build();
-    }
-
-    @Override
-    public Set<Tag> getTagsForAllele(Position position, byte allele) {
-        return getTagsForAllele(new SimpleAllele(allele,position));
-    }
-
-    @Override
-    public Set<Tag> getTagsForAllele(Allele allele) {
-        return null;
-    }
-
-    public Stream<ImmutableMultimap<Allele,TaxaDistribution>> getAllAllelesTaxaDistForSNP() {
-        if(snpPosToIDMap==null) {
-            loadSNPPositionHash(false);
-        }
-        Stream<ImmutableMultimap<Allele,TaxaDistribution>> stream = SQL.stream(connection, "select a.*, td.* from allele a, tagallele ta, tagtaxadistribution td\n" +
-                "where a.alleleid=ta.alleleid and ta.tagid=td.tagid order by a.snpid")
-                .map(entry -> {
-                    ImmutableMultimap.Builder<Allele,TaxaDistribution> atdBuilder = ImmutableMultimap.builder();
-                    Position pos = snpPosToIDMap.inverse().get(entry.asInt("snpid"));
-                    Allele allele=new SimpleAllele((byte)entry.asInt("allelecall"),pos);
-                    byte[] byteArray = (byte[])entry.val("depthsRLE").get();
-
-                    atdBuilder.put(allele,TaxaDistBuilder.create(byteArray));
-                    return atdBuilder.build();
-                });
-        return stream;
-    }
-    public Stream<Map.Entry<Allele,TaxaDistribution>> getAllAllelesTaxaDistForSNPEntries() {
-        if(snpPosToIDMap==null) {
-            loadSNPPositionHash(false);
-        }
-        Stream<Map.Entry<Allele,TaxaDistribution>> stream = SQL.stream(connection, "select a.snpid, a.allelecall, td.depthsRLE from allele a, tagallele ta, tagtaxadistribution td\n" +
-                "where td.tagid = ta.tagid AND a.alleleid = ta.alleleid order by a.snpid")
-                .map(entry -> {
-                    Position pos = snpPosToIDMap.inverse().get(entry.asInt("snpid"));
-                    Allele allele=new SimpleAllele((byte)entry.asInt("allelecall"),pos);
-                    byte[] byteArray = (byte[])entry.val("depthsRLE").get();
-                    return new AbstractMap.SimpleEntry(allele,TaxaDistBuilder.create(byteArray));
-                });
-        return stream;
-    }
-
-
 
     @Override
     public Set<Tag> getTags() {
@@ -931,35 +658,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
     public PositionList getPhysicalMapPositions(Chromosome chromosome, int firstPosition, int lastPosition) {
         PositionListBuilder plb=new PositionListBuilder();
         plb.addAll(getPositionSubMap(chromosome,firstPosition,lastPosition).keySet());
-        return plb.build();
-    }
-    @Override
-    public PositionList getSNPPositions() {
-        if(snpPosToIDMap==null) loadSNPPositionHash(false);
-        return new PositionListBuilder().addAll(snpPosToIDMap.keySet()).build();
-    }
-
-    @Override
-    public PositionList getSNPPositions(int minSupportValue) {
-        return null;
-    }
-
-    @Override
-    public PositionList getSNPPositions(double minQualityScore) {
-        // Add all positions whose quality score equals or exceeds 
-        // caller's minQualityScore
-        if (minQualityScore == 0) return getSNPPositions();
-        if(snpPosToIDMap==null) loadSNPPositionHash(false);
-        PositionListBuilder plb = new PositionListBuilder();
-        snpPosToIDMap.keySet().stream()
-        .forEach(pos -> {
-            double[] qs = pos.getAnnotation().getQuantAnnotation("QualityScore");
-            if (qs != null && qs.length > 0) {
-                if (qs[0] >=minQualityScore) {
-                    plb.add(pos);
-                }
-            }                       
-        });
         return plb.build();
     }
 
@@ -1005,20 +703,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         return tagBuilder.build();
     }
 
-    @Override
-    public PositionList getTagCutPositions(boolean onlyBest) {
-        return null;
-    }
-
-    @Override
-    public PositionList getTagCutPositions(Chromosome chromosome, int firstPosition, int lastPosition, boolean onlyBest) {
-        return null;
-    }
-
-    @Override
-    public Map<Tag, Position> getTagCutPosition(Set<Tag> tag) {
-        return null;
-    }
 
 
     private Map<Position,Integer> getPositionSubMap(Chromosome chromosome, int firstPosition, int lastPosition) {
@@ -1091,84 +775,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         }
     }
 
-    private void putSNPPositionsIfAbsent(Collection<Position> positions) {
-        try {
-            int batchCount=0;
-            if(snpPosToIDMap==null) loadSNPPositionHash(false);
-            connection.setAutoCommit(false);
-            PreparedStatement snpPosInsertPS=connection.prepareStatement(
-                    "INSERT OR IGNORE into snpposition (chromosome, position, strand,qualityScore,refAllele) values(?,?,?,?,?)");
-            for (Position p : positions) {
-                if(snpPosToIDMap.containsKey(p)) continue;
-                snpPosInsertPS.setString(1, p.getChromosome().toString());
-                snpPosInsertPS.setInt(2, p.getPosition());
-                snpPosInsertPS.setByte(3, p.getStrand());
-                double[] qsList = p.getAnnotation().getQuantAnnotation("QualityScore");               
-                if (qsList != null & qsList.length > 0) {
-                    snpPosInsertPS.setFloat(4, (float)qsList[0]);
-                } else {
-                    snpPosInsertPS.setFloat(4, (float)0.0);
-                } 
-                // Position is now annotated with reference, add it
-                // from the position's stored Reference - should be created
-                // in Discovery's referencePositions() method
-                snpPosInsertPS.setByte(5,p.getAllele(WHICH_ALLELE.Reference));
-
-                snpPosInsertPS.addBatch();
-                batchCount++;
-                if(batchCount>10000) {
-                    System.out.println("putSNPPositionsIfAbsent next"+batchCount);
-                    snpPosInsertPS.executeBatch();
-                    batchCount=0;
-                }
-            }
-            snpPosInsertPS.executeBatch();
-            if(batchCount>0) loadSNPPositionHash(false);
-            connection.setAutoCommit(true);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    // THis is intended to be used for junit verification, where there the query
-    // numbers will be small.
-    //  The method will need to be modified with batching if it is to be used in a more
-    // query intensive environment.
-    @Override
-    public ListMultimap<String, Tuple<Integer, Float>> getSNPPositionQS(HashMultimap<String, Integer> myMap) {
-        ImmutableListMultimap.Builder<String, Tuple<Integer, Float>> qsMap = new ImmutableListMultimap.Builder<String, Tuple<Integer, Float>>()
-                .orderKeysBy(Ordering.natural()).orderKeysBy(Ordering.natural());
-        int batchCount = 0;
-        try {
-            connection.setAutoCommit(false);
-            PreparedStatement dbTestPS = connection.prepareStatement("select qualityScore from snpposition where chromosome = ? and position = ?");
-            for (Map.Entry<String, Integer> entry : myMap.entries()) {
-                String chrom = entry.getKey();
-                Integer posQS = entry.getValue();
-                dbTestPS.setString(1, chrom);
-                dbTestPS.setInt(2, posQS);
-                //dbTestPS.addBatch();
-                //batchCount++;
-                ResultSet rs=dbTestPS.executeQuery();
-                while(rs.next()) {
-                    Float myQual = rs.getFloat("qualityScore");
-                    Tuple<Integer,Float> myTuple = new Tuple<Integer,Float>(posQS,myQual);
-                    qsMap.put(chrom, myTuple);
-                }
-            }
-        } catch (Exception exc) {
-            exc.printStackTrace();
-            return null;
-        }
-        return qsMap.build();
-    }
-
-    @Override
-    public Multimap<Allele, Map<Tag, TaxaDistribution>> getAllelesTagTaxaDistForSNP(Position position) {
-        return null;
-    }
-
     @Override
     public List<Chromosome> getChromosomesFromCutPositions() {
         // Get a list of chromosomes from the cutPosition table
@@ -1230,8 +836,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             boolean rs = connection.createStatement().execute("delete FROM tagallele");            
             rs = connection.createStatement().execute("delete FROM snpposition"); 
             rs = connection.createStatement().execute("delete FROM allele");
-            alleleToIDMap = null;
-            snpPosToIDMap = null;
         } catch (SQLException exc) {
             System.out.println("ERROR - problem deleting discovery data");
             exc.printStackTrace();
@@ -1308,129 +912,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         return tagAIBuilder.build();       
     }
 
-    @Override
-    public Multimap<Tag, AlignmentInfo> getAllNonRefTagAlignments(int minscore) {
-        // This method returns only the tag-tag alignments for all tags
-        ImmutableMultimap.Builder<Tag,AlignmentInfo> tagAIBuilder = ImmutableMultimap.builder();
-        loadTagHash(); // get updated tag map
-        Set<Tag> tagsToAlign = getTags();
-        List<Tag> tagList = new ArrayList<Tag>(tagsToAlign);
-        return getTagAlignmentsForTags(tagList,minscore);   // return tag-tag alignments    
-    }
-    
-    @Override
-    // This returns just reftag-reftag alignments
-    public Multimap<RefTagData, AlignmentInfo> getRefAlignmentsForRefTags(List<RefTagData> refTags, int minscore) {
-        ImmutableMultimap.Builder<RefTagData,AlignmentInfo> tagAIBuilder = ImmutableMultimap.builder();
-        loadRefTagHash();
-        try {
-            for (RefTagData tag: refTags){
-                // For each tag on the list, get all its alignments
-                Integer tagID = reftagReftagIDMap.get(tag);
-                if (tagID == null) {
-                    // what is best to print out here?
-                    System.out.println("getAlignmentsForTag: no tagID in alignments table for reftag: " + tag.tag().sequence());
-                    continue;
-                }
-                // The query specifies that tag1ID IS a ref tag
-                refAlignForRefTagPS.setInt(1,tagID);
-                refAlignForRefTagPS.setInt(2, minscore);
-                ResultSet rs = refAlignForRefTagPS.executeQuery();
-                while (rs.next()) {
-                    int score = rs.getInt("score");
-                    
-                    RefTagData tag2data = reftagReftagIDMap.inverse().get(rs.getInt("tag2id"));
-                    AlignmentInfo ai = new AlignmentInfo(tag2data.tag(),tag2data.chromosome(),tag2data.position(),-1,1,tag2data.refGenome(),score);
-                    tagAIBuilder.put(tag,ai);
-                }              
-            }
-        } catch (SQLException exc) {
-            System.out.println("getAlignmentsForRefTags: caught SQLException attempting to grab taxa Distribution ");
-            exc.printStackTrace();
-        }
-        return tagAIBuilder.build();             
-    }
-
-    @Override
-    public Multimap<RefTagData, AlignmentInfo> getAllRefTagAlignments(int minscore) {
-        // for each tag on the refTag list, grab all it's alignments.
-        // This is just getting reftag/reftag alignments
-        loadRefTagHash(); // get updated list of refTags
- 
-        Set<RefTagData> refTags = getRefTags();
-        List<RefTagData> refTagList = new ArrayList<RefTagData>(refTags);
-        return getRefAlignmentsForRefTags(refTagList,minscore);           
-    }
-    
-    @Override
-    public Multimap<Tag, AlignmentInfo> getRefAlignmentsForTags(List<Tag> tags, int minscore) {
-        // This method gets all ref-tag alignments for each non-ref tag on the list
-        ImmutableMultimap.Builder<Tag,AlignmentInfo> tagAIBuilder = ImmutableMultimap.builder();
-        // DO we need to reload the hashes?  WIll new tags be added after we've loaded the db?
-//        loadTagHash(); // get updated tag map
-//        loadRefTagHash();
- 
-        try {
-            for (Tag tag: tags){
-                // For each tag on the list, get all its alignments
-                Integer tagID = tagTagIDMap.get(tag);
-                if (tagID == null) {
-                    // what is best to print out here?
-                    // should this return a NULL to indicate an error with the tag?
-                    System.out.println("getAlignmentsForTag: no tagID in alignments table for tag: " + tag.sequence());
-                    continue;
-                }
- 
-                refTagAlignsForNonRefTagPS.setInt(1,tagID);
-                refTagAlignsForNonRefTagPS.setInt(2, minscore);
-                ResultSet rs = refTagAlignsForNonRefTagPS.executeQuery();
-                while (rs.next()) {
-                    int alignPos = rs.getInt("ref_align_start_pos");
-                    int ref_strand = rs.getInt("ref_align_strand");
-                    int score = rs.getInt("score");
-                    // refTagID identifies the RefTagData object, that object contains the referenceGenome
-                    // name, which is not stored explicitly in the tagAlignments table.
-                    RefTagData rtd = reftagReftagIDMap.inverse().get(rs.getInt("refTagID"));
-                    AlignmentInfo ai = new AlignmentInfo(rtd.tag(),rtd.chromosome(),
-                            rtd.position(),alignPos,ref_strand,rtd.refGenome(),score);                   
-                    tagAIBuilder.put(tag,ai);
-                }              
-            }
-        } catch (SQLException exc) {
-            System.out.println("getRefAlignmentsForTags: caught SQLException attempting to get reftag alignments ");
-            exc.printStackTrace();
-        }
-        return tagAIBuilder.build();      
-    }
-    
-    @Override
-    public Multimap<Tag, AlignmentInfo> getTagAlignmentsForRefTag(RefTagData refTag, int minscore) {
-        ImmutableMultimap.Builder<Tag,AlignmentInfo> tagAIBuilder = ImmutableMultimap.builder();
-        // This method takes a refTag and finds all the tag (ie non-ref tags) aligned against it
-        // that have the specified minimum score
-        int refTagID = reftagReftagIDMap.get(refTag);
-        try {
-            connection.setAutoCommit(false);
-            nonReftagAlignmentsForRefTagPS.setInt(1, refTagID );
-            nonReftagAlignmentsForRefTagPS.setInt(2, minscore);
-            
-            ResultSet rs = nonReftagAlignmentsForRefTagPS.executeQuery();
-            while (rs.next()) {
-                int alignPos = rs.getInt("ref_align_start_pos");
-                int ref_strand = rs.getInt("ref_align_strand");
-                int score = rs.getInt("score");
-                Tag tag1 = tagTagIDMap.inverse().get(rs.getInt("tag1id"));
-
-                AlignmentInfo ai = new AlignmentInfo(refTag.tag(),refTag.chromosome(),
-                        refTag.position(),alignPos,ref_strand,refTag.refGenome(),score);                   
-                tagAIBuilder.put(tag1,ai);
-            }              
-        } catch (Exception exc) {
-            exc.printStackTrace();
-        }
-        return tagAIBuilder.build();
-    }
-    
     @Override
     public void  putTagTagCorrelationMatrix(Multimap<Tag,TagCorrelationInfo> tagCorrelationMap){
         int batchCount=0;

@@ -39,14 +39,6 @@ public interface RepGenDataWriter extends RepGenData {
      * @param tagNameMap
      */
     boolean putAllNamesTag(Map<Tag,String> tagNameMap);
-    
-    /**
-     * Add a reference tag to list of known reference tags
-     * @return true if this set did not already contain the specified element
-     * @param refTagPositionap  map containing refTag sequence and all chrom/positions where it occurs
-     * @param referenceGenome  name of reference genome
-     */
-    boolean putAllRefTag(Multimap<Tag,Position> refTagPositionMap, String refGenome);
 
     /**
      * Associates a map full of the specified Tag (key) with the specified TaxaDistribution (value).
@@ -70,32 +62,11 @@ public interface RepGenDataWriter extends RepGenData {
      */
     void putTagTagAlignments(Multimap<Tag,AlignmentInfo> tagAlignInfoMap);
     
-    /**
-     * Stores the Smith Waterman score from2 tag alignments. 
-     * tag2 chrom/pos comes from the AlignmentInfo object.  tag1 chrom/pos are separate parameters
-     * @param tagAlignInfoMap Map of specific tag to tag2 alignment data
-     * @param refGeome    String used to determine refernce genome if one of the tags is a reference
-     */
-    void putTagRefTagAlignments(Multimap<Tag,AlignmentInfo> tagAlignInfoMap, String refGenome);
-    
-    /**
-     * Adds entries to the tagAlignments table for ref-ref alignments
-     * @param tagAlignInfoMap holds alignment info for each reftag-reftag pair
-     * @param refGenome  name of the reference genome
-     * @throws SQLException
-     */
-    void putRefRefAlignments(Multimap<RefTagData, AlignmentInfo> tagAlignInfoMap, String refGenome);
-    
+
     /*
     Set the specified Tag and Position combination to best, and all others were set to false.
      */
     void setTagAlignmentBest(Tag tag, Position position, boolean isBest);
-
-    /*
-    Associates a specific Tag with an Allele (a specified SNP position and allele call (plus optional support value)).
-    Prior associations at the same Tag-Allele combination are replaced.
-     */
-    boolean putTagAlleles(Multimap<Tag, Allele> tagAlleleMap);
 
     /*
     Adds a new Alignment approach name to a detailed protocol.
@@ -104,12 +75,6 @@ public interface RepGenDataWriter extends RepGenData {
 
     /*Sets the taxaList for given set of Taxa, this is the order in which the taxa distribution is recorded*/
     void putTaxaList(TaxaList taxaList);
-    
-    /**
-     * Stores a quality position in the snpposition table for each chromosome/position
-     * @param qsMap
-     */
-    void putSNPPositionQS(PositionList qsPosL);
     
     /**
      * Removes all data from the tagtaxadistribution table. 
@@ -149,15 +114,6 @@ public interface RepGenDataWriter extends RepGenData {
      * @throws SQLException
      */
     void addReferenceGenome(String refGenome);
-    
-    /**
-     * Adds entries to the allelepair table
-     * @param name
-     * @throws SQLExceptionƒ
-     */
-    void putAllelePairs(Multimap<Tag,Tuple<Tag,Integer>> tagTagAlignMap);
-
-
     
     /**
      * Adds entries to the tagCorrelations table for tag-tag correlation data 
