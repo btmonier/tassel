@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 
@@ -151,4 +152,13 @@ public interface RepGenData {
      */
 
     Multimap<Tag,TagCorrelationInfo> getCorrelationsForTags(List<Tag> tags);
+
+    /**
+     * Method to grab the tag sequence, chrom, position and taxa distributions
+     * from the db.  This returns values for all tags that have an entry in
+     * the tagMapping table.
+     * @return
+     */
+
+    ImmutableMultimap<Tag, Tuple<Position, TaxaDistribution>> getPositionTaxaDistForTag();
 }

@@ -1027,4 +1027,63 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             e.printStackTrace();
         }
     }
+    
+    // This method grabs the chrom, position and taxa distribution data for all tags
+    // that aligned perfectly to a reference tag.
+    @Override
+    public ImmutableMultimap<Tag,Tuple<Position,TaxaDistribution>> getPositionTaxaDistForTag() {
+        ImmutableMultimap.Builder<Tag,Tuple<Position,TaxaDistribution>> ptdBuilder = ImmutableMultimap.builder();
+        String query = "select tag.sequence, tag.seqlen,physicalMapPosition.chromosome, physicalMapPosition.physical_position, physicalMapPosition.strand, tagtaxadistribution.* " +
+                "from tag, physicalMapPosition, tagtaxadistribution, tagMapping where tagMapping.reftagid = tag.tagid and " +
+                "physicalMapPosition.posid = tagMapping.position_id and tag.tagid=tagtaxadistribution.tagid ";
+
+        // This loop is mostly debug.  The number of entries returned
+        // should match the number of entries present in the tagMapping table.
+        try {
+            String query1 = "select count(*) from tag, tagMapping, tagtaxadistribution where tag.tagid=tagMapping.reftagid and tag.tagid=tagtaxadistribution.tagid";
+            ResultSet rs = connection.createStatement().executeQuery(query1);
+            int size = rs.getInt(1);
+            System.out.println("size of all tag entries matching the 3 tables =" + size);
+
+            String query2 = "select count(*) from tag, tagMapping where tag.tagid=tagMapping.reftagid ";
+             rs = connection.createStatement().executeQuery(query2);
+             size = rs.getInt(1);
+            System.out.println("size of all tag entries matching the 2 tables =" + size);
+        } catch (Exception exc){
+            exc.printStackTrace();
+        }
+
+        // The code below grabs the requested data, creates the Tag, POsition and TaxaDistribution
+        // objects, and returns the data in a map.
+        int numValues = 0;
+        try {
+            ResultSet rs=connection.createStatement().executeQuery("select count(*) from tagMapping");
+            int size=rs.getInt(1);
+            rs=connection.createStatement().executeQuery("select count(*) from physicalMapPosition");
+            int pmtsize = rs.getInt(1);
+            System.out.println("size of all entries in tagMapping table=" + size + ", size of physicalMapPosition " + pmtsize);
+            rs = connection.createStatement().executeQuery(query);
+
+            while (rs.next()){
+                numValues++;
+                Tag tag = TagBuilder.instance(rs.getBytes("sequence"),rs.getShort("seqlen")).build();
+                Chromosome chrom = new Chromosome(rs.getString("chromosome"));
+                int posInt = rs.getInt("physical_position");
+                int strand = rs.getInt("strand");
+                Position pos=new GeneralPosition
+                        .Builder(chrom,posInt)
+                        .strand((byte)strand)
+                        .build();
+                TaxaDistribution td = TaxaDistBuilder.create(rs.getBytes("depthsRLE"));
+                Tuple<Position,TaxaDistribution> posTD = new Tuple<Position,TaxaDistribution>(pos,td);
+                ptdBuilder.put(tag,posTD);
+            }
+            System.out.println("\nGetPositionTaxaDistForTag:  number of query values returned: " + numValues );
+
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        }
+        return ptdBuilder.build();
+    }
+
 }
