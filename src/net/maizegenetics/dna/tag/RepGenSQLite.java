@@ -41,7 +41,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
     // The reference tag sequence can show up in different places.
     // refTag is unique based on sequence, chromosome, seqlen, position, refGenomeID.  
     // Sequence can be duplicated on same chrom and on multiple chroms.
-    private BiMap<RefTagData,Integer> reftagReftagIDMap; // Tag is AbstractRefTag.java
     private Map<String,Integer> mappingApproachToIDMap;
     private BiMap<String,Integer> referenceGenomeToIDMap;
     private SortedMap<Position,Integer> physicalMapPositionToIDMap;
@@ -84,7 +83,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             initPreparedStatements();
             loadReferenceGenomeHash();
             loadTagHash();
-            loadRefTagHash();
             loadMappingApproachHash();
             loadTaxaList();
         }
@@ -154,32 +152,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             e.printStackTrace();
         }
     }
-    
-    private void loadRefTagHash() {
-        try{
-            ResultSet rs=connection.createStatement().executeQuery("select count(*) from reftag");
-            int size=rs.getInt(1);
-            System.out.println("size of all tags in reftag table=" + size);
-            if(reftagReftagIDMap==null || size/(reftagReftagIDMap.size()+1)>3) reftagReftagIDMap=HashBiMap.create(size);
-            rs=connection.createStatement().executeQuery("select * from refTag");
-            boolean hasName;
-            try{rs.findColumn("tagName");hasName=true;}catch (SQLException e) {hasName=false;}
-            while(rs.next()) {
-                TagBuilder tagBuilder=TagBuilder.instance(rs.getBytes("sequence"),rs.getShort("seqlen"));
-                if(hasName) tagBuilder.name(rs.getString("tagName"));
-                Tag refTag = tagBuilder.build();
-                String chrom = rs.getString("chromosome");
-                int pos = rs.getInt("position");
-                int refGenID = rs.getInt("refGenomeID");
-                 
-                String refGenName = referenceGenomeToIDMap.inverse().get(refGenID);
-                RefTagData rtd = new RefTagData(refTag,chrom,pos,refGenName);
-                reftagReftagIDMap.putIfAbsent(rtd,rs.getInt("reftagid"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+
 
     private void loadPhysicalMapPositionHash() {
         try{
@@ -293,7 +266,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             try {
                 connection.setAutoCommit(false);
                 PreparedStatement tagInsertPS=
-                        connection.prepareStatement("insert into tag (sequence, seqlen,isReference,qualityScore,numTagInstances) values(?,?,?,?,?)");
+                        connection.prepareStatement("insert into tag (sequence, seqlen,isReference,qualityScore,numTagInstances,sequencetext) values(?,?,?,?,?,?)");
                 for (Map.Entry<Tag, Tuple<Integer,String>> entry : tagInstanceAverageQS.entrySet()) {
                     Tag tag = entry.getKey();
                     if(tagTagIDMap.containsKey(tag)) continue;  //it is already in the DB skip
@@ -304,6 +277,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
                     tagInsertPS.setBoolean(3, tag.isReference());
                     tagInsertPS.setString(4, qscore);
                     tagInsertPS.setInt(5, numInstances);
+                    tagInsertPS.setString(6, tag.sequence());
                     tagInsertPS.addBatch();
                     batchCount++;
                     totalCount++;
@@ -324,12 +298,13 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             try {
                 connection.setAutoCommit(false);
                 PreparedStatement tagInsertPS=
-                        connection.prepareStatement("insert into tag (sequence, seqlen,isReference) values(?,?,?)");
+                        connection.prepareStatement("insert into tag (sequence, seqlen,isReference,sequencetext) values(?,?,?,?)");
                 for (Tag tag: tags) {                
                     if(tagTagIDMap.containsKey(tag)) continue;  //it is already in the DB skip                    
                     tagInsertPS.setBytes(1, tag.seq2BitAsBytes());
                     tagInsertPS.setShort(2, tag.seqLength());
-                    tagInsertPS.setBoolean(3, tag.isReference());                   
+                    tagInsertPS.setBoolean(3, tag.isReference());
+                    tagInsertPS.setString(4, tag.sequence());
                     tagInsertPS.addBatch();
                     batchCount++;
                     totalCount++;
@@ -642,7 +617,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
     
     @Override
     public Set<RefTagData> getRefTags() {
-        return reftagReftagIDMap.keySet();
+        return null;
     }
     
     @Override
@@ -883,7 +858,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         // This method gets all tag-tag alignments for a list of tags (all data is for non-reference tags)
         ImmutableMultimap.Builder<Tag,AlignmentInfo> tagAIBuilder = ImmutableMultimap.builder();
         loadTagHash(); // get updated tag map
-        loadRefTagHash();
  
         try {
             for (Tag tag: tags){
@@ -1019,5 +993,38 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             exc.printStackTrace();
         }
         return tagCorBuilder.build();       
+    }
+
+    @Override
+    public void putTagTagStats(Map<Tuple<Tag, Tag>, Tuple<Double, String>> tagTagStats, String method) {
+        System.out.println("putTagTagStats");
+        try {
+
+            int batchCount=0;
+            if(physicalMapPositionToIDMap==null) loadPhysicalMapPositionHash();
+            connection.setAutoCommit(false);
+            System.out.println("putTagTagStats: size of stats: " + tagTagStats.size());
+            PreparedStatement statInsertPS=connection.prepareStatement(
+                    "INSERT into tag_tag_stats (tag1id, tag2id, method_id, stat_value) values(?,?,?,?)");
+            int method_id=mappingApproachToIDMap.get(method);
+            for (Map.Entry<Tuple<Tag, Tag>, Tuple<Double, String>> entry : tagTagStats.entrySet()) {
+                statInsertPS.setInt(1, tagTagIDMap.get(entry.getKey().getX()));
+                statInsertPS.setInt(2, tagTagIDMap.get(entry.getKey().getY()));
+                statInsertPS.setInt(3, method_id);
+                statInsertPS.setDouble(4, entry.getValue().getX());
+                System.out.printf("%d\t%d\t%d\t%g\n",tagTagIDMap.get(entry.getKey().getX()),tagTagIDMap.get(entry.getKey().getY()),method_id, entry.getValue().getX());
+                statInsertPS.addBatch();
+                batchCount++;
+                if(batchCount>10000) {
+                    System.out.println("putTagTagStats next"+batchCount);
+                    statInsertPS.executeBatch();
+                    batchCount=0;
+                }
+            }
+            statInsertPS.executeBatch();
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

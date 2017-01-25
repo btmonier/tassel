@@ -117,4 +117,11 @@ public interface RepGenDataWriter extends RepGenData {
      * @throws SQLException
      */
     void putTagTagCorrelationMatrix(Multimap<Tag,TagCorrelationInfo> tagCorrelationMap);
+
+    /**
+     * Adds entries to the tagCorrelations table for tag-tag correlation data
+     * @param tagTagStats holds correltaions info for each tag/taxa-depth to tag/taxa-depth vector pair
+     * @throws SQLException
+     */
+    void putTagTagStats(Map<Tuple<Tag,Tag>,Tuple<Double,String>> tagTagStats, String method);
 }

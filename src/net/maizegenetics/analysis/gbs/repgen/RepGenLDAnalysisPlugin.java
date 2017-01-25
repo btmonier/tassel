@@ -6,24 +6,19 @@ package net.maizegenetics.analysis.gbs.repgen;
 import java.awt.Frame;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import javax.swing.ImageIcon;
 
+import com.google.common.collect.*;
+import com.google.common.primitives.Ints;
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
+import net.maizegenetics.analysis.popgen.DonorHypoth;
+import net.maizegenetics.util.Tuple;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 import org.apache.log4j.Logger;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 
 import net.maizegenetics.analysis.popgen.LinkageDisequilibrium;
 import net.maizegenetics.dna.tag.RepGenDataWriter;
@@ -91,67 +86,100 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
             int tagcount = 0;
 
             int processedTags = 0;
-            System.out.println("TIme to get all tags with taxa from db: " + (System.nanoTime() - totalTime)/1e9 + " seconds.\n");
+            System.out.println("Time to get all tags with taxa from db: " + (System.nanoTime() - totalTime)/1e9 + " seconds.\n");
             time = System.nanoTime();
             Multimap<Tag,TagCorrelationInfo> tagTagCorrelations = Multimaps.synchronizedMultimap(HashMultimap.<Tag,TagCorrelationInfo>create());
             System.out.println("\nStart processing tag correlations.  Number of tags in db: " + tagTaxaMap.keySet().size());
             Set<Tag> tagSet = tagTaxaMap.keySet();
-            List<Tag> tagList = new ArrayList<Tag>(tagSet);
-            
-            for (int tidx = 0; tidx < tagList.size(); tidx++) {
-            //for (Tag tag1 : tagTaxaMap.keySet()) {
-                Tag tag1 = tagList.get(tidx);
-                tagcount++;
-                processedTags++;
-                // get dist for each taxa
-                TaxaDistribution tag1TD = tagTaxaMap.get(tag1);
-                if (tag1TD == null) {
-                    ((RepGenSQLite)repGenData).close();
-                    System.out.println("GetTagTaxaDist: got null tagTD at tagcount " + tagcount);
-                    return null; // But this should return an error?
+            List<Tag> tagList = new ArrayList<>(tagSet);
+            MinMaxPriorityQueue<Tuple<Double,Integer>>[] corrQueList = new MinMaxPriorityQueue[tagList.size()];
+            double[][] depths=new double[tagList.size()][];
+            Ordering<Tuple<Double,Integer>> byCorrOrdering = new Ordering<Tuple<Double,Integer>>() {
+                public int compare(Tuple<Double,Integer>left, Tuple<Double,Integer> right) {
+                    return Double.compare(left.x,right.x);
                 }
-                int[] depths1 = tag1TD.depths(); // gives us the depths for each taxon
-                // This needs to be doubles for Pearson
-                double[] ddepths1 = new double[depths1.length];
-                
-                // Apparently no shorter method of casting int to double 
-                for (int idx = 0; idx < depths1.length; idx++) {
-                    ddepths1[idx] = (double)depths1[idx];
-                }
+            };
+            for(int tidx = 0; tidx < tagList.size(); tidx++) {
+                //depths[tidx]= Arrays.stream(tagTaxaMap.get(tagList.get(tidx)).depths()).asDoubleStream().toArray();
+                depths[tidx]= Arrays.stream(tagTaxaMap.get(tagList.get(tidx)).depths()).mapToDouble(i -> (i>0)?1:0).toArray();
+                corrQueList[tidx]=MinMaxPriorityQueue.orderedBy(byCorrOrdering).maximumSize(10).create();
+            }
+            PearsonsCorrelation Pearsons = new PearsonsCorrelation();
 
-                double[] depthsPrime1 = new double[depths1.length];
-                for (int idx = 0; idx < depthsPrime1.length; idx++) {
-                    // boolean - presence/absence
-                    if (ddepths1[idx] > 0) depthsPrime1[idx] = 1;
-                    else depthsPrime1[idx] = 0;
+            for (int tidx = 0; tidx < tagList.size(); tidx++) {
+                for (int tidy = 0; tidy < tidx; tidy++) {
+                    double p1 = Pearsons.correlation(depths[tidx],depths[tidy]);
+                    corrQueList[tidx].add(new Tuple(p1,tidy));
+                    corrQueList[tidy].add(new Tuple(p1,tidx));
                 }
-                final int tIdxFinal = tidx; // IntStream forEach must have "final" variable, tidx is not final
-                IntStream.range(tidx+1,tagList.size()).parallel().forEach(item -> {
-                    calculateCorrelations(tagTagCorrelations, tagTaxaMap, 
-                            tagList.get(tIdxFinal), tagList.get(item), ddepths1, depthsPrime1);
+                System.out.println(tidx);
+            }
+            Map<Tuple<Tag,Tag>,Tuple<Double,String>> results=new HashMap<>();
+            IntStream.range(0,tagList.size()).forEach(i -> {
+                corrQueList[i].forEach(corrTagIndex -> {
+                    results.put(new Tuple<>(tagList.get(i),tagList.get(corrTagIndex.getY())),
+                            new Tuple<>(corrTagIndex.getX(),""));
                 });
-                
-                if (tagcount > 1000) {
-                    // comment out when run for real!
-                    System.out.println("FInished processing " + processedTags + " tags, this set took " + (System.nanoTime() - time)/1e9 + " seconds, now load to db ..." );
-                    time = System.nanoTime();
-                    repGenData.putTagTagCorrelationMatrix(tagTagCorrelations);
-                    System.out.println("Loading DB took " + (System.nanoTime() - time)/1e9 + " seconds.\n");
-                    tagcount = 0;
-                    tagTagCorrelations.clear(); // start fresh with next 1000
-                    time = System.nanoTime();
-                }
+            });
+            System.out.println(results.toString());
+            repGenData.addMappingApproach("PearsonMaximumRepulsionPAV");
+            repGenData.putTagTagStats(results, "PearsonMaximumRepulsionPAV");
+
             
-            }
-            if (tagcount > 0 ) {
-                System.out.println("Finished processing last tags, load to DB");
-                time = System.nanoTime();
-                repGenData.putTagTagCorrelationMatrix(tagTagCorrelations);
-                System.out.println("Loading DB took " + (System.nanoTime() - time)/1e9 + " seconds.\n");
-                tagcount = 0;
-                tagTagCorrelations.clear(); // start fresh with next 1000
-            }
-            System.out.println("Total number of tags processed: " + processedTags );           
+//            for (int tidx = 0; tidx < tagList.size(); tidx++) {
+//            //for (Tag tag1 : tagTaxaMap.keySet()) {
+//                Tag tag1 = tagList.get(tidx);
+//                tagcount++;
+//                processedTags++;
+//                // get dist for each taxa
+//                TaxaDistribution tag1TD = tagTaxaMap.get(tag1);
+//                if (tag1TD == null) {
+//                    ((RepGenSQLite)repGenData).close();
+//                    System.out.println("GetTagTaxaDist: got null tagTD at tagcount " + tagcount);
+//                    return null; // But this should return an error?
+//                }
+//                int[] depths1 = tag1TD.depths(); // gives us the depths for each taxon
+//                // This needs to be doubles for Pearson
+//                double[] ddepths1 = new double[depths1.length];
+//
+//                // Apparently no shorter method of casting int to double
+//                for (int idx = 0; idx < depths1.length; idx++) {
+//                    ddepths1[idx] = (double)depths1[idx];
+//                }
+//
+//                double[] depthsPrime1 = new double[depths1.length];
+//                for (int idx = 0; idx < depthsPrime1.length; idx++) {
+//                    // boolean - presence/absence
+//                    if (ddepths1[idx] > 0) depthsPrime1[idx] = 1;
+//                    else depthsPrime1[idx] = 0;
+//                }
+//                final int tIdxFinal = tidx; // IntStream forEach must have "final" variable, tidx is not final
+//                IntStream.range(tidx+1,tagList.size()).parallel().forEach(item -> {
+//                    calculateCorrelations(tagTagCorrelations, tagTaxaMap,
+//                            tagList.get(tIdxFinal), tagList.get(item), ddepths1, depthsPrime1);
+//                });
+//
+//                if (tagcount > 1000) {
+//                    // comment out when run for real!
+//                    System.out.println("Finished processing " + processedTags + " tags, this set took " + (System.nanoTime() - time)/1e9 + " seconds, now load to db ..." );
+//                    time = System.nanoTime();
+//                    repGenData.putTagTagCorrelationMatrix(tagTagCorrelations);
+//                    System.out.println("Loading DB took " + (System.nanoTime() - time)/1e9 + " seconds.\n");
+//                    tagcount = 0;
+//                    tagTagCorrelations.clear(); // start fresh with next 1000
+//                    time = System.nanoTime();
+//                }
+//
+//            }
+//            if (tagcount > 0 ) {
+//                System.out.println("Finished processing last tags, load to DB");
+//                time = System.nanoTime();
+//                repGenData.putTagTagCorrelationMatrix(tagTagCorrelations);
+//                System.out.println("Loading DB took " + (System.nanoTime() - time)/1e9 + " seconds.\n");
+//                tagcount = 0;
+//                tagTagCorrelations.clear(); // start fresh with next 1000
+//            }
+//            System.out.println("Total number of tags processed: " + processedTags );
             
             ((RepGenSQLite)repGenData).close();
             
