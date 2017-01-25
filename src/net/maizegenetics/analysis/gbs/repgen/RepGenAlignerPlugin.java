@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -163,22 +162,7 @@ public class RepGenAlignerPlugin extends AbstractPlugin {
                 return null;
             }
             
-//            BufferedWriter tagbw = Utils.getBufferedWriter("/home/lcj34/repGen_outputFiles/tagsLoaded.txt");
-//            
-//            try {
-//                List<String> tags = new ArrayList<String>();
-//                for (Tag tag: tagsWithDepth.keySet()){
-//                    tags.add(tag.sequence());
-//                }
-//                Collections.sort(tags);
-//                for (String seq : tags) {
-//                    tagbw.write(seq);
-//                    tagbw.write("\n");
-//                }
-//                tagbw.close();
-//            } catch (IOException ioe) {
-//                ioe.printStackTrace();
-//            }
+/*
                     
             Multimap<String,Tag> kmerTagMap = HashMultimap.create();
                           
@@ -284,7 +268,7 @@ public class RepGenAlignerPlugin extends AbstractPlugin {
             repGenData.addReferenceGenome(refGenome());
             
             // Add ref tag and tags separately. Add to tagAlignment map,
-            repGenData.putRefTagMapping(refTagPositionMap, refGenome());
+            repGenData.putTagPositionMapping(refTagPositionMap, refGenome(), );
             
             // Get tags stored from RepGenLoadSeqToDB        
             Set<Tag> tagsToAlign = repGenData.getTags();
@@ -303,8 +287,8 @@ public class RepGenAlignerPlugin extends AbstractPlugin {
             // neither tag is reference, null and -1 for tag1 chrom/pos
             //repGenData.putTagTagAlignments(tagAlignInfoMap, false,false, null,-1,refGenome());
             repGenData.putTagTagAlignments(tagAlignInfoMap);
- 
-            System.out.println("Calling calculateTagRefTagALignment for tags WITH ref");
+ */
+  /*          System.out.println("Calling calculateTagRefTagALignment for tags WITH ref");
             Set<RefTagData> refTags = repGenData.getRefTags();
             List<RefTagData> refTagList = new ArrayList<RefTagData>(refTags);
             
@@ -322,6 +306,7 @@ public class RepGenAlignerPlugin extends AbstractPlugin {
             calculateRefRefAlignment(refTagList,refTagPositionMap,refTagAlignInfoMap);
             System.out.println("Number of reftag-reftag alignments: " + refTagAlignInfoMap.size() + ", store to db.");
             repGenData.putRefRefAlignments(refTagAlignInfoMap, refGenome()); // CREATE putRefRefAlignments -  different parameters
+            */
             ((RepGenSQLite)repGenData).close();
 
             myLogger.info("Finished RepGenAlignerPlugin\n");

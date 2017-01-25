@@ -482,7 +482,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
     // tagMapping tables.
     //KEEP THIS ED
     @Override
-    public void putRefTagMapping(Multimap<Tag, Position> refTagPositionMap, String refGenome) {
+    public void putTagPositionMapping(Multimap<Tag, Position> refTagPositionMap, String refGenome, String mappingMethod) {
         int batchCount=0;
         loadReferenceGenomeHash();
         try {
@@ -492,6 +492,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
               + ", keyset size: " + refTagPositionMap.keySet().size() + ", values size: " 
                     + refTagPositionMap.values().size());
             putPhysicalMapPositionsIfAbsent(refTagPositionMap.values(),refGenome);
+            int mappingApproachID=mappingApproachToIDMap.get(mappingMethod);
             connection.setAutoCommit(false);
             for (Map.Entry<Tag, Position> entry : refTagPositionMap.entries()) {
                 // add reference tags to tagMapping table - map refTag to physicalMapPosition
@@ -502,7 +503,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
                 // " values(?,?,?,?,?)");
                 posTagMappingInsertPS.setInt(ind++, tagTagIDMap.get(entry.getKey())); // refTagID
                 posTagMappingInsertPS.setInt(ind++, physicalMapPositionToIDMap.get(entrypos)); // position
-                posTagMappingInsertPS.setInt(ind++, getMappingApproachID(entrypos)); // method_id
+                posTagMappingInsertPS.setInt(ind++, mappingApproachID); // method_id
                 posTagMappingInsertPS.setInt(ind++, 0);  //todo this needs to be input data (bp_error)
                 posTagMappingInsertPS.setFloat(ind++, 0);  //todo this needs to be input data (cm_error)
 

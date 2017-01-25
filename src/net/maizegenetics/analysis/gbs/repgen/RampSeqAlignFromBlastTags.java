@@ -13,8 +13,10 @@ import net.maizegenetics.dna.tag.Tag;
 import net.maizegenetics.dna.tag.TagBuilder;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
+import net.maizegenetics.plugindef.GeneratePluginCode;
 import net.maizegenetics.plugindef.PluginParameter;
 import org.apache.log4j.Logger;
+import org.jfree.data.general.Dataset;
 
 import javax.swing.*;
 import java.awt.*;
@@ -67,10 +69,6 @@ public class RampSeqAlignFromBlastTags extends AbstractPlugin {
             .description("Tab delimited Blast file output with NO header line, that contains only the data from columns for chrom, start postion, end position. \nThis data should be filtered to contain only entries whose identiy value was 98% or greater.").build();
     
     static GenomeSequence myRefSequence = null;
-    // length of ref tag sequence from which to search for primer strings
-    // This is half the length
-    //static int refAlignLen = 600; // could be a plugin parameter - hard code for testing
-    static int refAlignLen = 1000;
 
     public RampSeqAlignFromBlastTags() {
         super(null, false);
@@ -88,12 +86,12 @@ public class RampSeqAlignFromBlastTags extends AbstractPlugin {
     public void postProcessParameters() {
 
         if (myDBFile.isEmpty() || !Files.exists(Paths.get(dBFile()))) {
-            throw new IllegalArgumentException("RepGenPhase2AlignerPlugin: postProcessParameters: Input DB not set or found");
+            throw new IllegalArgumentException("RampSeqAlignFromBlastTags: postProcessParameters: Input DB not set or found");
         }
         if (!refGenome.isEmpty()) {
             myRefSequence = GenomeSequenceBuilder.instance(refGenome());
         } else {
-            throw new IllegalArgumentException("RepGenPhase2AlignerPlugin: postProcessParameters: reference genome not set or found");
+            throw new IllegalArgumentException("RampSeqAlignFromBlastTags: postProcessParameters: reference genome not set or found");
         }
     }
 
@@ -101,45 +99,34 @@ public class RampSeqAlignFromBlastTags extends AbstractPlugin {
     public DataSet processData(DataSet input) {
         long totalTime = System.nanoTime();
         long time=System.nanoTime();
+        RepGenDataWriter repGenData=null;
  
         try {           
             System.out.println("RampSeqAlignFromBlastTags:processData begin"); 
-            RepGenDataWriter repGenData=new RepGenSQLite(dBFile());   
+            repGenData=new RepGenSQLite(dBFile());
             time = System.nanoTime();
-            
-           //  Create synchronized map for use in parallel streams
+            repGenData.addMappingApproach("ReferenceBLAST");
             Multimap<Tag,Position> reftagPosMap = createRefTagsFromBlast(blastFile());
-            repGenData.putRefTagMapping(reftagPosMap,refGenome());
-            //add new refTag
-            //repGenData.putAllTag(reftagPosMap.keySet(),null);
-
-
+            repGenData.putTagPositionMapping(reftagPosMap,refGenome(), "ReferenceBLAST");
             ((RepGenSQLite)repGenData).close();
 
-            myLogger.info("Finished RepGenPhase2AlignerPlugin\n");
+            myLogger.info("Finished RampSeqAlignFromBlastTags\n");
         } catch (Exception exc) {
             exc.printStackTrace();
         }
         
         
         System.out.println("Process took " + (System.nanoTime() - totalTime)/1e9 + " seconds.\n");
-        return null; 
+        return DataSet.getDataSet(repGenData);
     }
 
     public Multimap<Tag,Position> createRefTagsFromBlast(String chromStartEndFile) {
         System.out.println("Begin createRefTagsFromBlast");
         final Multimap<Tag,Position> reftagPosMap=HashMultimap.create();
-        //read BLAST file to fill set
-        //make a map Position -> Tag using the reference genome
-        //iterate map (
-        // if Tag exist (insert into tagMapping2 and physicalMapPosition)
-        // else (insert into tag, tagMapping2 and physicalMapPosition)
-
-        // read the BLAST file data into the map
         try {
             Files.lines(Paths.get(chromStartEndFile))
                     .map(line -> line.split("\t"))
-                    .filter(token -> Double.parseDouble(token[2])>98)
+                    .filter(token -> Double.parseDouble(token[2])>minIdentity())
                     .forEach(token -> {
                         Chromosome chr=new Chromosome(token[1]);
                         int subjectStart=Integer.parseInt(token[8]);
@@ -164,6 +151,13 @@ public class RampSeqAlignFromBlastTags extends AbstractPlugin {
         return reftagPosMap;
     }
 
+    // The following getters and setters were auto-generated.
+    // Please use this method to re-generate.
+    //
+    public static void main(String[] args) {
+        GeneratePluginCode.generate(RampSeqAlignFromBlastTags.class);
+    }
+
      
     @Override
     public ImageIcon getIcon() {
@@ -181,6 +175,14 @@ public class RampSeqAlignFromBlastTags extends AbstractPlugin {
     public String getToolTipText() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    /**
+     * Convenience method to run plugin with one return object.
+     */
+    // TODO: Replace <Type> with specific type.
+    public RepGenDataWriter runPlugin(DataSet input) {
+        return (RepGenDataWriter) performFunction(input).getData(0).getData();
     }
 
     /**
@@ -206,7 +208,7 @@ public class RampSeqAlignFromBlastTags extends AbstractPlugin {
     }
 
     /**
-     * Referemce Genome File for aligning against 
+     * Referemce Genome File for aligning against
      *
      * @return Reference Genome File
      */
@@ -216,7 +218,7 @@ public class RampSeqAlignFromBlastTags extends AbstractPlugin {
 
     /**
      * Set Reference Genome File. Referemce Genome File for
-     * aligning against 
+     * aligning against
      *
      * @param value Reference Genome File
      *
@@ -228,9 +230,31 @@ public class RampSeqAlignFromBlastTags extends AbstractPlugin {
     }
 
     /**
+     * Parameter to filter the BLAST results by minimum identity
+     *
+     * @return Minimum identity
+     */
+    public Integer minIdentity() {
+        return minIdentity.value();
+    }
+
+    /**
+     * Set Minimum identity. Parameter to filter the BLAST
+     * results by minimum identity
+     *
+     * @param value Minimum identity
+     *
+     * @return this plugin
+     */
+    public RampSeqAlignFromBlastTags minIdentity(Integer value) {
+        minIdentity = new PluginParameter<>(minIdentity, value);
+        return this;
+    }
+
+    /**
      * Tab delimited Blast file output with NO header line,
      * that contains only the data from columns for chrom,
-     * start postion, end position. 
+     * start postion, end position.
      * This data should be filtered to contain only entries
      * whose identiy value was 98% or greater.
      *
@@ -243,9 +267,9 @@ public class RampSeqAlignFromBlastTags extends AbstractPlugin {
     /**
      * Set Blast File. Tab delimited Blast file output with
      * NO header line, that contains only the data from columns
-     * for chrom, start position, end position. 
+     * for chrom, start postion, end position.
      * This data should be filtered to contain only entries
-     * whose identify value was 98% or greater.
+     * whose identiy value was 98% or greater.
      *
      * @param value Blast File
      *

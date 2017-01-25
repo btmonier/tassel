@@ -4,19 +4,14 @@
 package net.maizegenetics.dna.tag;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Multimap;
 
 import net.maizegenetics.analysis.gbs.repgen.AlignmentInfo;
-import net.maizegenetics.analysis.gbs.repgen.RefTagData;
 import net.maizegenetics.analysis.gbs.repgen.TagCorrelationInfo;
 import net.maizegenetics.dna.map.Position;
-import net.maizegenetics.dna.map.PositionList;
-import net.maizegenetics.dna.snp.Allele;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.util.Tuple;
 
@@ -48,11 +43,12 @@ public interface RepGenDataWriter extends RepGenData {
 
 
     /**
-     * Associates the specified Reference Tag with the specified site Position (value). 
+     * Associates the specified Reference Tag with the specified site Position (value).
      * @param tagAnnotatedPositionMap Map of specific tag with chrom/positions specified.
+     * @param mappingMethod
      *       
      */
-    void putRefTagMapping(Multimap<Tag, Position> tagAnnotatedPositionMap, String refGenome);
+    void putTagPositionMapping(Multimap<Tag, Position> tagAnnotatedPositionMap, String refGenome, String mappingMethod);
     
     /**
      * Stores the Smith Waterman score from2 tag alignments. 

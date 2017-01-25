@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.ImageIcon;
 
@@ -51,7 +49,6 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.GeneratePluginCode;
 import net.maizegenetics.plugindef.PluginParameter;
-import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.Tuple;
 import net.maizegenetics.util.Utils;
 
@@ -340,7 +337,7 @@ public class RepGenPhase2AlignerPlugin extends AbstractPlugin {
             repGenData.addReferenceGenome(refGenome());
             
             // Add ref tag and tags separately. Add to tagAlignment map,
-            repGenData.putRefTagMapping(refTagPositionMap, refGenome());
+   //         repGenData.putTagPositionMapping(refTagPositionMap, refGenome(), );
             
 //            // Get tags stored from RepGenLoadSeqToDB        
 //            Set<Tag> tagsToAlign = repGenData.getTags();
