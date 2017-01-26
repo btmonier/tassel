@@ -603,7 +603,12 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         try {
             tagTaxaDistPS.setInt(1,tagid);
             ResultSet rs=tagTaxaDistPS.executeQuery();
-            return TaxaDistBuilder.create(rs.getBytes(1));
+            while (rs.next()) {
+                // only non-ref tags have taxa distribution
+                return TaxaDistBuilder.create(rs.getBytes(1));
+            }
+            return null; // no taxa dist for this tag
+            
         } catch (SQLException e) {
             e.printStackTrace();
         }
