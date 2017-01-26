@@ -1042,22 +1042,6 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
                 "from tag, physicalMapPosition, tagtaxadistribution, tagMapping where tagMapping.reftagid = tag.tagid and " +
                 "physicalMapPosition.posid = tagMapping.position_id and tag.tagid=tagtaxadistribution.tagid ";
 
-        // This loop is mostly debug.  The number of entries returned
-        // should match the number of entries present in the tagMapping table.
-        try {
-            String query1 = "select count(*) from tag, tagMapping, tagtaxadistribution where tag.tagid=tagMapping.reftagid and tag.tagid=tagtaxadistribution.tagid";
-            ResultSet rs = connection.createStatement().executeQuery(query1);
-            int size = rs.getInt(1);
-            System.out.println("size of all tag entries matching the 3 tables =" + size);
-
-            String query2 = "select count(*) from tag, tagMapping where tag.tagid=tagMapping.reftagid ";
-             rs = connection.createStatement().executeQuery(query2);
-             size = rs.getInt(1);
-            System.out.println("size of all tag entries matching the 2 tables =" + size);
-        } catch (Exception exc){
-            exc.printStackTrace();
-        }
-
         // The code below grabs the requested data, creates the Tag, POsition and TaxaDistribution
         // objects, and returns the data in a map.
         int numValues = 0;
@@ -1090,5 +1074,4 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         }
         return ptdBuilder.build();
     }
-
 }
