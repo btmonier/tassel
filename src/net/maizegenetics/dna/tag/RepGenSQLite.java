@@ -1086,4 +1086,8 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         return ptdBuilder.build();
     }
 
+    @Override
+    public Tag getTagFromIndexTemp(int tagIndexInDB) {
+        return tagTagIDMap.inverse().get(tagIndexInDB);
+    }
 }

@@ -124,4 +124,6 @@ public interface RepGenDataWriter extends RepGenData {
      * @throws SQLException
      */
     void putTagTagStats(Map<Tuple<Tag,Tag>,Tuple<Double,String>> tagTagStats, String method);
+
+    Tag getTagFromIndexTemp(int tagIndexInDB);
 }

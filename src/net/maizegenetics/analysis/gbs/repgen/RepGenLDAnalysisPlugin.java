@@ -15,6 +15,7 @@ import com.google.common.collect.*;
 import com.google.common.primitives.Ints;
 import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import net.maizegenetics.analysis.popgen.DonorHypoth;
+import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.util.Tuple;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
@@ -93,22 +94,46 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
             Set<Tag> tagSet = tagTaxaMap.keySet();
             List<Tag> tagList = new ArrayList<>(tagSet);
             MinMaxPriorityQueue<Tuple<Double,Integer>>[] corrQueList = new MinMaxPriorityQueue[tagList.size()];
-            double[][] depths=new double[tagList.size()][];
+            double[][] depthsTagTaxa=new double[tagList.size()][];
             Ordering<Tuple<Double,Integer>> byCorrOrdering = new Ordering<Tuple<Double,Integer>>() {
                 public int compare(Tuple<Double,Integer>left, Tuple<Double,Integer> right) {
                     return Double.compare(left.x,right.x);
                 }
             };
+
+            TaxaList taxons=repGenData.getTaxaList();
+            final int[] depthByTaxon=new int[taxons.size()];
+            tagTaxaMap.values().stream()
+                .map(TaxaDistribution::depths)
+                .forEach(d -> {
+                    for (int t = 0; t < depthByTaxon.length; t++) {
+                        depthByTaxon[t]+=d[t];
+                    }
+                });
+            int minDepth=10000;
+            int threshold=1;
+            int[] taxaWithSufficientDepth=IntStream.range(0,depthByTaxon.length)
+                    .filter(ti -> taxons.get(ti).getName().startsWith("W"))
+                    .filter(ti -> depthByTaxon[ti]>minDepth)
+                    .toArray();
             for(int tidx = 0; tidx < tagList.size(); tidx++) {
+                int[] depthTags=tagTaxaMap.get(tagList.get(tidx)).depths();
+                depthsTagTaxa[tidx]=IntStream.of(taxaWithSufficientDepth).mapToDouble(ti -> depthTags[ti]).toArray();
                 //depths[tidx]= Arrays.stream(tagTaxaMap.get(tagList.get(tidx)).depths()).asDoubleStream().toArray();
-                depths[tidx]= Arrays.stream(tagTaxaMap.get(tagList.get(tidx)).depths()).mapToDouble(i -> (i>0)?1:0).toArray();
+                //depthsTagTaxa[tidx]= Arrays.stream(tagTaxaMap.get(tagList.get(tidx)).depths()).mapToDouble(i -> (i>0)?1:0).toArray();
                 corrQueList[tidx]=MinMaxPriorityQueue.orderedBy(byCorrOrdering).maximumSize(10).create();
             }
+            for (int t = 0; t < depthByTaxon.length; t++) {
+                System.out.printf("%s\t%d%n",taxons.get(t).getName(), depthByTaxon[t]);
+            }
+
+
             PearsonsCorrelation Pearsons = new PearsonsCorrelation();
 
             for (int tidx = 0; tidx < tagList.size(); tidx++) {
                 for (int tidy = 0; tidy < tidx; tidy++) {
-                    double p1 = Pearsons.correlation(depths[tidx],depths[tidy]);
+                    double p1 = Pearsons.correlation(depthsTagTaxa[tidx],depthsTagTaxa[tidy]);
+
                     corrQueList[tidx].add(new Tuple(p1,tidy));
                     corrQueList[tidy].add(new Tuple(p1,tidx));
                 }
@@ -122,8 +147,8 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
                 });
             });
             System.out.println(results.toString());
-            repGenData.addMappingApproach("PearsonMaximumRepulsionPAV");
-            repGenData.putTagTagStats(results, "PearsonMaximumRepulsionPAV");
+            repGenData.addMappingApproach("PearsonMaximumRepulsionHiCovWhite");
+            repGenData.putTagTagStats(results, "PearsonMaximumRepulsionHiCovWhite");
 
             
 //            for (int tidx = 0; tidx < tagList.size(); tidx++) {
