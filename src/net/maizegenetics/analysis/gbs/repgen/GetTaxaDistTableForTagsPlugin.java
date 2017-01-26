@@ -5,11 +5,15 @@ package net.maizegenetics.analysis.gbs.repgen;
 
 import java.awt.Frame;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.ImageIcon;
+
+import org.apache.log4j.Logger;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -41,6 +45,7 @@ import net.maizegenetics.util.Utils;
  *
  */
 public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
+    private static final Logger myLogger = Logger.getLogger(GetTaxaDistTableForTagsPlugin.class);
     private PluginParameter<String> inputDB = new PluginParameter.Builder<>("db", null, String.class).guiName("Input Database File").required(true).inFile()
             .description("Input Database File").build();
     private PluginParameter<String> outputPrefix = new PluginParameter.Builder<>("o", null, String.class).guiName("").required(true)
@@ -63,15 +68,79 @@ public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
         System.out.println("BEGIN CreateHistogramsForTagMetrics: get tags/refTags from DB");
         RepGenDataWriter repGenData=new RepGenSQLite(inputDB());
         
+        // FIrst get all tag/taxadist .  This will include tags
+        // that are NOT ref tags as well as ones that are.
+        BufferedWriter fileWriter = null;
+        BufferedWriter summaryWriter = null;
+        StringBuilder tagTaxaDistSB = new StringBuilder();
+        StringBuilder summarySB = new StringBuilder();
+        List<Taxon> taxa = repGenData.getTaxaList();
+        
+        // Create tagTaxaDist header line
+        tagTaxaDistSB.append("Tag");
+        taxa.stream().forEach(item -> { // column names are the taxon names
+            tagTaxaDistSB.append("\t");
+            tagTaxaDistSB.append(item.getName());
+        });
+        tagTaxaDistSB.append("\n");
+   
+        String summaryHeader = "Tag\tNumber of Samples\tSamples With Tag\tTotal Tag Depth\n";
+        summarySB.append(summaryHeader);
+        
+        int numSamples = taxa.size();
+        Set<Tag> myTags = repGenData.getTags();
+        int tagcount = 0;
+        int experimentalTags = 0; // these are all tags with taxadist (ie, the tags loaded from fastq)
+        int numRefTagsNoTaxaDist = 0;
+        for (Tag myTag: myTags) {
+            tagcount++;
+            // get dist for each taxa
+            TaxaDistribution tagTD = repGenData.getTaxaDistribution(myTag);
+            if (tagTD == null) {
+                numRefTagsNoTaxaDist++; // reftags have no taxadist unless they map to non-refTag
+                continue;
+            }
+            experimentalTags++;
+            int[] depths = tagTD.depths(); // gives us the depths for each taxon
+            tagTaxaDistSB.append(myTag.sequence());
+ 
+            int totalDepths = 0;
+            int taxaCount = 0;
+            for (int idx = 0; idx < depths.length; idx++) {
+                tagTaxaDistSB.append("\t"); 
+                tagTaxaDistSB.append(depths[idx]);  // add tag depth  
+                totalDepths += depths[idx];
+                if (depths[idx] > 0) taxaCount++;
+            }
+            tagTaxaDistSB.append("\n"); // end of line - start next tag
+            String summarydata = myTag.sequence() + "\t" + numSamples + "\t" + taxaCount + "\t" + totalDepths + "\n";
+            summarySB.append(summarydata.toString());
+        }
+        String tagTaxafile = outputPrefix() + "allTagTaxaDist.txt";
+        String summaryFile = outputPrefix() + "tagTaxaSummaryData.txt";
+        try {  
+            fileWriter = Utils.getBufferedWriter(tagTaxafile);
+            fileWriter.write(tagTaxaDistSB.toString());
+            fileWriter.close();
+            summaryWriter = Utils.getBufferedWriter(summaryFile);
+            summaryWriter.write(summarySB.toString());
+            summaryWriter.close();
+        }
+        catch(IOException e) {
+            myLogger.error("Caught Exception writing to outputFile " + tagTaxafile);
+            System.out.println(e);
+        }
+        System.out.println("Finsihed processing allTagTaxaDist - number of tags: " + tagcount + ", number without taxaDist: " + numRefTagsNoTaxaDist);
+        
+        // Now process tags that have been mapped to reference positions.
+        // This data is reftags.  Some non-refTags have the same sequence as refTags.
         Multimap<Tag,Tuple<Position,TaxaDistribution>> tagDataMap = HashMultimap.<Tag,Tuple<Position,TaxaDistribution>>create();
         tagDataMap = repGenData.getPositionTaxaDistForTag();
         
         System.out.println("Size of tagDataMap keyset: " + tagDataMap.keySet().size() + " size of all entries: " + tagDataMap.size());
-        
-        List<Taxon> taxa = repGenData.getTaxaList();
-        
-        String singleMapFile = outputPrefix() + "singleMappedTags.txt";
-        String multipleMapFile = outputPrefix() + "multipleMappedTags.txt";
+               
+        String singleMapFile = outputPrefix() + "singleMappedRefTags.txt";
+        String multipleMapFile = outputPrefix() + "multipleMappedRefTags.txt";
         BufferedWriter sbw = Utils.getBufferedWriter(singleMapFile);
         BufferedWriter mbw = Utils.getBufferedWriter(multipleMapFile);
         
@@ -79,12 +148,13 @@ public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
         StringBuilder sb  = new StringBuilder();
         String initial = "Tag\tChromosome\tPosition";
         sb.append(initial);
-        for (Taxon taxaname : taxa) { // append taxa names as column headers
+        taxa.stream().forEach(item -> { // column names are the taxon names
             sb.append("\t");
-            sb.append(taxaname.getName());
-        }
+            sb.append(item.getName());
+        });
+
         sb.append("\n");
-        int tagsProcessed = 0;
+        int tagsWithMappingAndTaxa = 0;
         int dataLines1 = 0;
         int dataLinesM = 0;
         try {
@@ -92,7 +162,7 @@ public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
             sbw.write(sb.toString());
             mbw.write(sb.toString());  
             for (Tag tag : tagDataMap.keySet()) {
-                tagsProcessed++;
+                tagsWithMappingAndTaxa++;
                 StringBuilder sb2 = new StringBuilder();
                 Collection<Tuple<Position, TaxaDistribution>>  values = tagDataMap.get(tag);
                 List<Tuple<Position,TaxaDistribution>> data = new ArrayList<Tuple<Position,TaxaDistribution>>(values);
@@ -140,12 +210,21 @@ public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
             exc.printStackTrace();
         }
  
-        System.out.println("Total tags process: " + tagsProcessed + ", singleEntry: " + dataLines1 + ", multiple entries: " + dataLinesM);
-        System.out.println("Process took " + (System.nanoTime() - totalTime)/1e9 + " seconds.");
+        System.out.println("\nTotal tags with physical mapping plus taxa distribution: " + tagsWithMappingAndTaxa + ", singleEntry: " + dataLines1 + ", multiple entries: " + dataLinesM);
+        int numRefTags = numRefTagsNoTaxaDist + tagsWithMappingAndTaxa;
+        
+        System.out.println("\nNum tags in DB: " + tagcount + ", number of refTags in db: " + numRefTags + ", number experimental tags: " + experimentalTags);
+        System.out.println("Num tags perfect mapping to refTag: " + tagsWithMappingAndTaxa);
+        float perfectToExperimental = (float)tagsWithMappingAndTaxa/experimentalTags;
+        System.out.println("Proportion perfectMapping to experimental tags: " + perfectToExperimental);
+        System.out.println("\nProcess took " + (System.nanoTime() - totalTime)/1e9 + " seconds.");
  
         return null;
     }
 
+//    public static void main (String[] args) {
+// 
+//    }
     @Override
     public ImageIcon getIcon() {
         // TODO Auto-generated method stub
