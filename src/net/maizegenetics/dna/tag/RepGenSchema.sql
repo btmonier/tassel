@@ -35,6 +35,17 @@ CREATE TABLE tagMapping (
     PRIMARY KEY (reftagid, position_id)
 );
 
+-- Table: tagMapping
+-- Junction (link) table between reftag, and physicalMapPosition
+CREATE TABLE tagMapping (
+    tagid       INTEGER NOT NULL,
+    posid  INTEGER NOT NULL,
+    method_id    INTEGER NOT NULL,
+    bp_error	INTEGER,
+    cm_error	FLOAT(2),
+    PRIMARY KEY (tagid, posid, method_id)
+);
+
 -- Table: referenceGenome
 -- Identifies reference genomes for physicalMapPosition table
 CREATE TABLE referenceGenome (
