@@ -7,6 +7,7 @@ import java.awt.Frame;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import javax.swing.ImageIcon;
@@ -50,10 +51,16 @@ import net.maizegenetics.plugindef.PluginParameter;
 public class RepGenLDAnalysisPlugin extends AbstractPlugin {
     private static final Logger myLogger = Logger.getLogger(RepGenLDAnalysisPlugin.class);
     
-    private PluginParameter<String> myDBFile = new PluginParameter.Builder<String>("db", null, String.class).guiName("Input DB").required(true).inFile()
+    private PluginParameter<String> myInputDB = new PluginParameter.Builder<String>("db", null, String.class).guiName("Input DB").required(true).inFile()
             .description("Input database file with tags and taxa distribution").build();
-    private PluginParameter<Integer> minTaxa = new PluginParameter.Builder<>("minTaxa", 20, Integer.class).guiName("Min Taxa for RSquared")
-            .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();    
+    private PluginParameter<Integer> minTaxa = new PluginParameter.Builder<>("minTaxa", 50, Integer.class).guiName("Min Taxa for RSquared")
+            .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
+    private PluginParameter<Integer> minTaxaDepth = new PluginParameter.Builder<>("minTaxaDepth", 5000, Integer.class).guiName("Min Taxa for RSquared")
+            .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
+    private PluginParameter<TaxaList> myTaxaList = new PluginParameter.Builder<>("taxaList", null, TaxaList.class).guiName("Taxa list to test")
+            .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
+    private PluginParameter<Integer> minTagCount = new PluginParameter.Builder<>("minTagCount", 100, Integer.class).guiName("Min tag count after filtering")
+            .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
     public RepGenLDAnalysisPlugin() {
         super(null, false);
     }
@@ -69,7 +76,7 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
     @Override
     public void postProcessParameters() {
 
-        if (myDBFile.isEmpty() || !Files.exists(Paths.get(inputDB()))) {
+        if (myInputDB.isEmpty() || !Files.exists(Paths.get(inputDB()))) {
             throw new IllegalArgumentException("RepGenLDAnalysisPlugin: postProcessParameters: Input DB not set or found");
         }
     }
@@ -80,23 +87,30 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
         long time=System.nanoTime();
  
         try {           
-            System.out.println("RepGenLDAnalysis:processData begin, get all tags/taxadist from db"); 
+            System.out.println("RepGenLDAnalysis:processData begin, get all tags/taxadist from db");
             RepGenDataWriter repGenData=new RepGenSQLite(inputDB());
 
             Map <Tag, TaxaDistribution> tagTaxaMap = repGenData.getAllTagsTaxaMap();
+            Map <Tag, double[]> tagDepthMap = new HashMap<>();
+            Map <Tag, MinMaxPriorityQueue<Tuple<Double,Tag>>> tagQueueMap = new HashMap<>();
             int tagcount = 0;
 
             int processedTags = 0;
             System.out.println("Time to get all tags with taxa from db: " + (System.nanoTime() - totalTime)/1e9 + " seconds.\n");
             time = System.nanoTime();
-            Multimap<Tag,TagCorrelationInfo> tagTagCorrelations = Multimaps.synchronizedMultimap(HashMultimap.<Tag,TagCorrelationInfo>create());
             System.out.println("\nStart processing tag correlations.  Number of tags in db: " + tagTaxaMap.keySet().size());
             Set<Tag> tagSet = tagTaxaMap.keySet();
             List<Tag> tagList = new ArrayList<>(tagSet);
             MinMaxPriorityQueue<Tuple<Double,Integer>>[] corrQueList = new MinMaxPriorityQueue[tagList.size()];
+
             double[][] depthsTagTaxa=new double[tagList.size()][];
             Ordering<Tuple<Double,Integer>> byCorrOrdering = new Ordering<Tuple<Double,Integer>>() {
                 public int compare(Tuple<Double,Integer>left, Tuple<Double,Integer> right) {
+                    return Double.compare(left.x,right.x);
+                }
+            };
+            Ordering<Tuple<Double,Tag>> byCorrOrderingTag = new Ordering<Tuple<Double,Tag>>() {
+                public int compare(Tuple<Double,Tag>left, Tuple<Double,Tag> right) {
                     return Double.compare(left.x,right.x);
                 }
             };
@@ -110,45 +124,81 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
                         depthByTaxon[t]+=d[t];
                     }
                 });
-            int minDepth=10000;
-            int threshold=1;
+//            int minDepth=10000;
+//            int threshold=1;
+//            int minObs=50;
+            int minCombDept=5;
+
+            //Filter depths by sufficient depth and taxa in list
             int[] taxaWithSufficientDepth=IntStream.range(0,depthByTaxon.length)
-                    .filter(ti -> taxons.get(ti).getName().startsWith("W"))
-                    .filter(ti -> depthByTaxon[ti]>minDepth)
+                    .filter(ti -> taxaList()==null || taxaList().contains(taxons.get(ti)))  //TODO checks for white
+                    .filter(ti -> depthByTaxon[ti]>minTaxaDepth())
                     .toArray();
-            for(int tidx = 0; tidx < tagList.size(); tidx++) {
-                int[] depthTags=tagTaxaMap.get(tagList.get(tidx)).depths();
-                depthsTagTaxa[tidx]=IntStream.of(taxaWithSufficientDepth).mapToDouble(ti -> depthTags[ti]).toArray();
-                //depths[tidx]= Arrays.stream(tagTaxaMap.get(tagList.get(tidx)).depths()).asDoubleStream().toArray();
-                //depthsTagTaxa[tidx]= Arrays.stream(tagTaxaMap.get(tagList.get(tidx)).depths()).mapToDouble(i -> (i>0)?1:0).toArray();
-                corrQueList[tidx]=MinMaxPriorityQueue.orderedBy(byCorrOrdering).maximumSize(10).create();
+//            for(int tidx = 0; tidx < tagList.size(); tidx++) {
+//                int[] depthTags=tagTaxaMap.get(tagList.get(tidx)).depths();
+//                depthsTagTaxa[tidx]=IntStream.of(taxaWithSufficientDepth).mapToDouble(ti -> depthTags[ti]).toArray();
+//                corrQueList[tidx]=MinMaxPriorityQueue.orderedBy(byCorrOrdering).maximumSize(10).create();
+//            }
+            for (Tag tag : tagTaxaMap.keySet()) {
+                int[] depthTags=tagTaxaMap.get(tag).depths();
+                double[] depthsForNewTL=IntStream.of(taxaWithSufficientDepth).mapToDouble(ti -> depthTags[ti]).toArray();
+                double[] stdDepthsForNewTL=IntStream.of(taxaWithSufficientDepth).mapToDouble(ti -> depthTags[ti]/depthByTaxon[ti]).toArray();
+                double sum= DoubleStream.of(depthsForNewTL).sum();
+                if(sum<minTagCount()) continue;
+                tagDepthMap.put(tag,depthsForNewTL);
+                tagQueueMap.put(tag,MinMaxPriorityQueue.orderedBy(byCorrOrderingTag).maximumSize(10).create());
             }
-            for (int t = 0; t < depthByTaxon.length; t++) {
-                System.out.printf("%s\t%d%n",taxons.get(t).getName(), depthByTaxon[t]);
+            for (int i = 0; i < 20; i++) {
+                System.out.println(i);
+                Tag testTag=tagList.get(i);
+                System.out.println(Arrays.toString(tagTaxaMap.get(testTag).depths()));
+                System.out.println(Arrays.toString(tagDepthMap.get(testTag)));
             }
 
 
-            PearsonsCorrelation Pearsons = new PearsonsCorrelation();
+            for (int t = 0; t < taxaWithSufficientDepth.length; t++) {
+                System.out.printf("%s\t%d%n",taxons.get(taxaWithSufficientDepth[t]).getName(), depthByTaxon[taxaWithSufficientDepth[t]]);
+            }
 
+            for (Map.Entry<Tag, double[]> entry : tagDepthMap.entrySet()) {
+                for (Map.Entry<Tag, double[]> entry2 : tagDepthMap.entrySet()) {
+                    if(entry.hashCode()>=entry2.hashCode()) continue;
+                    double gF2 = calcF2Deviations(entry.getValue(),entry2.getValue(),0.0001);
+                    MinMaxPriorityQueue<Tuple<Double,Tag>> aQueue=tagQueueMap.get(entry.getKey());
+                    aQueue.add(new Tuple<Double,Tag>(gF2,entry2.getKey()));
+                    tagQueueMap.put(entry.getKey(),aQueue);
+                    aQueue=tagQueueMap.get(entry2.getKey());
+                    aQueue.add(new Tuple<Double,Tag>(gF2,entry.getKey()));
+                    tagQueueMap.put(entry2.getKey(),aQueue);
+                }
+            }
+
+            System.out.println("Done");
             for (int tidx = 0; tidx < tagList.size(); tidx++) {
                 for (int tidy = 0; tidy < tidx; tidy++) {
-                    double p1 = Pearsons.correlation(depthsTagTaxa[tidx],depthsTagTaxa[tidy]);
-
-                    corrQueList[tidx].add(new Tuple(p1,tidy));
-                    corrQueList[tidy].add(new Tuple(p1,tidx));
+                    Optional<double[][]> d=filterCombinedDepth(minCombDept, minTaxa(),depthsTagTaxa[tidx],depthsTagTaxa[tidy]);
+                    if(!d.isPresent()) continue;
+                   // double p1 = Pearsons.correlation(d.get()[0],d.get()[1]);
+                    double gF2 = calcF2Deviations(d.get()[0],d.get()[1],0.0001);
+                   // double gF2 = calcRILDeviations(d.get()[0],d.get()[1],0.0001);
+                    corrQueList[tidx].add(new Tuple(gF2,tidy));
+                    corrQueList[tidy].add(new Tuple(gF2,tidx));
                 }
-                System.out.println(tidx);
+                if(tidx%100==0) System.out.println(tidx);
             }
             Map<Tuple<Tag,Tag>,Tuple<Double,String>> results=new HashMap<>();
             IntStream.range(0,tagList.size()).forEach(i -> {
+                if(corrQueList[i].size()==0) {
+                    System.out.println("Stop here");
+                }
                 corrQueList[i].forEach(corrTagIndex -> {
                     results.put(new Tuple<>(tagList.get(i),tagList.get(corrTagIndex.getY())),
                             new Tuple<>(corrTagIndex.getX(),""));
                 });
             });
             System.out.println(results.toString());
-            repGenData.addMappingApproach("PearsonMaximumRepulsionHiCovWhite");
-            repGenData.putTagTagStats(results, "PearsonMaximumRepulsionHiCovWhite");
+            repGenData.addMappingApproach("WhiteT1");
+            repGenData.putTagTagStats(results, "WhiteT1");
 
             
 //            for (int tidx = 0; tidx < tagList.size(); tidx++) {
@@ -215,6 +265,60 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
         System.out.println("Process took " + (System.nanoTime() - totalTime)/1e9 + " seconds.\n");
         return null;
     }
+
+    private double calcF2Deviations(double[] tag1cnt, double[] tag2cnt, double threshold) {
+        double[][] cnts=new double[2][2];
+        double[][] expFreq={{0,0.25},{0.25,0.5}};
+        for (int i = 0; i < tag1cnt.length; i++) {
+            int tag1present=(tag1cnt[i]>threshold)?1:0;
+            int tag2present=(tag2cnt[i]>threshold)?1:0;
+            cnts[tag1present][tag2present]+=1.0;
+        }
+        double xchi=0;
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                if(i==0 && j==0) continue;  //consider whether to test the zero class
+                double exp=tag1cnt.length*expFreq[i][j];
+                xchi+=(cnts[i][j]-exp)*(cnts[i][j]-exp)/exp;
+            }
+        }
+        if(Math.abs(xchi)<1) {
+            System.out.println(xchi+":"+Arrays.deepToString(cnts));
+        }
+        return xchi;
+    }
+    private double calcRILDeviations(double[] tag1cnt, double[] tag2cnt, double threshold) {
+        double[][] cnts=new double[2][2];
+        double[][] expFreq={{0,0.5},{0.5,0.0}};
+        for (int i = 0; i < tag1cnt.length; i++) {
+            int tag1present=(tag1cnt[i]>threshold)?1:0;
+            int tag2present=(tag2cnt[i]>threshold)?1:0;
+            cnts[tag1present][tag2present]+=1.0;
+        }
+        double xchi=0;
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                if(i==0 && j==0) continue;  //consider whether to test the zero class
+                double exp=tag1cnt.length*expFreq[i][j];
+                xchi+=(cnts[i][j]-exp)*(cnts[i][j]-exp)/exp;
+            }
+        }
+        if(Math.abs(xchi)<1) {
+            System.out.println(xchi+":"+Arrays.deepToString(cnts));
+        }
+        return xchi;
+    }
+
+    private Optional<double[][]> filterCombinedDepth(int minimumCombinedDepth, int minObservations, double[] a1, double[] a2) {
+        double[][] result=new double[2][];
+        result[0]=IntStream.range(0,a1.length).filter(i -> a1[i]+a2[i]>minimumCombinedDepth).mapToDouble(i -> a1[i]).toArray();
+        result[1]=IntStream.range(0,a1.length).filter(i -> a1[i]+a2[i]>minimumCombinedDepth).mapToDouble(i -> a2[i]).toArray();
+        if(result[0].length<minObservations) return Optional.empty();
+        return Optional.of(result);
+    }
+
+
+
     
     public void calculateCorrelations(Multimap<Tag,TagCorrelationInfo> tagTagCorrelations, Map <Tag, TaxaDistribution> tagTaxaMap, 
             Tag tag1, Tag tag2, double[] ddepths1,double[] depthsPrime1) {
@@ -278,24 +382,42 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
         return null;
     }
 
+    @Override
+    public String getToolTipText() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     // The following getters and setters were auto-generated.
     // Please use this method to re-generate.
     //
      public static void main(String[] args) {
          GeneratePluginCode.generate(RepGenLDAnalysisPlugin.class);
      }
-    @Override
-    public String getToolTipText() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+
+
+    // The following getters and setters were auto-generated.
+    // Please use this method to re-generate.
+    //
+    // public static void main(String[] args) {
+    //     GeneratePluginCode.generate(RepGenLDAnalysisPlugin.class);
+    // }
+
+    /**
+     * Convenience method to run plugin with one return object.
+     */
+//    // TODO: Replace <Type> with specific type.
+//    public <Type> runPlugin(DataSet input) {
+//        return (<Type>) performFunction(input).getData(0).getData();
+//    }
+
     /**
      * Input database file with tags and taxa distribution
      *
      * @return Input DB
      */
     public String inputDB() {
-        return myDBFile.value();
+        return myInputDB.value();
     }
 
     /**
@@ -307,10 +429,10 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
      * @return this plugin
      */
     public RepGenLDAnalysisPlugin inputDB(String value) {
-        myDBFile = new PluginParameter<>(myDBFile, value);
+        myInputDB = new PluginParameter<>(myInputDB, value);
         return this;
     }
-    
+
     /**
      * Minimum number of taxa that must be present for R-squared
      * to be calculated.
@@ -331,6 +453,75 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
      */
     public RepGenLDAnalysisPlugin minTaxa(Integer value) {
         minTaxa = new PluginParameter<>(minTaxa, value);
+        return this;
+    }
+
+    /**
+     * Minimum number of taxa that must be present for R-squared
+     * to be calculated.
+     *
+     * @return Min Taxa for RSquared
+     */
+    public Integer minTaxaDepth() {
+        return minTaxaDepth.value();
+    }
+
+    /**
+     * Set Min Taxa for RSquared. Minimum number of taxa that
+     * must be present for R-squared to be calculated.
+     *
+     * @param value Min Taxa for RSquared
+     *
+     * @return this plugin
+     */
+    public RepGenLDAnalysisPlugin minTaxaDepth(Integer value) {
+        minTaxaDepth = new PluginParameter<>(minTaxaDepth, value);
+        return this;
+    }
+
+    /**
+     * Minimum number of taxa that must be present for R-squared
+     * to be calculated.
+     *
+     * @return Taxa list to test
+     */
+    public TaxaList taxaList() {
+        return myTaxaList.value();
+    }
+
+    /**
+     * Set Taxa list to test. Minimum number of taxa that
+     * must be present for R-squared to be calculated.
+     *
+     * @param value Taxa list to test
+     *
+     * @return this plugin
+     */
+    public RepGenLDAnalysisPlugin taxaList(TaxaList value) {
+        myTaxaList = new PluginParameter<>(myTaxaList, value);
+        return this;
+    }
+
+    /**
+     * Minimum number of taxa that must be present for R-squared
+     * to be calculated.
+     *
+     * @return Min tag count after filtering
+     */
+    public Integer minTagCount() {
+        return minTagCount.value();
+    }
+
+    /**
+     * Set Min tag count after filtering. Minimum number of
+     * taxa that must be present for R-squared to be calculated.
+     *
+     * @param value Min tag count after filtering
+     *
+     * @return this plugin
+     */
+    public RepGenLDAnalysisPlugin minTagCount(Integer value) {
+        minTagCount = new PluginParameter<>(minTagCount, value);
         return this;
     }
 }
