@@ -7,6 +7,7 @@ import java.awt.Frame;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -61,6 +62,8 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
             .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
     private PluginParameter<Integer> minTagCount = new PluginParameter.Builder<>("minTagCount", 100, Integer.class).guiName("Min tag count after filtering")
             .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
+    private PluginParameter<String> myProcessName = new PluginParameter.Builder<>("methodName", null, String.class).required(true).guiName("Name for process")
+            .description("Name of the process ").build();
     public RepGenLDAnalysisPlugin() {
         super(null, false);
     }
@@ -72,6 +75,14 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
     public RepGenLDAnalysisPlugin(Frame parentFrame, boolean isInteractive) {
         super(parentFrame, isInteractive);
     }
+
+    private static final Map<String, double[][]> segExpectations;
+    static {
+        segExpectations=new HashMap<>();
+        segExpectations.put("RIL",new double[][]{{0,0.495},{0.495,0.01}});
+        segExpectations.put("F2",new double[][]{{0,0.25},{0.25,0.5}});
+    }
+
     
     @Override
     public void postProcessParameters() {
@@ -92,23 +103,21 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
 
             Map <Tag, TaxaDistribution> tagTaxaMap = repGenData.getAllTagsTaxaMap();
             Map <Tag, double[]> tagDepthMap = new HashMap<>();
-            Map <Tag, MinMaxPriorityQueue<Tuple<Double,Tag>>> tagQueueMap = new HashMap<>();
-            int tagcount = 0;
+            Map <Tag, Queue<Tuple<Double,Tag>>> tagQueueMap = new ConcurrentHashMap<>();
 
-            int processedTags = 0;
             System.out.println("Time to get all tags with taxa from db: " + (System.nanoTime() - totalTime)/1e9 + " seconds.\n");
             time = System.nanoTime();
             System.out.println("\nStart processing tag correlations.  Number of tags in db: " + tagTaxaMap.keySet().size());
             Set<Tag> tagSet = tagTaxaMap.keySet();
             List<Tag> tagList = new ArrayList<>(tagSet);
-            MinMaxPriorityQueue<Tuple<Double,Integer>>[] corrQueList = new MinMaxPriorityQueue[tagList.size()];
+            //MinMaxPriorityQueue<Tuple<Double,Integer>>[] corrQueList = new MinMaxPriorityQueue[tagList.size()];
 
             double[][] depthsTagTaxa=new double[tagList.size()][];
-            Ordering<Tuple<Double,Integer>> byCorrOrdering = new Ordering<Tuple<Double,Integer>>() {
-                public int compare(Tuple<Double,Integer>left, Tuple<Double,Integer> right) {
-                    return Double.compare(left.x,right.x);
-                }
-            };
+//            Ordering<Tuple<Double,Integer>> byCorrOrdering = new Ordering<Tuple<Double,Integer>>() {
+//                public int compare(Tuple<Double,Integer>left, Tuple<Double,Integer> right) {
+//                    return Double.compare(left.x,right.x);
+//                }
+//            };
             Ordering<Tuple<Double,Tag>> byCorrOrderingTag = new Ordering<Tuple<Double,Tag>>() {
                 public int compare(Tuple<Double,Tag>left, Tuple<Double,Tag> right) {
                     return Double.compare(left.x,right.x);
@@ -124,137 +133,65 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
                         depthByTaxon[t]+=d[t];
                     }
                 });
-//            int minDepth=10000;
-//            int threshold=1;
-//            int minObs=50;
-            int minCombDept=5;
 
-            //Filter depths by sufficient depth and taxa in list
+            int minCombDept=5;
+            System.out.println(Arrays.toString(depthByTaxon));
+
+            //Filter taxa by depths and taxa in list
             int[] taxaWithSufficientDepth=IntStream.range(0,depthByTaxon.length)
-                    .filter(ti -> taxaList()==null || taxaList().contains(taxons.get(ti)))  //TODO checks for white
+                    .filter(ti -> taxaList()==null || taxaList().contains(taxons.get(ti)))
                     .filter(ti -> depthByTaxon[ti]>minTaxaDepth())
                     .toArray();
-//            for(int tidx = 0; tidx < tagList.size(); tidx++) {
-//                int[] depthTags=tagTaxaMap.get(tagList.get(tidx)).depths();
-//                depthsTagTaxa[tidx]=IntStream.of(taxaWithSufficientDepth).mapToDouble(ti -> depthTags[ti]).toArray();
-//                corrQueList[tidx]=MinMaxPriorityQueue.orderedBy(byCorrOrdering).maximumSize(10).create();
-//            }
+            System.out.println(Arrays.toString(taxaWithSufficientDepth));
+
             for (Tag tag : tagTaxaMap.keySet()) {
                 int[] depthTags=tagTaxaMap.get(tag).depths();
                 double[] depthsForNewTL=IntStream.of(taxaWithSufficientDepth).mapToDouble(ti -> depthTags[ti]).toArray();
-                double[] stdDepthsForNewTL=IntStream.of(taxaWithSufficientDepth).mapToDouble(ti -> depthTags[ti]/depthByTaxon[ti]).toArray();
+                double[] stdDepthsForNewTL=IntStream.of(taxaWithSufficientDepth).mapToDouble(ti -> (double)(depthTags[ti]+0.01)/(double)depthByTaxon[ti]).toArray();
                 double sum= DoubleStream.of(depthsForNewTL).sum();
                 if(sum<minTagCount()) continue;
-                tagDepthMap.put(tag,depthsForNewTL);
-                tagQueueMap.put(tag,MinMaxPriorityQueue.orderedBy(byCorrOrderingTag).maximumSize(10).create());
+                tagDepthMap.put(tag,stdDepthsForNewTL);
+                tagQueueMap.put(tag,Queues.synchronizedQueue(MinMaxPriorityQueue.orderedBy(byCorrOrderingTag).maximumSize(10).create()));
             }
-            for (int i = 0; i < 20; i++) {
-                System.out.println(i);
-                Tag testTag=tagList.get(i);
-                System.out.println(Arrays.toString(tagTaxaMap.get(testTag).depths()));
-                System.out.println(Arrays.toString(tagDepthMap.get(testTag)));
-            }
+
+//            for (int i = 0; i < 20; i++) {
+//                System.out.println(i);
+//                Tag testTag=tagList.get(i);
+//                System.out.println(Arrays.toString(tagTaxaMap.get(testTag).depths()));
+//                System.out.println(Arrays.toString(tagDepthMap.get(testTag)));
+//            }
 
 
             for (int t = 0; t < taxaWithSufficientDepth.length; t++) {
                 System.out.printf("%s\t%d%n",taxons.get(taxaWithSufficientDepth[t]).getName(), depthByTaxon[taxaWithSufficientDepth[t]]);
             }
 
-            for (Map.Entry<Tag, double[]> entry : tagDepthMap.entrySet()) {
+
+            tagDepthMap.entrySet().stream().parallel().forEach(entry -> {
                 for (Map.Entry<Tag, double[]> entry2 : tagDepthMap.entrySet()) {
                     if(entry.hashCode()>=entry2.hashCode()) continue;
-                    double gF2 = calcF2Deviations(entry.getValue(),entry2.getValue(),0.0001);
-                    MinMaxPriorityQueue<Tuple<Double,Tag>> aQueue=tagQueueMap.get(entry.getKey());
-                    aQueue.add(new Tuple<Double,Tag>(gF2,entry2.getKey()));
-                    tagQueueMap.put(entry.getKey(),aQueue);
-                    aQueue=tagQueueMap.get(entry2.getKey());
-                    aQueue.add(new Tuple<Double,Tag>(gF2,entry.getKey()));
-                    tagQueueMap.put(entry2.getKey(),aQueue);
+                    double gF2 = calcF2Deviations(entry.getValue(),entry2.getValue(),segExpectations.get("RIL"),0.00001);
+                    tagQueueMap.get(entry.getKey()).add(new Tuple<Double,Tag>(gF2,entry2.getKey()));
+                    tagQueueMap.get(entry2.getKey()).add(new Tuple<Double,Tag>(gF2,entry.getKey()));
                 }
-            }
+            });
 
             System.out.println("Done");
-            for (int tidx = 0; tidx < tagList.size(); tidx++) {
-                for (int tidy = 0; tidy < tidx; tidy++) {
-                    Optional<double[][]> d=filterCombinedDepth(minCombDept, minTaxa(),depthsTagTaxa[tidx],depthsTagTaxa[tidy]);
-                    if(!d.isPresent()) continue;
-                   // double p1 = Pearsons.correlation(d.get()[0],d.get()[1]);
-                    double gF2 = calcF2Deviations(d.get()[0],d.get()[1],0.0001);
-                   // double gF2 = calcRILDeviations(d.get()[0],d.get()[1],0.0001);
-                    corrQueList[tidx].add(new Tuple(gF2,tidy));
-                    corrQueList[tidy].add(new Tuple(gF2,tidx));
-                }
-                if(tidx%100==0) System.out.println(tidx);
-            }
+
             Map<Tuple<Tag,Tag>,Tuple<Double,String>> results=new HashMap<>();
-            IntStream.range(0,tagList.size()).forEach(i -> {
-                if(corrQueList[i].size()==0) {
-                    System.out.println("Stop here");
-                }
-                corrQueList[i].forEach(corrTagIndex -> {
-                    results.put(new Tuple<>(tagList.get(i),tagList.get(corrTagIndex.getY())),
-                            new Tuple<>(corrTagIndex.getX(),""));
+            tagQueueMap.entrySet().stream().forEach(tagQueueEntry -> {
+                tagQueueEntry.getValue().forEach(x2tagTuple -> {
+                    double[] evenness=evenRatios(tagDepthMap.get(tagQueueEntry.getKey()),tagDepthMap.get(x2tagTuple.getY()), 0.00001);
+                    results.put(new Tuple<>(tagQueueEntry.getKey(),x2tagTuple.getY()),
+                            new Tuple<>(x2tagTuple.getX(),Arrays.toString(evenness)));
                 });
             });
-            System.out.println(results.toString());
-            repGenData.addMappingApproach("WhiteT1");
-            repGenData.putTagTagStats(results, "WhiteT1");
 
-            
-//            for (int tidx = 0; tidx < tagList.size(); tidx++) {
-//            //for (Tag tag1 : tagTaxaMap.keySet()) {
-//                Tag tag1 = tagList.get(tidx);
-//                tagcount++;
-//                processedTags++;
-//                // get dist for each taxa
-//                TaxaDistribution tag1TD = tagTaxaMap.get(tag1);
-//                if (tag1TD == null) {
-//                    ((RepGenSQLite)repGenData).close();
-//                    System.out.println("GetTagTaxaDist: got null tagTD at tagcount " + tagcount);
-//                    return null; // But this should return an error?
-//                }
-//                int[] depths1 = tag1TD.depths(); // gives us the depths for each taxon
-//                // This needs to be doubles for Pearson
-//                double[] ddepths1 = new double[depths1.length];
-//
-//                // Apparently no shorter method of casting int to double
-//                for (int idx = 0; idx < depths1.length; idx++) {
-//                    ddepths1[idx] = (double)depths1[idx];
-//                }
-//
-//                double[] depthsPrime1 = new double[depths1.length];
-//                for (int idx = 0; idx < depthsPrime1.length; idx++) {
-//                    // boolean - presence/absence
-//                    if (ddepths1[idx] > 0) depthsPrime1[idx] = 1;
-//                    else depthsPrime1[idx] = 0;
-//                }
-//                final int tIdxFinal = tidx; // IntStream forEach must have "final" variable, tidx is not final
-//                IntStream.range(tidx+1,tagList.size()).parallel().forEach(item -> {
-//                    calculateCorrelations(tagTagCorrelations, tagTaxaMap,
-//                            tagList.get(tIdxFinal), tagList.get(item), ddepths1, depthsPrime1);
-//                });
-//
-//                if (tagcount > 1000) {
-//                    // comment out when run for real!
-//                    System.out.println("Finished processing " + processedTags + " tags, this set took " + (System.nanoTime() - time)/1e9 + " seconds, now load to db ..." );
-//                    time = System.nanoTime();
-//                    repGenData.putTagTagCorrelationMatrix(tagTagCorrelations);
-//                    System.out.println("Loading DB took " + (System.nanoTime() - time)/1e9 + " seconds.\n");
-//                    tagcount = 0;
-//                    tagTagCorrelations.clear(); // start fresh with next 1000
-//                    time = System.nanoTime();
-//                }
-//
-//            }
-//            if (tagcount > 0 ) {
-//                System.out.println("Finished processing last tags, load to DB");
-//                time = System.nanoTime();
-//                repGenData.putTagTagCorrelationMatrix(tagTagCorrelations);
-//                System.out.println("Loading DB took " + (System.nanoTime() - time)/1e9 + " seconds.\n");
-//                tagcount = 0;
-//                tagTagCorrelations.clear(); // start fresh with next 1000
-//            }
-//            System.out.println("Total number of tags processed: " + processedTags );
+            System.out.println(repGenData.getTags().size());
+ //           System.out.println(results.toString());
+            repGenData.addMappingApproach(processName());
+            repGenData.putTagTagStats(results, processName());
+
             
             ((RepGenSQLite)repGenData).close();
             
@@ -266,9 +203,27 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
         return null;
     }
 
-    private double calcF2Deviations(double[] tag1cnt, double[] tag2cnt, double threshold) {
+    private double[] evenRatios(double[] tag1cnt, double[] tag2cnt, double threshold) {
+        double depth11=0, depth12of1=0, depth12of2=0, depth22=0;
+        double count11=0, count12=0, count22=0;
+        for (int i = 0; i < tag1cnt.length; i++) {
+            if ((tag1cnt[i]>threshold)&&(tag2cnt[i]>threshold)) {
+                depth12of1+=tag1cnt[i];
+                depth12of2+=tag2cnt[i];
+                count12++;
+            } else if((tag1cnt[i]>threshold)&&(tag2cnt[i]<threshold)){
+                depth11+=tag1cnt[i];
+                count11++;
+            } else if((tag1cnt[i]<threshold)&&(tag2cnt[i]>threshold)){
+                depth22+=tag2cnt[i];
+                count22++;
+            }
+        }
+        return new double[]{depth11/(2*count11),depth12of1/count12, depth12of2/count12, depth22/(2*count11)};
+    }
+
+    private double calcF2Deviations(double[] tag1cnt, double[] tag2cnt, double[][] expFreq, double threshold) {
         double[][] cnts=new double[2][2];
-        double[][] expFreq={{0,0.25},{0.25,0.5}};
         for (int i = 0; i < tag1cnt.length; i++) {
             int tag1present=(tag1cnt[i]>threshold)?1:0;
             int tag2present=(tag2cnt[i]>threshold)?1:0;
@@ -282,32 +237,14 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
                 xchi+=(cnts[i][j]-exp)*(cnts[i][j]-exp)/exp;
             }
         }
-        if(Math.abs(xchi)<1) {
-            System.out.println(xchi+":"+Arrays.deepToString(cnts));
-        }
+//        if(Math.abs(xchi)<3) {
+//            System.out.println(Arrays.toString(tag1cnt));
+//            System.out.println(Arrays.toString(tag2cnt));
+//            System.out.println(xchi+":"+Arrays.deepToString(cnts));
+//        }
         return xchi;
     }
-    private double calcRILDeviations(double[] tag1cnt, double[] tag2cnt, double threshold) {
-        double[][] cnts=new double[2][2];
-        double[][] expFreq={{0,0.5},{0.5,0.0}};
-        for (int i = 0; i < tag1cnt.length; i++) {
-            int tag1present=(tag1cnt[i]>threshold)?1:0;
-            int tag2present=(tag2cnt[i]>threshold)?1:0;
-            cnts[tag1present][tag2present]+=1.0;
-        }
-        double xchi=0;
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 2; j++) {
-                if(i==0 && j==0) continue;  //consider whether to test the zero class
-                double exp=tag1cnt.length*expFreq[i][j];
-                xchi+=(cnts[i][j]-exp)*(cnts[i][j]-exp)/exp;
-            }
-        }
-        if(Math.abs(xchi)<1) {
-            System.out.println(xchi+":"+Arrays.deepToString(cnts));
-        }
-        return xchi;
-    }
+
 
     private Optional<double[][]> filterCombinedDepth(int minimumCombinedDepth, int minObservations, double[] a1, double[] a2) {
         double[][] result=new double[2][];
@@ -388,20 +325,13 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
         return null;
     }
 
+
     // The following getters and setters were auto-generated.
     // Please use this method to re-generate.
     //
      public static void main(String[] args) {
          GeneratePluginCode.generate(RepGenLDAnalysisPlugin.class);
      }
-
-
-    // The following getters and setters were auto-generated.
-    // Please use this method to re-generate.
-    //
-    // public static void main(String[] args) {
-    //     GeneratePluginCode.generate(RepGenLDAnalysisPlugin.class);
-    // }
 
     /**
      * Convenience method to run plugin with one return object.
@@ -522,6 +452,27 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
      */
     public RepGenLDAnalysisPlugin minTagCount(Integer value) {
         minTagCount = new PluginParameter<>(minTagCount, value);
+        return this;
+    }
+
+    /**
+     * Name of the process
+     *
+     * @return Name for process
+     */
+    public String processName() {
+        return myProcessName.value();
+    }
+
+    /**
+     * Set Name for process. Name of the process
+     *
+     * @param value Name for process
+     *
+     * @return this plugin
+     */
+    public RepGenLDAnalysisPlugin processName(String value) {
+        myProcessName = new PluginParameter<>(myProcessName, value);
         return this;
     }
 }

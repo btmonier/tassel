@@ -27,17 +27,6 @@ CREATE TABLE tag_tag_stats (
 -- Table: tagMapping
 -- Junction (link) table between reftag, and physicalMapPosition
 CREATE TABLE tagMapping (
-    reftagid       INTEGER NOT NULL,
-    position_id  INTEGER NOT NULL,
-    method_id    INTEGER NOT NULL,
-    bp_error	INTEGER,
-    cm_error	FLOAT(2),
-    PRIMARY KEY (reftagid, position_id)
-);
-
--- Table: tagMapping
--- Junction (link) table between reftag, and physicalMapPosition
-CREATE TABLE tagMapping (
     tagid       INTEGER NOT NULL,
     posid  INTEGER NOT NULL,
     method_id    INTEGER NOT NULL,

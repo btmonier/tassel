@@ -104,7 +104,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
     private void initPreparedStatements() {
         try{
             posTagMappingInsertPS=connection.prepareStatement(
-                    "INSERT OR IGNORE into TagMapping (reftagid, position_id, method_id, bp_error, cm_error)" +
+                    "INSERT OR IGNORE into TagMapping (tagid, posid, method_id, bp_error, cm_error)" +
                     " values(?,?,?,?,?)");
             
             tagTaxaDistPS=connection.prepareStatement("select depthsRLE from tagtaxadistribution where tagid=?");
@@ -1010,13 +1010,14 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
             connection.setAutoCommit(false);
             System.out.println("putTagTagStats: size of stats: " + tagTagStats.size());
             PreparedStatement statInsertPS=connection.prepareStatement(
-                    "INSERT into tag_tag_stats (tag1id, tag2id, method_id, stat_value) values(?,?,?,?)");
+                    "INSERT into tag_tag_stats (tag1id, tag2id, method_id, stat_value, stats) values(?,?,?,?,?)");
             int method_id=mappingApproachToIDMap.get(method);
             for (Map.Entry<Tuple<Tag, Tag>, Tuple<Double, String>> entry : tagTagStats.entrySet()) {
                 statInsertPS.setInt(1, tagTagIDMap.get(entry.getKey().getX()));
                 statInsertPS.setInt(2, tagTagIDMap.get(entry.getKey().getY()));
                 statInsertPS.setInt(3, method_id);
                 statInsertPS.setDouble(4, entry.getValue().getX());
+                statInsertPS.setString(5, entry.getValue().getY());
                 System.out.printf("%d\t%d\t%d\t%g\n",tagTagIDMap.get(entry.getKey().getX()),tagTagIDMap.get(entry.getKey().getY()),method_id, entry.getValue().getX());
                 statInsertPS.addBatch();
                 batchCount++;
