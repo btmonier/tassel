@@ -10,7 +10,7 @@ CREATE TABLE tag (
     isReference BOOLEAN,
     qualityScore TEXT,
     numTagInstances INTEGER,
-    UNIQUE (sequence)
+    UNIQUE (sequence,seqlen)
 );
 
 -- Table: tagTagAlignments
