@@ -212,7 +212,7 @@ public class RepGenLoadSeqToDBPlugin extends AbstractPlugin {
                         }
                 });
                 if (taglenException == true) {
-                    ((TagDataSQLite)tdw).close();
+                    ((RepGenSQLite)tdw).close();
                     return null; // Tag length failure from processFastQ - halt processing
                 }
 

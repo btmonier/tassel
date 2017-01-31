@@ -1034,6 +1034,29 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
         }
     }
     
+    @Override
+    public ImmutableMultimap<Tuple<Tag, Tag>, Tuple<Float, String>> getTag_tag_stats(int method_id) {
+        ImmutableMultimap.Builder<Tuple<Tag,Tag>, Tuple<Float,String>> tagStatData = ImmutableMultimap.builder();
+        try{
+            // Get all entries with specified method id.
+            String query = "select * from tag_tag_stats where method_id = " + method_id;
+            ResultSet rs=connection.createStatement().executeQuery(query);
+            while (rs.next()) {
+                Tag tag1 = tagTagIDMap.inverse().get(rs.getInt("tag1id"));
+                Tag tag2 = tagTagIDMap.inverse().get(rs.getInt("tag2id"));
+                Tuple<Tag,Tag> tagTagTuple = new Tuple<Tag,Tag> (tag1,tag2);
+                Float value = rs.getFloat("stat_value");
+                String otherStats = rs.getString("stats");
+                Tuple<Float,String> data = new Tuple<Float,String> (value,otherStats);
+                tagStatData.put(tagTagTuple, data);
+            }
+            return tagStatData.build();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
     // This method grabs the chrom, position and taxa distribution data for all tags
     // that aligned perfectly to a reference tag.
     @Override

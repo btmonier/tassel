@@ -161,4 +161,11 @@ public interface RepGenData {
      */
 
     ImmutableMultimap<Tag, Tuple<Position, TaxaDistribution>> getPositionTaxaDistForTag();
+
+    /**
+     * Method grabs data from the tag_tag_stats table for the specified method.
+     * @param method_id Get data for entries with this method ID
+     * @return
+     */
+    ImmutableMultimap<Tuple<Tag, Tag>, Tuple<Float, String>> getTag_tag_stats(int method_id);
 }

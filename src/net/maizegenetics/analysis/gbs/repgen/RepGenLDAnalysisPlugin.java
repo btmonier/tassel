@@ -76,6 +76,11 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
         super(parentFrame, isInteractive);
     }
 
+    // THis Map defines segregation expectations as punnett square values.
+    // Each defined string gets 2 values in its double[][] array: One for the expected
+    // probability of the upper row of the square, one containing the expected
+    // probabilities for the lower row in the square.  These are used when
+    // calculating F2 deviations below.
     private static final Map<String, double[][]> segExpectations;
     static {
         segExpectations=new HashMap<>();
@@ -137,7 +142,9 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
             int minCombDept=5;
             System.out.println(Arrays.toString(depthByTaxon));
 
-            //Filter taxa by depths and taxa in list
+            //Filter taxa by depths and taxa in list.
+            // This creates a list of the indices (indices, not depth, is stored).
+            // Maximum size of entries for each tag is set to 10
             int[] taxaWithSufficientDepth=IntStream.range(0,depthByTaxon.length)
                     .filter(ti -> taxaList()==null || taxaList().contains(taxons.get(ti)))
                     .filter(ti -> depthByTaxon[ti]>minTaxaDepth())
@@ -167,6 +174,12 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
             }
 
 
+            // For each tag in the tagDepth Map:
+            //  1.  loop through the depth map (for tag/tag correlation)
+            //       - skip if entry.hashCode() >- entry2.hashCode().  this
+            //          is ensuring just the lover triangle is populated
+            //       = calculate the F2 Deviations using defined values in seExpectations map defined above
+            //       - add the calcF2Deviations() value to tagQueueMap for both tag1 and tag2
             tagDepthMap.entrySet().stream().parallel().forEach(entry -> {
                 for (Map.Entry<Tag, double[]> entry2 : tagDepthMap.entrySet()) {
                     if(entry.hashCode()>=entry2.hashCode()) continue;
@@ -178,6 +191,12 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
 
             System.out.println("Done");
 
+            // For each entry in the tagQueueMap (populated above):
+            //    1.  get all values for the tag
+            //    2.  create an "evenness" array of doubles, store calculations from "evenRatios()" method
+            //    3.  Map<Tuple<Tag,Tag>,Tuple<Double,String>> results  gets:
+            //         - the tags as the key in the Tuple<tag,tag>,
+            //         - the value is a tuple of <CalcF2Deviation double value for this pair, the evenness array as a String> 
             Map<Tuple<Tag,Tag>,Tuple<Double,String>> results=new HashMap<>();
             tagQueueMap.entrySet().stream().forEach(tagQueueEntry -> {
                 tagQueueEntry.getValue().forEach(x2tagTuple -> {
@@ -203,6 +222,8 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
         return null;
     }
 
+    // THis method is similar to "odds ratio" calculation.  IT is used to show
+    // association between tag1/tag2 as determined by their presence in the same taxa.
     private double[] evenRatios(double[] tag1cnt, double[] tag2cnt, double threshold) {
         double depth11=0, depth12of1=0, depth12of2=0, depth22=0;
         double count11=0, count12=0, count22=0;
