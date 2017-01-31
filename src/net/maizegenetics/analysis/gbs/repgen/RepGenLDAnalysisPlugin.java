@@ -240,7 +240,7 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
                 count22++;
             }
         }
-        return new double[]{depth11/(2*count11),depth12of1/count12, depth12of2/count12, depth22/(2*count11)};
+        return new double[]{depth11/(2*count11),depth12of1/count12, depth12of2/count12, depth22/(2*count22)};
     }
 
     private double calcF2Deviations(double[] tag1cnt, double[] tag2cnt, double[][] expFreq, double threshold) {
