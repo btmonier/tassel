@@ -34,7 +34,12 @@ import net.maizegenetics.util.Utils;
  * This plugin takes a rAmpSeq database file and pulls all the chrom/pos and taxa distribution
  * data for each tag that aligns perfectly to a reference tag.
  * 
- * Output is written to 2 tab delimited files: 
+ * Output is written to 4 tab delimited files:
+ *   - One is a summary file that give stats for each tag telling the number of Samples (taxa), the number of Samples
+ *     that contain this tag, and the total depth for the tag.
+ *   - The second file is a tag/taxa-distribution file.  It shows tag counts for each tag in each taxa
+ *   
+ *   The last 2 files look like: 
  *   Each file has a header line:  Tag Chromosome Posiiton Sample1 .... SampleN 
  *   -one that shows single-mapping tags
  *   -second that shows tags that mapped to multiple places on the genome.
@@ -49,7 +54,7 @@ public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
     private PluginParameter<String> inputDB = new PluginParameter.Builder<>("db", null, String.class).guiName("Input Database File").required(true).inFile()
             .description("Input Database File").build();
     private PluginParameter<String> outputPrefix = new PluginParameter.Builder<>("o", null, String.class).guiName("").required(true)
-            .description("Directory and any prefix for writing output.\nThere are 2 files, one for tags aligning to a single position, and one for tags aigning to multiple positions.").build();
+            .description("Directory and any prefix for writing output.\nThere are 4 files, one for tags aligning to a single position, and one for tags aigning to multiple positions.\nIn addition a tag-taxadistribution file is created as well as a tag-taxadistribution summary file.").build();
     
     public GetTaxaDistTableForTagsPlugin() {
         super(null, false);

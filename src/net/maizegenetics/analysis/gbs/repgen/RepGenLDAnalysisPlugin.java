@@ -57,11 +57,11 @@ public class RepGenLDAnalysisPlugin extends AbstractPlugin {
     private PluginParameter<Integer> minTaxa = new PluginParameter.Builder<>("minTaxa", 50, Integer.class).guiName("Min Taxa for RSquared")
             .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
     private PluginParameter<Integer> minTaxaDepth = new PluginParameter.Builder<>("minTaxaDepth", 5000, Integer.class).guiName("Min Taxa for RSquared")
-            .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
+            .description("Minimum number of tags that must be present in a single taxa for that taxa to be included for analysis.").build();
     private PluginParameter<TaxaList> myTaxaList = new PluginParameter.Builder<>("taxaList", null, TaxaList.class).guiName("Taxa list to test")
-            .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
+            .description("List of taxa to include for this analysis.  If null, all taxa are included.").build();
     private PluginParameter<Integer> minTagCount = new PluginParameter.Builder<>("minTagCount", 100, Integer.class).guiName("Min tag count after filtering")
-            .description("Minimum number of taxa that must be present for R-squared to be calculated.").build();
+            .description("Minimum count for a tag across all taxa for that tag to be included in the analysis.").build();
     private PluginParameter<String> myProcessName = new PluginParameter.Builder<>("methodName", null, String.class).required(true).guiName("Name for process")
             .description("Name of the process ").build();
     public RepGenLDAnalysisPlugin() {
