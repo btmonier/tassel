@@ -474,7 +474,7 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
                 Position entrypos=entry.getValue();
                 int ind=1;
                // Defined above:  posTagInsertPS=connection.prepareStatement(
-                //"INSERT OR IGNORE into TagMapping (tagid, position_id, method_id, bp_error, cm_error)" +
+                //"INSERT OR IGNORE into TagMapping (tagid, posid, method_id, bp_error, cm_error)" +
                 // " values(?,?,?,?,?)");
                 posTagMappingInsertPS.setInt(ind++, tagTagIDMap.get(entry.getKey())); // refTagID
                 posTagMappingInsertPS.setInt(ind++, physicalMapPositionToIDMap.get(entrypos)); // position
@@ -1063,8 +1063,8 @@ public class RepGenSQLite implements RepGenDataWriter, AutoCloseable {
     public ImmutableMultimap<Tag,Tuple<Position,TaxaDistribution>> getPositionTaxaDistForTag() {
         ImmutableMultimap.Builder<Tag,Tuple<Position,TaxaDistribution>> ptdBuilder = ImmutableMultimap.builder();
         String query = "select tag.sequence, tag.seqlen,physicalMapPosition.chromosome, physicalMapPosition.physical_position, physicalMapPosition.strand, tagtaxadistribution.* " +
-                "from tag, physicalMapPosition, tagtaxadistribution, tagMapping where tagMapping.reftagid = tag.tagid and " +
-                "physicalMapPosition.posid = tagMapping.position_id and tag.tagid=tagtaxadistribution.tagid ";
+                "from tag, physicalMapPosition, tagtaxadistribution, tagMapping where tagMapping.tagid = tag.tagid and " +
+                "physicalMapPosition.posid = tagMapping.posid and tag.tagid=tagtaxadistribution.tagid ";
 
         // The code below grabs the requested data, creates the Tag, POsition and TaxaDistribution
         // objects, and returns the data in a map.
