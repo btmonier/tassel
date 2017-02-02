@@ -34,10 +34,17 @@ import net.maizegenetics.util.Utils;
  * This plugin takes a rAmpSeq database file and pulls all the chrom/pos and taxa distribution
  * data for each tag that aligns perfectly to a reference tag.
  * 
- * Output is written to 4 tab delimited files:
+ * Output is written to 5 tab delimited files:
  *   - One is a summary file that give stats for each tag telling the number of Samples (taxa), the number of Samples
  *     that contain this tag, and the total depth for the tag.
  *   - The second file is a tag/taxa-distribution file.  It shows tag counts for each tag in each taxa
+ *   - The third file is similar to the second, but shows 0/1 indicating whether or not the tag occurs in the taxa/sample
+ *     the minimum specified number of times (see plugin parameter "minCount")
+ *     
+ *   These 3 files are named:
+ *       outputPrefix() + "tagTaxaSummaryData.txt";
+ *       outputPrefix() + "allTagTaxaDist.txt";;
+ *       outputPrefix() + "allTagTaxaDist_binary.txt";
  *   
  *   The last 2 files look like: 
  *   Each file has a header line:  Tag Chromosome Posiiton Sample1 .... SampleN 
@@ -53,6 +60,8 @@ public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
     private static final Logger myLogger = Logger.getLogger(GetTaxaDistTableForTagsPlugin.class);
     private PluginParameter<String> inputDB = new PluginParameter.Builder<>("db", null, String.class).guiName("Input Database File").required(true).inFile()
             .description("Input Database File").build();
+    private PluginParameter<Integer> minCount = new PluginParameter.Builder<>("minCount", 2, Integer.class).guiName("Minimun Tag Count").required(false)
+            .description("Minimum number of times tag must appear in a taxa for it to be counted as 1 in the binary output file. Default is 2").build();
     private PluginParameter<String> outputPrefix = new PluginParameter.Builder<>("o", null, String.class).guiName("").required(true)
             .description("Directory and any prefix for writing output.\nThere are 4 files, one for tags aligning to a single position, and one for tags aigning to multiple positions.\nIn addition a tag-taxadistribution file is created as well as a tag-taxadistribution summary file.").build();
     
@@ -77,18 +86,25 @@ public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
         // that are NOT ref tags as well as ones that are.
         BufferedWriter fileWriter = null;
         BufferedWriter summaryWriter = null;
+        BufferedWriter binaryWriter = null;
         StringBuilder tagTaxaDistSB = new StringBuilder();
         StringBuilder summarySB = new StringBuilder();
+        StringBuilder binarySB = new StringBuilder();
         List<Taxon> taxa = repGenData.getTaxaList();
         
-        // Create tagTaxaDist header line
+        // Create tagTaxaDist and binary header lines
         tagTaxaDistSB.append("Tag");
+        binarySB.append("Tag");
         taxa.stream().forEach(item -> { // column names are the taxon names
             tagTaxaDistSB.append("\t");
             tagTaxaDistSB.append(item.getName());
+            binarySB.append("\t");
+            binarySB.append(item.getName());
         });
         tagTaxaDistSB.append("\n");
+        binarySB.append("\n");
    
+        // Summary header file
         String summaryHeader = "Tag\tNumber of Samples\tSamples With Tag\tTotal Tag Depth\n";
         summarySB.append(summaryHeader);
         
@@ -108,25 +124,38 @@ public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
             experimentalTags++;
             int[] depths = tagTD.depths(); // gives us the depths for each taxon
             tagTaxaDistSB.append(myTag.sequence());
+            binarySB.append(myTag.sequence());
  
             int totalDepths = 0;
             int taxaCount = 0;
             for (int idx = 0; idx < depths.length; idx++) {
                 tagTaxaDistSB.append("\t"); 
-                tagTaxaDistSB.append(depths[idx]);  // add tag depth  
+                tagTaxaDistSB.append(depths[idx]);  // add tag depth
+                binarySB.append("\t");
+                if (depths[idx] >= minCount()) {// add tag depth for binary version
+                    binarySB.append("1");
+                } else {
+                    binarySB.append("0");  
+                }
+                
                 totalDepths += depths[idx];
                 if (depths[idx] > 0) taxaCount++;
             }
             tagTaxaDistSB.append("\n"); // end of line - start next tag
+            binarySB.append("\n");
             String summarydata = myTag.sequence() + "\t" + numSamples + "\t" + taxaCount + "\t" + totalDepths + "\n";
             summarySB.append(summarydata.toString());
         }
-        String tagTaxafile = outputPrefix() + "allTagTaxaDist.txt";
+        String tagTaxafile = outputPrefix() + "allTagTaxaDist.txt";;
+        String binaryfile = outputPrefix() + "allTagTaxaDist_binary.txt";
         String summaryFile = outputPrefix() + "tagTaxaSummaryData.txt";
         try {  
             fileWriter = Utils.getBufferedWriter(tagTaxafile);
             fileWriter.write(tagTaxaDistSB.toString());
             fileWriter.close();
+            binaryWriter = Utils.getBufferedWriter(binaryfile);
+            binaryWriter.write(binarySB.toString());
+            binaryWriter.close();
             summaryWriter = Utils.getBufferedWriter(summaryFile);
             summaryWriter.write(summarySB.toString());
             summaryWriter.close();
@@ -269,6 +298,30 @@ public class GetTaxaDistTableForTagsPlugin extends AbstractPlugin {
         return this;
     }
 
+    /**
+     * Minimum number of times a tag must be present in a
+     * taxa for it to be countered as present for the binary
+     * output file.
+     *
+     * @return O
+     */
+    public Integer minCount() {
+        return minCount.value();
+    }
+
+    /**
+     * Set minCout. Minimum number of times a tag must
+     * appear in a taxa for the tag to be counted as present
+     * in the binary tagTaxaDist file.
+     *
+     * @param value O
+     *
+     * @return this plugin
+     */
+    public GetTaxaDistTableForTagsPlugin minCount(int value) {
+        minCount = new PluginParameter<>(minCount, value);
+        return this;
+    }
     /**
      * Directory and prefix for writing output.
      * There are 2 files, one for tags aligning to a single
