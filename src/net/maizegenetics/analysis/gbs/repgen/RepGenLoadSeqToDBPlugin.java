@@ -66,7 +66,7 @@ public class RepGenLoadSeqToDBPlugin extends AbstractPlugin {
             .description("Specified length for each kmer to process").build();
     private PluginParameter<Integer> myMinKmerLength = new PluginParameter.Builder<>("minKmerL", 120, Integer.class).guiName("Minimum Kmer Length")
             .description("Minimum kmer Length after second cut site is removed").build();
-    private PluginParameter<Integer> myMinKmerCount = new PluginParameter.Builder<>("c", 10, Integer.class).guiName("Min Kmer Count")
+    private PluginParameter<Integer> myMinKmerCount = new PluginParameter.Builder<>("c", 200, Integer.class).guiName("Min Kmer Count")
             .description("Minimum kmer count").build();
     private PluginParameter<Integer> minTaxa = new PluginParameter.Builder<>("minTaxa",2, Integer.class).guiName("Min Taxa Represented")
             .description("Minimum numer of taxa where kmer is found").build();
