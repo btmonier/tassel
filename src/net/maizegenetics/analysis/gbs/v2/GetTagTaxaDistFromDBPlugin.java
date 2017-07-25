@@ -58,7 +58,8 @@ public class GetTagTaxaDistFromDBPlugin extends AbstractPlugin {
     public DataSet processData(DataSet input) {
         TagDataWriter tdw = new TagDataSQLite(inputDB());
         try {
-            BufferedWriter fileWriter = null;
+           //BufferedWriter fileWriter = null;
+            BufferedWriter fileWriter = new BufferedWriter(new FileWriter(outputFile()));
             StringBuilder strB = new StringBuilder();
             TaxaList taxaList = tdw.getTaxaList(); // Used for printing taxon column headers
             strB.append("Tag");
@@ -67,6 +68,8 @@ public class GetTagTaxaDistFromDBPlugin extends AbstractPlugin {
                 strB.append(item.getName());
             });
             strB.append("\n");
+            fileWriter.write(strB.toString());
+            strB.setLength(0);
        
             Set<Tag> myTags = tdw.getTags();
             int tagcount = 0;
@@ -85,20 +88,15 @@ public class GetTagTaxaDistFromDBPlugin extends AbstractPlugin {
                     strB.append(depths[idx]);  // add tag depth                     
                 }
                 strB.append("\n"); // end of line - start next tag
-            }
-            try {  
-                fileWriter = new BufferedWriter(new FileWriter(outputFile()));
                 fileWriter.write(strB.toString());
+                strB.setLength(0);
             }
-            catch(IOException e) {
-                myLogger.error("Caught Exception writing to outputFile " + outputFile());
-                System.out.println(e);
-            }
+
             fileWriter.close();
             ((TagDataSQLite)tdw).close();  
             myLogger.info("TagsTaxaDistToTabDelim: Finished writing TaxaDistribution \n");
         } catch (Exception exc) {
-            myLogger.error("TagsTaxaDistToTabDelim: caught error " + exc);
+            myLogger.error("GetTagTaxaDistFromDBPlugin: caught error " + exc);
             exc.printStackTrace();
         }
         return null;       
