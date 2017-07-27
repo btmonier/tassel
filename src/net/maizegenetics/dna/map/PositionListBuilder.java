@@ -213,10 +213,10 @@ public class PositionListBuilder {
      */
     public PositionListBuilder(IHDF5Writer h5w, PositionList a) {
         HDF5Utils.createHDF5PositionModule(h5w);
-        h5w.setIntAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES, a.size());
+        h5w.int32().setAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES, a.size());
         if (a.hasReference()) {
-            h5w.setStringAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_GENOME_VERSION, a.genomeVersion());
-            h5w.setBooleanAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_HAS_REFEFERENCE, true);
+            h5w.string().setAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_GENOME_VERSION, a.genomeVersion());
+            h5w.bool().setAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_HAS_REFEFERENCE, true);
         }
         String[] lociNames = new String[a.numChromosomes()];
         Map<Chromosome, Integer> locusToIndex = new HashMap<>(10);
@@ -225,15 +225,15 @@ public class PositionListBuilder {
             lociNames[i] = loci[i].getName();
             locusToIndex.put(loci[i], i);
         }
-        h5w.createStringVariableLengthArray(Tassel5HDF5Constants.CHROMOSOMES, a.numChromosomes());
-        h5w.writeStringVariableLengthArray(Tassel5HDF5Constants.CHROMOSOMES, lociNames);
+        h5w.string().createArrayVL(Tassel5HDF5Constants.CHROMOSOMES, a.numChromosomes());
+        h5w.string().writeArrayVL(Tassel5HDF5Constants.CHROMOSOMES, lociNames);
 
         int blockSize = 1 << 16;
-        h5w.createStringArray(Tassel5HDF5Constants.SNP_IDS, 15, a.numberOfSites(), blockSize, Tassel5HDF5Constants.genDeflation);
-        h5w.createIntArray(Tassel5HDF5Constants.CHROMOSOME_INDICES, a.numberOfSites(), Tassel5HDF5Constants.intDeflation);
-        h5w.createIntArray(Tassel5HDF5Constants.POSITIONS, a.numberOfSites(), Tassel5HDF5Constants.intDeflation);
-        h5w.createIntArray(Tassel5HDF5Constants.REF_ALLELES, a.numberOfSites(), Tassel5HDF5Constants.intDeflation);
-        h5w.createIntArray(Tassel5HDF5Constants.ANC_ALLELES, a.numberOfSites(), Tassel5HDF5Constants.intDeflation);
+        h5w.string().createArray(Tassel5HDF5Constants.SNP_IDS, 15, a.numberOfSites(), blockSize, Tassel5HDF5Constants.genDeflation);
+        h5w.int32().createArray(Tassel5HDF5Constants.CHROMOSOME_INDICES, a.numberOfSites(), Tassel5HDF5Constants.intDeflation);
+        h5w.int32().createArray(Tassel5HDF5Constants.POSITIONS, a.numberOfSites(), Tassel5HDF5Constants.intDeflation);
+        h5w.int32().createArray(Tassel5HDF5Constants.REF_ALLELES, a.numberOfSites(), Tassel5HDF5Constants.intDeflation);
+        h5w.int32().createArray(Tassel5HDF5Constants.ANC_ALLELES, a.numberOfSites(), Tassel5HDF5Constants.intDeflation);
 
         //This is written in blocks to deal with datasets in the scale for 50M positions
         int blocks = ((a.numberOfSites() - 1) / blockSize) + 1;

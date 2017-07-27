@@ -127,40 +127,40 @@ public class SimpleGenotypeSBit {
         config.overwrite();
         config.useUTF8CharacterEncoding();
         IHDF5Writer h5 = config.writer();
-        h5.setIntAttribute(ROOT, TAXANUM, taxaNum);
-        h5.setIntAttribute(ROOT, CHRNUM, chrNum);
-        h5.setIntAttribute(ROOT, SITENUM, siteNum);
-        h5.setIntAttribute(ROOT, WORDNUM, wordNum);
-        h5.createStringArray(TAXANAMES, maxTaxaNameLength, taxaNames.length, genericFeature);
-        h5.writeStringArray(TAXANAMES, taxaNames, genericFeature);
-        h5.createIntArray(CHROMOSOME, chrNum, intFeature);
-        h5.writeIntArray(CHROMOSOME, chromosomeNumber, intFeature);
-        h5.createIntArray(CHRSTARTINDEX, chrNum, intFeature);
-        h5.writeIntArray(CHRSTARTINDEX, chrStartIndex, intFeature);
-        h5.createIntArray(CHRENDINDEX, chrNum, intFeature);
-        h5.writeIntArray(CHRENDINDEX, chrEndIndex, intFeature);
-        h5.createIntArray(POSITION, siteNum, intFeature);
-        h5.writeIntArray(POSITION, position, intFeature);
-        h5.createDoubleArray(MAF, siteNum, floatFeature);
-        h5.writeDoubleArray(MAF, maf, floatFeature);
+        h5.int32().setAttr(ROOT, TAXANUM, taxaNum);
+        h5.int32().setAttr(ROOT, CHRNUM, chrNum);
+        h5.int32().setAttr(ROOT, SITENUM, siteNum);
+        h5.int32().setAttr(ROOT, WORDNUM, wordNum);
+        h5.string().createArray(TAXANAMES, maxTaxaNameLength, taxaNames.length, genericFeature);
+        h5.string().writeArray(TAXANAMES, taxaNames, genericFeature);
+        h5.int32().createArray(CHROMOSOME, chrNum, intFeature);
+        h5.int32().writeArray(CHROMOSOME, chromosomeNumber, intFeature);
+        h5.int32().createArray(CHRSTARTINDEX, chrNum, intFeature);
+        h5.int32().writeArray(CHRSTARTINDEX, chrStartIndex, intFeature);
+        h5.int32().createArray(CHRENDINDEX, chrNum, intFeature);
+        h5.int32().writeArray(CHRENDINDEX, chrEndIndex, intFeature);
+        h5.int32().createArray(POSITION, siteNum, intFeature);
+        h5.int32().writeArray(POSITION, position, intFeature);
+        h5.float64().createArray(MAF, siteNum, floatFeature);
+        h5.float64().writeArray(MAF, maf, floatFeature);
         long[][] dis = new long[siteNum][];
         for (int i = 0; i < siteNum; i++) {
             dis[i] = obsMajor[i].getBits();
         }
-        h5.createLongMatrix(OBSMAJOR, siteNum, wordNum, this.getChunkSize(), wordNum, intFeature);
+        h5.int64().createMatrix(OBSMAJOR, siteNum, wordNum, this.getChunkSize(), wordNum, intFeature);
         for (int i = 0; i < this.getChunkNum(); i++) {
             long[][] chunk = this.getSubLongMatrix(dis, this.getChunkSize(), i);
-            h5.writeLongMatrixBlock(OBSMAJOR, chunk, i, 0);
+            h5.int64().writeMatrixBlock(OBSMAJOR, chunk, i, 0);
         }
         for (int i = 0; i < siteNum; i++) {
             dis[i] = obsMinor[i].getBits();
         }
-        h5.createLongMatrix(OBSMINOR, siteNum, wordNum, this.getChunkSize(), wordNum, intFeature);
+        h5.int64().createMatrix(OBSMINOR, siteNum, wordNum, this.getChunkSize(), wordNum, intFeature);
         for (int i = 0; i < this.getChunkNum(); i++) {
             long[][] chunk = this.getSubLongMatrix(dis, this.getChunkSize(), i);
-            h5.writeLongMatrixBlock(OBSMINOR, chunk, i, 0);
+            h5.int64().writeMatrixBlock(OBSMINOR, chunk, i, 0);
         }
-        h5.flush();
+        h5.file().flush();
         h5.close();
         System.out.println("Write to SimpleGenotypeSBit took " + this.getTimeSpanSecond(lastTimePoint) +  " seconds");
     }
@@ -192,7 +192,7 @@ public class SimpleGenotypeSBit {
         for (int i = 0; i < this.getChunkNum(); i++) {
             chunkStartSiteIndex = this.getChunkSize()*i;
             actualSize = this.getChunkSize();
-            sub = h5.readLongMatrixBlock(path, this.getChunkSize(), this.wordNum, i, 0);
+            sub = h5.int64().readMatrixBlock(path, this.getChunkSize(), this.wordNum, i, 0);
             if (chunkStartSiteIndex + this.getChunkSize() > this.siteNum) {
                 actualSize = siteNum-chunkStartSiteIndex;
             }
@@ -219,7 +219,7 @@ public class SimpleGenotypeSBit {
         public void run() {
             int chunkStartSiteIndex = getChunkSize()*chunkIndex;
             int actualSize = getChunkSize();
-            long[][] sub = h5.readLongMatrixBlock(path, getChunkSize(), wordNum, chunkIndex, 0);
+            long[][] sub = h5.int64().readMatrixBlock(path, getChunkSize(), wordNum, chunkIndex, 0);
             if (chunkStartSiteIndex + getChunkSize() > siteNum) {
                 actualSize = siteNum-chunkStartSiteIndex;
             }
@@ -234,10 +234,10 @@ public class SimpleGenotypeSBit {
     public void readH5File (String inputFileS) {
         long lastTimePoint = this.getCurrentTimeNano();
         IHDF5Writer h5 = HDF5Factory.open(inputFileS);
-        taxaNum = h5.getIntAttribute(ROOT, TAXANUM);
-        chrNum = h5.getIntAttribute(ROOT, CHRNUM);
-        siteNum = h5.getIntAttribute(ROOT, SITENUM);
-        wordNum = h5.getIntAttribute(ROOT, WORDNUM);
+        taxaNum = h5.int32().getAttr(ROOT, TAXANUM);
+        chrNum = h5.int32().getAttr(ROOT, CHRNUM);
+        siteNum = h5.int32().getAttr(ROOT, SITENUM);
+        wordNum = h5.int32().getAttr(ROOT, WORDNUM);
         taxaNames = h5.readStringArray(TAXANAMES);
         chromosomeNumber = h5.readIntArray(CHROMOSOME);
         chrStartIndex = h5.readIntArray(CHRSTARTINDEX);

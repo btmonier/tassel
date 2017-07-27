@@ -209,7 +209,7 @@ public class GOBIIGenotypeCallTable extends AbstractGenotypeCallTable {
 
                 int numSites = Math.min(myNumLinesPerInterval, mySiteCount - myStartSite);
                 byte[][] result = new byte[numSites][];
-                MDArray<String> input = reader.readStringMDArrayBlockWithOffset("allelematrix", new int[]{numSites, myTaxaCount}, new long[]{myStartSite, 0});
+                MDArray<String> input = reader.string().readMDArrayBlockWithOffset("allelematrix", new int[]{numSites, myTaxaCount}, new long[]{myStartSite, 0});
                 for (int i = 0; i < numSites; i++) {
                     result[i] = parseLine(input, myTaxaCount, myStartSite + i, i);
                     CompletableFuture<byte[]> future = myFutureQueue.remove(myStartSite + i);
@@ -243,7 +243,7 @@ public class GOBIIGenotypeCallTable extends AbstractGenotypeCallTable {
 
                     numSites = Math.min(myNumLinesPerInterval, mySiteCount - myStartSite);
                     result = new byte[numSites][];
-                    input = reader.readStringMDArrayBlockWithOffset("allelematrix", new int[]{numSites, myTaxaCount}, new long[]{myStartSite, 0});
+                    input = reader.string().readMDArrayBlockWithOffset("allelematrix", new int[]{numSites, myTaxaCount}, new long[]{myStartSite, 0});
                     for (int i = 0; i < numSites; i++) {
                         result[i] = parseLine(input, myTaxaCount, myStartSite + i, i);
                     }
@@ -276,7 +276,7 @@ public class GOBIIGenotypeCallTable extends AbstractGenotypeCallTable {
     public static void main(String[] args) {
         String filename = "/SSD/gobii/gobii_terry/DS_1.h5";
         IHDF5Reader reader = HDF5Factory.openForReading(filename);
-        MDArray<String> input = reader.readStringMDArrayBlockWithOffset("allelematrix", new int[]{5, 282}, new long[]{1, 0});
+        MDArray<String> input = reader.string().readMDArrayBlockWithOffset("allelematrix", new int[]{5, 282}, new long[]{1, 0});
 
         int[] dimensions = input.dimensions();
         for (int dim : dimensions) {

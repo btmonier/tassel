@@ -643,7 +643,7 @@ public class GenotypeTableBuilder {
                 }
             }
             HDF5Utils.lockHDF5TaxaModule(writer);
-            String name = writer.getFile().getAbsolutePath();
+            String name = writer.file().getFile().getAbsolutePath();
             annotateHDF5File(writer);
             HDF5Utils.writeHDF5Annotation(writer, Tassel5HDF5Constants.ROOT, myAnnotationBuilder.build());
             HDF5Utils.lockHDF5GenotypeModule(writer);
@@ -806,17 +806,17 @@ public class GenotypeTableBuilder {
             throw new UnsupportedOperationException("This is a locked HDF5 file");
         }
         int hdf5GenoBlock = Tassel5HDF5Constants.BLOCK_SIZE;
-        int sites = writer.getIntAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
+        int sites = writer.int32().getAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
         TaxaList tL = new TaxaListBuilder().buildFromHDF5Genotypes(writer);
         int taxa = tL.numberOfTaxa();
-        writer.setIntAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA, taxa);
+        writer.int32().setAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA, taxa);
         int[][] af = new int[NucleotideAlignmentConstants.NUMBER_NUCLEOTIDE_ALLELES][sites];
         byte[][] afOrder = new byte[NucleotideAlignmentConstants.NUMBER_NUCLEOTIDE_ALLELES][sites];
         float[] coverage = new float[taxa];
         float[] hets = new float[taxa];
         for (int taxon = 0; taxon < taxa; taxon++) {
             String basesPath = Tassel5HDF5Constants.getGenotypesCallsPath(tL.taxaName(taxon));
-            byte[] genotype = writer.readByteArray(basesPath);
+            byte[] genotype = writer.int8().readArray(basesPath);
             int covSum = 0;  //coverage of the taxon
             int hetSum = 0;
             for (int s = 0; s < sites; s++) {
@@ -857,16 +857,16 @@ public class GenotypeTableBuilder {
             }
             paf[s] = (float) sum / (float) (2 * taxa);
         }
-        writer.createGroup(Tassel5HDF5Constants.GENO_DESC);
+        writer.object().createGroup(Tassel5HDF5Constants.GENO_DESC);
         int chunk = (sites < hdf5GenoBlock) ? sites : hdf5GenoBlock;
-        writer.createIntMatrix(Tassel5HDF5Constants.ALLELE_CNT, 6, sites, 1, chunk, Tassel5HDF5Constants.intDeflation);
-        writer.createByteMatrix(Tassel5HDF5Constants.ALLELE_FREQ_ORD, 6, sites, 1, chunk, Tassel5HDF5Constants.intDeflation);
-        writer.createFloatArray(Tassel5HDF5Constants.MAF, sites, chunk, Tassel5HDF5Constants.floatDeflation);
-        writer.createFloatArray(Tassel5HDF5Constants.SITECOV, sites, chunk, Tassel5HDF5Constants.floatDeflation);
+        writer.int32().createMatrix(Tassel5HDF5Constants.ALLELE_CNT, 6, sites, 1, chunk, Tassel5HDF5Constants.intDeflation);
+        writer.int8().createMatrix(Tassel5HDF5Constants.ALLELE_FREQ_ORD, 6, sites, 1, chunk, Tassel5HDF5Constants.intDeflation);
+        writer.float32().createArray(Tassel5HDF5Constants.MAF, sites, chunk, Tassel5HDF5Constants.floatDeflation);
+        writer.float32().createArray(Tassel5HDF5Constants.SITECOV, sites, chunk, Tassel5HDF5Constants.floatDeflation);
         //  writer.createGroup(Tassel5HDF5Constants.TAXA_DESC);
         chunk = (tL.numberOfTaxa() < hdf5GenoBlock) ? tL.numberOfTaxa() : hdf5GenoBlock;
-        writer.createFloatArray(Tassel5HDF5Constants.TAXACOV, tL.numberOfTaxa(), chunk, Tassel5HDF5Constants.floatDeflation);
-        writer.createFloatArray(Tassel5HDF5Constants.TAXAHET, tL.numberOfTaxa(), chunk, Tassel5HDF5Constants.floatDeflation);
+        writer.float32().createArray(Tassel5HDF5Constants.TAXACOV, tL.numberOfTaxa(), chunk, Tassel5HDF5Constants.floatDeflation);
+        writer.float32().createArray(Tassel5HDF5Constants.TAXAHET, tL.numberOfTaxa(), chunk, Tassel5HDF5Constants.floatDeflation);
         if (af[0].length > 0) {
             HDF5Utils.writeHDF5EntireArray(Tassel5HDF5Constants.ALLELE_CNT, writer, af[0].length, 1 << 16, af);
         }

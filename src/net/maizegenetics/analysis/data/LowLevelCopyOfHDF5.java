@@ -23,9 +23,9 @@ public class LowLevelCopyOfHDF5 {
         IHDF5Reader reader=HDF5Factory.openForReading(t5File);
         IHDF5Writer writer=HDF5Factory.open(subT5File);
 
-        writer.createGroup(Tassel5HDF5Constants.GENOTYPES_MODULE);
+        writer.object().createGroup(Tassel5HDF5Constants.GENOTYPES_MODULE);
         HDF5Utils.unlockHDF5GenotypeModule(writer);
-        writer.createGroup(Tassel5HDF5Constants.TAXA_MODULE);
+        writer.object().createGroup(Tassel5HDF5Constants.TAXA_MODULE);
         HDF5Utils.unlockHDF5TaxaModule(writer);
 
         int numTaxa = 0;
@@ -33,13 +33,13 @@ public class LowLevelCopyOfHDF5 {
         HDF5Utils.writeHDF5GenotypesMaxNumAlleles(writer,NucleotideAlignmentConstants.NUMBER_NUCLEOTIDE_ALLELES);
 
         HDF5Utils.writeHDF5GenotypesRetainRareAlleles(writer,false);
-        List<HDF5LinkInformation> fields = reader.getAllGroupMemberInformation(Tassel5HDF5Constants.GENOTYPES_MODULE, true);
+        List<HDF5LinkInformation> fields = reader.object().getAllGroupMemberInformation(Tassel5HDF5Constants.GENOTYPES_MODULE, true);
         for (HDF5LinkInformation is : fields) {
             if (is.isGroup() == false) continue;
             String taxonName=is.getName();
             if(subsetTaxa.indexOf(taxonName)<0) continue;
            // System.out.println(taxonName);
-            reader.copy(Tassel5HDF5Constants.GENOTYPES_MODULE+"/"+taxonName, writer,
+            reader.object().copy(Tassel5HDF5Constants.GENOTYPES_MODULE+"/"+taxonName, writer,
                     Tassel5HDF5Constants.GENOTYPES_MODULE+"/"+taxonName);
             HDF5Utils.addTaxon(writer, new Taxon(taxonName));
             numTaxa++;
@@ -49,7 +49,7 @@ public class LowLevelCopyOfHDF5 {
 
         //Position module
 
-        reader.copy(Tassel5HDF5Constants.POSITION_MODULE, writer, Tassel5HDF5Constants.POSITION_MODULE);
+        reader.object().copy(Tassel5HDF5Constants.POSITION_MODULE, writer, Tassel5HDF5Constants.POSITION_MODULE);
 
         //Precalculated Stats
         GenotypeTableBuilder.annotateHDF5File(writer);

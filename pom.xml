@@ -101,18 +101,12 @@
 
     <repositories>
         <repository>
-            <id>repo</id>
-            <url>file://${project.basedir}/repo</url>
+            <id>imagej.public</id>
+            <url>http://maven.imagej.net/content/groups/public</url>
         </repository>
     </repositories>
-    <dependencies>
-        <!-- Local Repository -->
-        <dependency>
-            <groupId>org.scala-saddle</groupId>
-            <artifactId>jhdf5</artifactId>
-            <version>12.02.3</version>
-        </dependency>
 
+    <dependencies>
         <!-- Managed Supporting Libraries -->
         <dependency>
             <groupId>log4j</groupId>
@@ -223,6 +217,12 @@
             <groupId>org.biojava.thirdparty</groupId>
             <artifactId>forester</artifactId>
             <version>1.038</version>
+        </dependency>
+        <dependency>
+            <groupId>cisd</groupId>
+            <artifactId>jhdf5</artifactId>
+            <version>14.12.5</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
 </project>

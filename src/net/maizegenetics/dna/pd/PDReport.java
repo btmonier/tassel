@@ -18,12 +18,12 @@ public class PDReport {
         IHDF5Reader reader = HDF5Factory.openForReading(polymorphismDescriptorFile);
         //  int[] variableSites = reader.readIntArray(HapMapHDF5Constants.POSITIONS);
         String delimiter="\t";
-        List<HDF5LinkInformation> fields=reader.getAllGroupMemberInformation("chr9", true);
+        List<HDF5LinkInformation> fields=reader.object().getAllGroupMemberInformation("chr9", true);
 
         List<HDF5LinkInformation> fields2=new ArrayList(fields);
         for (HDF5LinkInformation is : fields) {
             //if(is.isGroup()==false) continue;
-            if(is.isGroup())fields2.addAll(reader.getAllGroupMemberInformation(is.getPath(), true));
+            if(is.isGroup())fields2.addAll(reader.object().getAllGroupMemberInformation(is.getPath(), true));
         }
         float[][] fa=new float[20][];
         String[] fNames=new String[20];
@@ -32,7 +32,7 @@ public class PDReport {
         int currentFA=0;
         int currentIA=0;
         for (HDF5LinkInformation is : fields2) {
-            System.out.println(is.getPath().toString()+"::"+reader.getObjectType(is.getPath()).toString());
+            System.out.println(is.getPath().toString()+"::"+reader.object().getObjectType(is.getPath()).toString());
             if(is.isDataSet()==false) continue;
             HDF5DataSetInformation info=reader.getDataSetInformation(is.getPath());
             if(info.getTypeInformation().getDataClass()== HDF5DataClass.FLOAT) {

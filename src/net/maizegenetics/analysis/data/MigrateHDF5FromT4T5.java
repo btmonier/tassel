@@ -23,7 +23,7 @@ public class MigrateHDF5FromT4T5 {
         IHDF5Reader reader=HDF5Factory.openForReading(t4File);
         IHDF5Writer writer=HDF5Factory.open(newT5File);
 
-        writer.createGroup(Tassel5HDF5Constants.GENOTYPES_MODULE);
+        writer.object().createGroup(Tassel5HDF5Constants.GENOTYPES_MODULE);
         HDF5Utils.unlockHDF5GenotypeModule(writer);
         HDF5Utils.createHDF5TaxaModule(writer);
         HDF5Utils.unlockHDF5TaxaModule(writer);
@@ -32,21 +32,21 @@ public class MigrateHDF5FromT4T5 {
         HDF5Utils.writeHDF5GenotypesMaxNumAlleles(writer,NucleotideAlignmentConstants.NUMBER_NUCLEOTIDE_ALLELES);
 
         HDF5Utils.writeHDF5GenotypesRetainRareAlleles(writer,false);
-        List<HDF5LinkInformation> fields = reader.getAllGroupMemberInformation(HapMapHDF5Constants.GENOTYPES, true);
+        List<HDF5LinkInformation> fields = reader.object().getAllGroupMemberInformation(HapMapHDF5Constants.GENOTYPES, true);
         for (HDF5LinkInformation is : fields) {
             if (is.isDataSet() == false) continue;
             String taxonName=is.getName();
             System.out.println(taxonName);
             //This is two step copy & then rename.  I couldn't get it to work with one step - it should.
-            reader.copy(HapMapHDF5Constants.GENOTYPES+"/"+taxonName, writer,
+            reader.object().copy(HapMapHDF5Constants.GENOTYPES+"/"+taxonName, writer,
                     Tassel5HDF5Constants.GENOTYPES_MODULE+"/"+taxonName+"/");
-            writer.move(Tassel5HDF5Constants.GENOTYPES_MODULE+"/"+taxonName+"/"+taxonName,
+            writer.object().move(Tassel5HDF5Constants.GENOTYPES_MODULE+"/"+taxonName+"/"+taxonName,
                     Tassel5HDF5Constants.getGenotypesCallsPath(taxonName));
             //copy depth if it exists
             if(reader.exists(HapMapHDF5Constants.DEPTH+"/"+taxonName)) {
-                reader.copy(HapMapHDF5Constants.DEPTH+"/"+taxonName, writer,
+                reader.object().copy(HapMapHDF5Constants.DEPTH+"/"+taxonName, writer,
                         Tassel5HDF5Constants.GENOTYPES_MODULE+"/"+taxonName+"/");
-                writer.move(Tassel5HDF5Constants.GENOTYPES_MODULE+"/"+taxonName+"/"+taxonName,
+                writer.object().move(Tassel5HDF5Constants.GENOTYPES_MODULE+"/"+taxonName+"/"+taxonName,
                         Tassel5HDF5Constants.getGenotypesDepthPath(taxonName));
             }
             HDF5Utils.addTaxon(writer,new Taxon(taxonName));
@@ -56,23 +56,23 @@ public class MigrateHDF5FromT4T5 {
         HDF5Utils.writeHDF5TaxaNumTaxa(writer,numTaxa);
 
         //Position module
-        writer.createGroup(Tassel5HDF5Constants.POSITION_MODULE);
-        int numSites = reader.getIntAttribute(HapMapHDF5Constants.DEFAULT_ATTRIBUTES_PATH, HapMapHDF5Constants.NUM_SITES);
+        writer.object().createGroup(Tassel5HDF5Constants.POSITION_MODULE);
+        int numSites = reader.int32().getAttr(HapMapHDF5Constants.DEFAULT_ATTRIBUTES_PATH, HapMapHDF5Constants.NUM_SITES);
         HDF5Utils.writeHDF5PositionNumSite(writer,numSites);
         System.out.println(reader.exists(HapMapHDF5Constants.POSITIONS));
-        reader.copy(HapMapHDF5Constants.POSITIONS, writer, Tassel5HDF5Constants.POSITIONS);
-        reader.copy(HapMapHDF5Constants.LOCI, writer, Tassel5HDF5Constants.CHROMOSOMES);
-        reader.copy(HapMapHDF5Constants.LOCUS_INDICES, writer, Tassel5HDF5Constants.CHROMOSOME_INDICES);
-        reader.copy(HapMapHDF5Constants.SNP_IDS, writer, Tassel5HDF5Constants.SNP_IDS);
+        reader.object().copy(HapMapHDF5Constants.POSITIONS, writer, Tassel5HDF5Constants.POSITIONS);
+        reader.object().copy(HapMapHDF5Constants.LOCI, writer, Tassel5HDF5Constants.CHROMOSOMES);
+        reader.object().copy(HapMapHDF5Constants.LOCUS_INDICES, writer, Tassel5HDF5Constants.CHROMOSOME_INDICES);
+        reader.object().copy(HapMapHDF5Constants.SNP_IDS, writer, Tassel5HDF5Constants.SNP_IDS);
 
         //Precalculated Stats
-        writer.createGroup(Tassel5HDF5Constants.GENO_DESC);
-        reader.copy(HapMapHDF5Constants.ALLELE_CNT, writer, Tassel5HDF5Constants.ALLELE_CNT);
-        reader.copy(HapMapHDF5Constants.MAF, writer, Tassel5HDF5Constants.MAF);
-        reader.copy(HapMapHDF5Constants.SITECOV, writer, Tassel5HDF5Constants.SITECOV);
-        reader.copy(HapMapHDF5Constants.ALLELE_FREQ_ORD, writer, Tassel5HDF5Constants.ALLELE_FREQ_ORD);
-        reader.copy(HapMapHDF5Constants.TAXACOV, writer, Tassel5HDF5Constants.TAXACOV);
-        reader.copy(HapMapHDF5Constants.TAXAHET, writer, Tassel5HDF5Constants.TAXAHET);
+        writer.object().createGroup(Tassel5HDF5Constants.GENO_DESC);
+        reader.object().copy(HapMapHDF5Constants.ALLELE_CNT, writer, Tassel5HDF5Constants.ALLELE_CNT);
+        reader.object().copy(HapMapHDF5Constants.MAF, writer, Tassel5HDF5Constants.MAF);
+        reader.object().copy(HapMapHDF5Constants.SITECOV, writer, Tassel5HDF5Constants.SITECOV);
+        reader.object().copy(HapMapHDF5Constants.ALLELE_FREQ_ORD, writer, Tassel5HDF5Constants.ALLELE_FREQ_ORD);
+        reader.object().copy(HapMapHDF5Constants.TAXACOV, writer, Tassel5HDF5Constants.TAXACOV);
+        reader.object().copy(HapMapHDF5Constants.TAXAHET, writer, Tassel5HDF5Constants.TAXAHET);
         
         HDF5Utils.lockHDF5GenotypeModule(writer);
         HDF5Utils.lockHDF5TaxaModule(writer);

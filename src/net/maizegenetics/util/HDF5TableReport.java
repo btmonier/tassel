@@ -74,7 +74,7 @@ public class HDF5TableReport implements TableReport {
 
     private void traverseNode(String node, int column) {
         addAttributes(node, column);
-        List<String> members = myReader.getAllGroupMembers(node);
+        List<String> members = myReader.object().getAllGroupMembers(node);
         for (String str : members) {
             StringBuilder builder = new StringBuilder();
             builder.append(str);
@@ -83,7 +83,7 @@ public class HDF5TableReport implements TableReport {
             if (myReader.isGroup(path)) {
                 setValue(column, builder.toString());
                 traverseNode(path, column + 1);
-            } else if (myReader.isDataSet(path)) {
+            } else if (myReader.object().isDataSet(path)) {
                 HDF5DataSetInformation info = myReader.getDataSetInformation(path);
                 builder.append(" : ").append(myReader.getDataSetInformation(path).getTypeInformation().tryGetJavaType().getName());
                 long[] dimensions = info.getDimensions();
@@ -109,21 +109,21 @@ public class HDF5TableReport implements TableReport {
     }
 
     private void addAttributes(String path, int column) {
-        List<String> attributes = myReader.getAttributeNames(path);
+        List<String> attributes = myReader.object().getAttributeNames(path);
         for (String attribute : attributes) {
             StringBuilder builder = new StringBuilder();
-            HDF5DataTypeInformation info = myReader.getAttributeInformation(path, attribute);
+            HDF5DataTypeInformation info = myReader.object().getAttributeInformation(path, attribute);
             builder.append(attribute);
 
             Class<?> clazz = info.tryGetJavaType();
             if (clazz.isAssignableFrom(int.class)) {
-                int value = myReader.getIntAttribute(path, attribute);
+                int value = myReader.int32().getAttr(path, attribute);
                 builder.append(" : ").append(value);
             } else if (clazz.isAssignableFrom(boolean.class)) {
-                boolean value = myReader.getBooleanAttribute(path, attribute);
+                boolean value = myReader.bool().getAttr(path, attribute);
                 builder.append(" : ").append(value);
             } else if (clazz.isAssignableFrom(String.class)) {
-                String value = myReader.getStringAttribute(path, attribute);
+                String value = myReader.string().getAttr(path, attribute);
                 builder.append(" : ").append(value);
             }
 

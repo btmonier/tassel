@@ -8,7 +8,6 @@ package net.maizegenetics.dna.map;
 
 import ch.systemsx.cisd.hdf5.HDF5CompoundType;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
-import ch.systemsx.cisd.hdf5.IHDF5Writer;
 import ch.systemsx.cisd.hdf5.IHDF5WriterConfigurator;
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,9 +17,7 @@ import net.maizegenetics.dna.map.TagMappingInfoV3.Aligner;
 import net.maizegenetics.dna.tag.AbstractTagsHDF5;
 import net.maizegenetics.dna.tag.GBSHDF5Constants;
 import net.maizegenetics.dna.tag.TagCounts;
-import net.maizegenetics.dna.tag.TagsByTaxa;
 import net.maizegenetics.dna.tag.TagsByTaxa.FilePacking;
-import net.maizegenetics.util.Tassel5HDF5Constants;
 
 /**
  * Holding tag genetic mapping result from GWAS. It includes attributes and methods for machine learning prediction of mapping accuracy 
@@ -237,27 +234,27 @@ public class TagGWASMap extends AbstractTagsHDF5 {
         config.overwrite();
         config.useUTF8CharacterEncoding();
         h5 = config.writer();
-        h5.setIntAttribute(GBSHDF5Constants.ROOT, GBSHDF5Constants.TAGLENGTHINLONG, tagLengthInLong);
-        h5.setIntAttribute(GBSHDF5Constants.ROOT, GBSHDF5Constants.TAGCOUNT, this.getTagCount());
-        h5.createLongMatrix(GBSHDF5Constants.TAGS, this.getTagSizeInLong(), this.getTagCount(), this.getTagSizeInLong(), this.getTagCount(), this.getIntStorageFeatures());
-        h5.writeLongMatrix(GBSHDF5Constants.TAGS, tags, this.getIntStorageFeatures());
+        h5.int32().setAttr(GBSHDF5Constants.ROOT, GBSHDF5Constants.TAGLENGTHINLONG, tagLengthInLong);
+        h5.int32().setAttr(GBSHDF5Constants.ROOT, GBSHDF5Constants.TAGCOUNT, this.getTagCount());
+        h5.int64().createMatrix(GBSHDF5Constants.TAGS, this.getTagSizeInLong(), this.getTagCount(), this.getTagSizeInLong(), this.getTagCount(), this.getIntStorageFeatures());
+        h5.int64().writeMatrix(GBSHDF5Constants.TAGS, tags, this.getIntStorageFeatures());
         System.out.println("...Tags written");
-        h5.createByteArray(GBSHDF5Constants.TAGLENGTH, this.getTagCount(), this.getIntStorageFeatures());
-        h5.writeByteArray(GBSHDF5Constants.TAGLENGTH, tagLength, this.getIntStorageFeatures());
+        h5.int8().createArray(GBSHDF5Constants.TAGLENGTH, this.getTagCount(), this.getIntStorageFeatures());
+        h5.int8().writeArray(GBSHDF5Constants.TAGLENGTH, tagLength, this.getIntStorageFeatures());
         System.out.println("...Tags lengths written");
-        tgType = h5.compounds().getInferredType(TagGWASMapInfo.class);
-        h5.compounds().createArray(GBSHDF5Constants.MAPBASE, tgType, this.getBlockSize()*this.getBlockNum(), this.getBlockSize(), this.getGenericStorageFeatures());
+        tgType = h5.compound().getInferredType(TagGWASMapInfo.class);
+        h5.compound().createArray(GBSHDF5Constants.MAPBASE, tgType, this.getBlockSize()*this.getBlockNum(), this.getBlockSize(), this.getGenericStorageFeatures());
         System.out.println("...MapInfo created");
     }
     
     @Override
     public void readHDF5 (String hdf5FileS) {
         h5 = HDF5Factory.open(hdf5FileS);
-        tgType = h5.compounds().getInferredType(TagGWASMapInfo.class);
-        tagLengthInLong = h5.getIntAttribute(GBSHDF5Constants.ROOT, GBSHDF5Constants.TAGLENGTHINLONG);
-        int tagCount = h5.getIntAttribute(GBSHDF5Constants.ROOT, GBSHDF5Constants.TAGCOUNT);
+        tgType = h5.compound().getInferredType(TagGWASMapInfo.class);
+        tagLengthInLong = h5.int32().getAttr(GBSHDF5Constants.ROOT, GBSHDF5Constants.TAGLENGTHINLONG);
+        int tagCount = h5.int32().getAttr(GBSHDF5Constants.ROOT, GBSHDF5Constants.TAGCOUNT);
         tags = h5.readLongMatrix(GBSHDF5Constants.TAGS);
-        tagLength = h5.readByteArray(GBSHDF5Constants.TAGLENGTH);
+        tagLength = h5.int8().readArray(GBSHDF5Constants.TAGLENGTH);
         this.getTagGWASMapInfo(0);
     }
     
@@ -272,13 +269,13 @@ public class TagGWASMap extends AbstractTagsHDF5 {
 
     @Override
     public void readBlock(int blockIndex) {
-        this.mapInfo = h5.compounds().readArrayBlock(GBSHDF5Constants.MAPBASE, tgType, this.getBlockSize(), blockIndex);
+        this.mapInfo = h5.compound().readArrayBlock(GBSHDF5Constants.MAPBASE, tgType, this.getBlockSize(), blockIndex);
         this.currentBlockIndex = blockIndex;
     }
 
     @Override
     public void writeBlock(int blockIndex) {
-        h5.compounds().writeArrayBlock(GBSHDF5Constants.MAPBASE, tgType, mapInfo, blockIndex);
+        h5.compound().writeArrayBlock(GBSHDF5Constants.MAPBASE, tgType, mapInfo, blockIndex);
     }
     
     public TagGWASMapInfo getTagGWASMapInfo (int tagIndex) {

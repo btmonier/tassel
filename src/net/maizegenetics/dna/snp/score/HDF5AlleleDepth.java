@@ -33,11 +33,11 @@ public class HDF5AlleleDepth extends AlleleDepth {
     private final TaxaList myTaxa;
 
     HDF5AlleleDepth(IHDF5Reader reader) {
-        super(reader.getIntAttribute(Tassel5HDF5Constants.GENOTYPES_MODULE, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA),
-                reader.getIntAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES)
+        super(reader.int32().getAttr(Tassel5HDF5Constants.GENOTYPES_MODULE, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA),
+                reader.int32().getAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES)
         );
         myReader = reader;
-        myNumSites = reader.getIntAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
+        myNumSites = reader.int32().getAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
         myTaxa = new TaxaListBuilder().buildFromHDF5Genotypes(reader);
     }
 
@@ -97,7 +97,7 @@ public class HDF5AlleleDepth extends AlleleDepth {
     private byte[][] cacheDepthBlock(int taxon, int site, long key) {
         int start = (site / MAX_CACHE_SIZE) * MAX_CACHE_SIZE;
         int realSiteCache = (myNumSites - start < MAX_CACHE_SIZE) ? myNumSites - start : MAX_CACHE_SIZE;
-        byte[][] data = myReader.readByteMatrixBlockWithOffset(Tassel5HDF5Constants.getGenotypesDepthPath(myTaxa.taxaName(taxon)), 6, realSiteCache, 0, start);
+        byte[][] data = myReader.int8().readMatrixBlockWithOffset(Tassel5HDF5Constants.getGenotypesDepthPath(myTaxa.taxaName(taxon)), 6, realSiteCache, 0, start);
         if (data == null) {
             return null;
         }

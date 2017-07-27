@@ -77,24 +77,24 @@ public class PDAnnotation {
         }
         //write positions to hdf "pos"+chromosome
         String chrGroup = "chr" + currChr + "/";
-        writer.createGroup(chrGroup);
-        writer.setIntAttribute(chrGroup, HapMapHDF5Constants.NUM_SITES, siteCnt);
-        writer.createIntArray(chrGroup + HapMapHDF5Constants.POSITIONS, alignmentPhysPos.length);
+        writer.object().createGroup(chrGroup);
+        writer.int32().setAttr(chrGroup, HapMapHDF5Constants.NUM_SITES, siteCnt);
+        writer.int32().createArray(chrGroup + HapMapHDF5Constants.POSITIONS, alignmentPhysPos.length);
         writer.writeIntArray(chrGroup + HapMapHDF5Constants.POSITIONS, alignmentPhysPos);
 
         //write alleles to hdf "allele"+chromosome
         // which version? String[][] ?
-        writer.createByteArray(chrGroup + HapMapHDF5Constants.MAJOR_ALLELE, mjAllele.length);
+        writer.int8().createArray(chrGroup + HapMapHDF5Constants.MAJOR_ALLELE, mjAllele.length);
         writer.writeByteArray(chrGroup + HapMapHDF5Constants.MAJOR_ALLELE, mjAllele);
-        writer.createByteArray(chrGroup + HapMapHDF5Constants.MINOR_ALLELE, mnAllele.length);
+        writer.int8().createArray(chrGroup + HapMapHDF5Constants.MINOR_ALLELE, mnAllele.length);
         writer.writeByteArray(chrGroup + HapMapHDF5Constants.MINOR_ALLELE, mnAllele);
         // write minor allele frequencies
-        writer.createFloatArray(chrGroup + HapMapHDF5Constants.MAF, maf.length);
-        writer.writeFloatArray(chrGroup + HapMapHDF5Constants.MAF, maf);
+        writer.float32().createArray(chrGroup + HapMapHDF5Constants.MAF, maf.length);
+        writer.float32().writeArray(chrGroup + HapMapHDF5Constants.MAF, maf);
 
-        writer.createGroup(chrGroup + HapMapHDF5Constants.GWAS);
-        writer.createGroup(chrGroup + HapMapHDF5Constants.GENOMIC);
-        writer.createGroup(chrGroup + HapMapHDF5Constants.POP_GEN);
+        writer.object().createGroup(chrGroup + HapMapHDF5Constants.GWAS);
+        writer.object().createGroup(chrGroup + HapMapHDF5Constants.GENOMIC);
+        writer.object().createGroup(chrGroup + HapMapHDF5Constants.POP_GEN);
 
         writer.close();
     }
@@ -139,7 +139,7 @@ public class PDAnnotation {
             }
             System.out.printf("Position matches:%d errors:%d %n", posMatch, posMisMatch);
             String dataSetName = chrGroup + HapMapHDF5Constants.GWAS + "/" + allTraits[i];
-            writer.createFloatArray(dataSetName, rmip.length);
+            writer.float32().createArray(dataSetName, rmip.length);
             writer.writeFloatArray(dataSetName, rmip);
         }
     }
@@ -196,7 +196,7 @@ public class PDAnnotation {
             }
             System.out.printf("Position matches:%d errors:%d %n", posMatch, posMisMatch);
             String dataSetName = chrGroup + HapMapHDF5Constants.GWAS + "/" + traits[j];
-            writer.createFloatArray(dataSetName, rmip.length);
+            writer.float32().createArray(dataSetName, rmip.length);
             writer.writeFloatArray(dataSetName, rmip);
         } // end of traits loop
     }

@@ -30,17 +30,17 @@ public final class HDF5Utils {
 
     // TAXA Module
     public static void createHDF5TaxaModule(IHDF5Writer h5w) {
-        h5w.createGroup(Tassel5HDF5Constants.TAXA_MODULE);
-        h5w.setBooleanAttribute(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_LOCKED, false);
-        h5w.createStringArray(Tassel5HDF5Constants.TAXA_ORDER, 256, 0, 1);
+        h5w.object().createGroup(Tassel5HDF5Constants.TAXA_MODULE);
+        h5w.bool().setAttr(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_LOCKED, false);
+        h5w.string().createArray(Tassel5HDF5Constants.TAXA_ORDER, 256, 0, 1);
     }
 
     public static void lockHDF5TaxaModule(IHDF5Writer h5w) {
-        h5w.setBooleanAttribute(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_LOCKED, true);
+        h5w.bool().setAttr(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_LOCKED, true);
     }
 
     public static void unlockHDF5TaxaModule(IHDF5Writer h5w) {
-        h5w.setBooleanAttribute(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_LOCKED, false);
+        h5w.bool().setAttr(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_LOCKED, false);
     }
 
     public static boolean doesTaxaModuleExist(IHDF5Reader reader) {
@@ -56,7 +56,7 @@ public final class HDF5Utils {
     }
 
     public static boolean isTaxaLocked(IHDF5Reader reader) {
-        return reader.getBooleanAttribute(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_LOCKED);
+        return reader.bool().getAttr(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_LOCKED);
     }
 
     /**
@@ -77,18 +77,18 @@ public final class HDF5Utils {
         if (h5w.exists(path)) {
             return false;
         }
-        h5w.createGroup(path);
+        h5w.object().createGroup(path);
         writeHDF5Annotation(h5w, path, taxon.getAnnotation());
         long size = h5w.getDataSetInformation(Tassel5HDF5Constants.TAXA_ORDER).getNumberOfElements();
-        h5w.writeStringArrayBlockWithOffset(Tassel5HDF5Constants.TAXA_ORDER, new String[]{taxon.getName()}, 1, size);
+        h5w.string().writeArrayBlockWithOffset(Tassel5HDF5Constants.TAXA_ORDER, new String[]{taxon.getName()}, 1, size);
         return true;
     }
 
     private static void createTaxaOrder(IHDF5Writer h5w) {
         List<String> taxaNames = getAllTaxaNames(h5w);
-        h5w.createStringArray(Tassel5HDF5Constants.TAXA_ORDER, 256, 0, 1);
+        h5w.string().createArray(Tassel5HDF5Constants.TAXA_ORDER, 256, 0, 1);
         for (int i = 0; i < taxaNames.size(); i++) {
-            h5w.writeStringArrayBlockWithOffset(Tassel5HDF5Constants.TAXA_ORDER, new String[]{taxaNames.get(i)}, 1, i);
+            h5w.string().writeArrayBlockWithOffset(Tassel5HDF5Constants.TAXA_ORDER, new String[]{taxaNames.get(i)}, 1, i);
         }
     }
 
@@ -99,7 +99,7 @@ public final class HDF5Utils {
         Iterator<Map.Entry<String, String>> itr = annotations.getConcatenatedTextAnnotations().entrySet().iterator();
         while (itr.hasNext()) {
             Map.Entry<String, String> current = itr.next();
-            writer.setStringAttribute(path, current.getKey(), current.getValue());
+            writer.string().setAttr(path, current.getKey(), current.getValue());
         }
     }
 
@@ -121,15 +121,15 @@ public final class HDF5Utils {
     public static GeneralAnnotationStorage readHDF5Annotation(IHDF5Reader reader, String path, String[] annotationKeys) {
         GeneralAnnotationStorage.Builder builder = GeneralAnnotationStorage.getBuilder();
         if (annotationKeys == null) {
-            reader.getAllAttributeNames(path).stream().forEach((key) -> {
-                for (String value : Splitter.on(",").split(reader.getStringAttribute(path, key))) {
+            reader.object().getAllAttributeNames(path).stream().forEach((key) -> {
+                for (String value : Splitter.on(",").split(reader.string().getAttr(path, key))) {
                     builder.addAnnotation(key, value);
                 }
             });
         } else {
             for (String key : annotationKeys) {
                 if (reader.hasAttribute(path, key)) {
-                    for (String value : Splitter.on(",").split(reader.getStringAttribute(path, key))) {
+                    for (String value : Splitter.on(",").split(reader.string().getAttr(path, key))) {
                         builder.addAnnotation(key, value);
                     }
                 }
@@ -144,8 +144,8 @@ public final class HDF5Utils {
             return null;
         }
         Taxon.Builder tb = new Taxon.Builder(taxonName);
-        for (String a : reader.getAllAttributeNames(taxonPath)) {
-            for (String s : Splitter.on(",").split(reader.getStringAttribute(taxonPath, a))) {
+        for (String a : reader.object().getAllAttributeNames(taxonPath)) {
+            for (String s : Splitter.on(",").split(reader.string().getAttr(taxonPath, a))) {
                 tb.addAnno(a, s);
             }
         }
@@ -159,7 +159,7 @@ public final class HDF5Utils {
                 taxaNames.add(s);
             }
         } else {
-            List<HDF5LinkInformation> fields = reader.getAllGroupMemberInformation(Tassel5HDF5Constants.TAXA_MODULE, true);
+            List<HDF5LinkInformation> fields = reader.object().getAllGroupMemberInformation(Tassel5HDF5Constants.TAXA_MODULE, true);
             for (HDF5LinkInformation is : fields) {
                 if (!is.isGroup()) {
                     continue;
@@ -171,32 +171,32 @@ public final class HDF5Utils {
     }
 
     public static void writeHDF5TaxaNumTaxa(IHDF5Writer h5w, int numTaxa) {
-        h5w.setIntAttribute(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_NUM_TAXA, numTaxa);
+        h5w.int32().setAttr(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_NUM_TAXA, numTaxa);
     }
 
     public static int getHDF5TaxaNumTaxa(IHDF5Reader reader) {
-        return reader.getIntAttribute(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_NUM_TAXA);
+        return reader.int32().getAttr(Tassel5HDF5Constants.TAXA_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAXA_NUM_TAXA);
     }
 
     // GENOTYPE Module
     public static int getHDF5GenotypeTaxaNumber(IHDF5Reader reader) {
-        return reader.getIntAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA);
+        return reader.int32().getAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA);
     }
 
     public static void createHDF5GenotypeModule(IHDF5Writer h5w) {
         if (h5w.exists(Tassel5HDF5Constants.GENOTYPES_MODULE)) {
             throw new UnsupportedOperationException("Genotypes module already exists in HDF5 file");
         }
-        h5w.createGroup(Tassel5HDF5Constants.GENOTYPES_MODULE);
-        h5w.setBooleanAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_LOCKED, false);
+        h5w.object().createGroup(Tassel5HDF5Constants.GENOTYPES_MODULE);
+        h5w.bool().setAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_LOCKED, false);
     }
 
     public static void lockHDF5GenotypeModule(IHDF5Writer h5w) {
-        h5w.setBooleanAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_LOCKED, true);
+        h5w.bool().setAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_LOCKED, true);
     }
 
     public static void unlockHDF5GenotypeModule(IHDF5Writer h5w) {
-        h5w.setBooleanAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_LOCKED, false);
+        h5w.bool().setAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_LOCKED, false);
     }
 
     public static boolean doesGenotypeModuleExist(IHDF5Reader reader) {
@@ -207,35 +207,35 @@ public final class HDF5Utils {
         if (reader.exists(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH) == false) {
             return false;
         }
-        return reader.getBooleanAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_LOCKED);
+        return reader.bool().getAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_LOCKED);
     }
 
     public static void writeHDF5GenotypesMaxNumAlleles(IHDF5Writer h5w, int maxNumAlleles) {
         if (isHDF5GenotypeLocked(h5w) == true) {
             throw new UnsupportedOperationException("Trying to write to a locked HDF5 file");
         }
-        h5w.setIntAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_MAX_NUM_ALLELES, maxNumAlleles);
+        h5w.int32().setAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_MAX_NUM_ALLELES, maxNumAlleles);
     }
 
     public static void writeHDF5GenotypesRetainRareAlleles(IHDF5Writer h5w, boolean retainRareAlleles) {
         if (isHDF5GenotypeLocked(h5w) == true) {
             throw new UnsupportedOperationException("Trying to write to a locked HDF5 file");
         }
-        h5w.setBooleanAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_RETAIN_RARE_ALLELES, retainRareAlleles);
+        h5w.bool().setAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_RETAIN_RARE_ALLELES, retainRareAlleles);
     }
 
     public static void writeHDF5GenotypesNumTaxa(IHDF5Writer h5w, int numTaxa) {
         if (isHDF5GenotypeLocked(h5w) == true) {
             throw new UnsupportedOperationException("Trying to write to a locked HDF5 file");
         }
-        h5w.setIntAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA, numTaxa);
+        h5w.int32().setAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA, numTaxa);
     }
 
     public static void writeHDF5GenotypesScoreType(IHDF5Writer h5w, String scoreType) {
         if (isHDF5GenotypeLocked(h5w) == true) {
             throw new UnsupportedOperationException("Trying to write to a locked HDF5 file");
         }
-        h5w.setStringAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_MAX_NUM_ALLELES, scoreType);
+        h5w.string().setAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_MAX_NUM_ALLELES, scoreType);
     }
 
     public static void writeHDF5GenotypesAlleleStates(IHDF5Writer h5w, String[][] aEncodings) {
@@ -250,8 +250,8 @@ public final class HDF5Utils {
                 alleleEncodings.set(aEncodings[s][x], s, x);
             }
         }
-        h5w.createStringMDArray(Tassel5HDF5Constants.GENOTYPES_ALLELE_STATES, 100, new int[]{numEncodings, numStates});
-        h5w.writeStringMDArray(Tassel5HDF5Constants.GENOTYPES_ALLELE_STATES, alleleEncodings);
+        h5w.string().createMDArray(Tassel5HDF5Constants.GENOTYPES_ALLELE_STATES, 100, new int[]{numEncodings, numStates});
+        h5w.string().writeMDArray(Tassel5HDF5Constants.GENOTYPES_ALLELE_STATES, alleleEncodings);
     }
 
     public static byte[] getHDF5GenotypesCalls(IHDF5Reader reader, String taxon) {
@@ -267,7 +267,7 @@ public final class HDF5Utils {
         if (h5w.exists(callsPath)) {
             throw new IllegalStateException("Taxa Calls Already Exists:" + taxon);
         }
-        h5w.createByteArray(callsPath, calls.length, Math.min(Tassel5HDF5Constants.BLOCK_SIZE, calls.length), Tassel5HDF5Constants.intDeflation);
+        h5w.int8().createArray(callsPath, calls.length, Math.min(Tassel5HDF5Constants.BLOCK_SIZE, calls.length), Tassel5HDF5Constants.intDeflation);
         writeHDF5EntireArray(callsPath, h5w, calls.length, Tassel5HDF5Constants.BLOCK_SIZE, calls);
     }
 
@@ -299,7 +299,7 @@ public final class HDF5Utils {
     public static byte[][] getHDF5GenotypesDepth(IHDF5Reader reader, String taxon) {
         String callsPath = Tassel5HDF5Constants.getGenotypesDepthPath(taxon);
         if (reader.exists(callsPath)) {
-            return reader.readByteMatrix(callsPath);
+            return reader.int8().readMatrix(callsPath);
         } else {
             return null;
         }
@@ -326,7 +326,7 @@ public final class HDF5Utils {
         if (h5w.exists(callsPath)) {
             throw new IllegalStateException("Taxa Depth Already Exists:" + taxon);
         }
-        h5w.createByteMatrix(callsPath, depth.length, depth[0].length, 6, Math.min(Tassel5HDF5Constants.BLOCK_SIZE, depth[0].length), Tassel5HDF5Constants.intDeflation);
+        h5w.int8().createMatrix(callsPath, depth.length, depth[0].length, 6, Math.min(Tassel5HDF5Constants.BLOCK_SIZE, depth[0].length), Tassel5HDF5Constants.intDeflation);
         writeHDF5EntireArray(callsPath, h5w, depth[0].length, Tassel5HDF5Constants.BLOCK_SIZE, depth);
     }
 
@@ -342,14 +342,14 @@ public final class HDF5Utils {
     }
 
     public static byte[] getHDF5Alleles(IHDF5Reader reader, WHICH_ALLELE allele) {
-        return reader.readByteMatrixBlockWithOffset(Tassel5HDF5Constants.ALLELE_FREQ_ORD, 1, getHDF5PositionNumber(reader),
+        return reader.int8().readMatrixBlockWithOffset(Tassel5HDF5Constants.ALLELE_FREQ_ORD, 1, getHDF5PositionNumber(reader),
                 (long) allele.index(), 0)[0];
     }
 
     public static byte[] getHDF5GenotypeSiteScores(IHDF5Reader reader, String taxon, String siteScoreType) {
         String path = Tassel5HDF5Constants.getGenotypesSiteScorePath(taxon, siteScoreType);
         if (reader.exists(path)) {
-            return reader.readByteArray(path);
+            return reader.int8().readArray(path);
         } else {
             return null;
         }
@@ -360,22 +360,22 @@ public final class HDF5Utils {
         if (writer.exists(path)) {
             throw new IllegalStateException("HDF5Utils: writeHDF5GenotypeSiteScores: path already exists: " + path);
         } else {
-            writer.createByteArray(path, values.length, Math.min(Tassel5HDF5Constants.BLOCK_SIZE, values.length), Tassel5HDF5Constants.intDeflation);
+            writer.int8().createArray(path, values.length, Math.min(Tassel5HDF5Constants.BLOCK_SIZE, values.length), Tassel5HDF5Constants.intDeflation);
             writeHDF5EntireArray(path, writer, values.length, Tassel5HDF5Constants.BLOCK_SIZE, values);
         }
     }
 
     // Positions/numSites
     public static int getHDF5PositionNumber(IHDF5Reader reader) {
-        return reader.getIntAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
+        return reader.int32().getAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
     }
 
     public static void createHDF5PositionModule(IHDF5Writer h5w) {
-        h5w.createGroup(Tassel5HDF5Constants.POSITION_MODULE);
+        h5w.object().createGroup(Tassel5HDF5Constants.POSITION_MODULE);
     }
 
     public static void writeHDF5PositionNumSite(IHDF5Writer h5w, int numSites) {
-        h5w.setIntAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES, numSites);
+        h5w.int32().setAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES, numSites);
     }
 
     public static byte[] getHDF5ReferenceAlleles(IHDF5Reader reader) {
@@ -396,7 +396,7 @@ public final class HDF5Utils {
 
     private static byte[] getHDF5Alleles(IHDF5Reader reader, String allelePath, int startSite, int numSites) {
         if (reader.exists(allelePath)) {
-            return reader.readByteArrayBlockWithOffset(allelePath, numSites, startSite);
+            return reader.int8().readArrayBlockWithOffset(allelePath, numSites, startSite);
         }
         byte[] unknown = new byte[numSites];
         Arrays.fill(unknown, GenotypeTable.UNKNOWN_ALLELE);
@@ -408,25 +408,25 @@ public final class HDF5Utils {
         if (h5w.exists(Tassel5HDF5Constants.TAG_MODULE)) {
             throw new UnsupportedOperationException("Tag module already exists in HDF5 file");
         }
-        h5w.createGroup(Tassel5HDF5Constants.TAG_MODULE);
-        h5w.setBooleanAttribute(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_LOCKED, false);
-        h5w.setIntAttribute(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_LENGTH_LONG, tagLengthInLong);
-        h5w.setIntAttribute(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_COUNT, 0);
+        h5w.object().createGroup(Tassel5HDF5Constants.TAG_MODULE);
+        h5w.bool().setAttr(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_LOCKED, false);
+        h5w.int32().setAttr(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_LENGTH_LONG, tagLengthInLong);
+        h5w.int32().setAttr(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_COUNT, 0);
     }
 
     public static boolean isHDF5TagLocked(IHDF5Reader reader) {
         if (reader.exists(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH + "/" + Tassel5HDF5Constants.TAG_LOCKED) == false) {
             return false;
         }
-        return reader.getBooleanAttribute(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_LOCKED);
+        return reader.bool().getAttr(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_LOCKED);
     }
 
     public static int getHDF5TagCount(IHDF5Reader reader) {
-        return reader.getIntAttribute(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_COUNT);
+        return reader.int32().getAttr(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_COUNT);
     }
 
     public static int getHDF5TagLengthInLong(IHDF5Reader reader) {
-        return reader.getIntAttribute(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_LENGTH_LONG);
+        return reader.int32().getAttr(Tassel5HDF5Constants.TAG_ATTRIBUTES_PATH, Tassel5HDF5Constants.TAG_LENGTH_LONG);
     }
 
     public static boolean doTagsExist(IHDF5Reader reader) {
@@ -446,14 +446,14 @@ public final class HDF5Utils {
     public static synchronized void writeTagDistributionBucket(IHDF5Writer h5w, int bucket, long[][] tags, short[] length,
             int[] encodedTaxaDist, int maxTaxa, int[] tagDistOffset) {
         String path = Tassel5HDF5Constants.TAG_MODULE + "/" + bucket + "/";
-        h5w.createGroup(path);
-        h5w.writeLongMatrix(path + TAG_SEQ, tags, intDeflation);
-        h5w.writeShortArray(path + TAG_LENGTHS, length, intDeflation);
-        h5w.createIntArray(path + TAG_DIST, encodedTaxaDist.length, Math.min(BLOCK_SIZE, encodedTaxaDist.length), intDeflation);
-        h5w.writeIntArray(path + TAG_DIST, encodedTaxaDist, intDeflation);
-        h5w.setIntAttribute(path + TAG_DIST, "MaxTaxa", maxTaxa);
-        h5w.createIntArray(path + TAG_DIST_OFFSETS, tagDistOffset.length, intDeflation);
-        h5w.writeIntArray(path + TAG_DIST_OFFSETS, tagDistOffset, intDeflation);
+        h5w.object().createGroup(path);
+        h5w.int64().writeMatrix(path + TAG_SEQ, tags, intDeflation);
+        h5w.int16().writeArray(path + TAG_LENGTHS, length, intDeflation);
+        h5w.int32().createArray(path + TAG_DIST, encodedTaxaDist.length, Math.min(BLOCK_SIZE, encodedTaxaDist.length), intDeflation);
+        h5w.int32().writeArray(path + TAG_DIST, encodedTaxaDist, intDeflation);
+        h5w.int32().setAttr(path + TAG_DIST, "MaxTaxa", maxTaxa);
+        h5w.int32().createArray(path + TAG_DIST_OFFSETS, tagDistOffset.length, intDeflation);
+        h5w.int32().writeArray(path + TAG_DIST_OFFSETS, tagDistOffset, intDeflation);
     }
 
     public static boolean doTagsByTaxaExist(IHDF5Reader reader) {
@@ -519,25 +519,25 @@ public final class HDF5Utils {
         int startPos = block * blockSize;
         if (val instanceof byte[][]) {
             byte[][] bval = (byte[][]) val;
-            myWriter.writeByteMatrixBlockWithOffset(objectPath, bval, bval.length, bval[0].length, 0l, (long) startPos);
+            myWriter.int8().writeMatrixBlockWithOffset(objectPath, bval, bval.length, bval[0].length, 0l, (long) startPos);
         } else if (val instanceof byte[]) {
             byte[] fval = (byte[]) val;
-            myWriter.writeByteArrayBlockWithOffset(objectPath, fval, fval.length, (long) startPos);
+            myWriter.int8().writeArrayBlockWithOffset(objectPath, fval, fval.length, (long) startPos);
         } else if (val instanceof float[]) {
             float[] fval = (float[]) val;
-            myWriter.writeFloatArrayBlockWithOffset(objectPath, fval, fval.length, (long) startPos);
+            myWriter.float32().writeArrayBlockWithOffset(objectPath, fval, fval.length, (long) startPos);
         } else if (val instanceof int[]) {
             int[] fval = (int[]) val;
-            myWriter.writeIntArrayBlockWithOffset(objectPath, fval, fval.length, (long) startPos);
+            myWriter.int32().writeArrayBlockWithOffset(objectPath, fval, fval.length, (long) startPos);
         } else if (val instanceof int[][]) {
             int[][] ival = (int[][]) val;
-            myWriter.writeIntMatrixBlockWithOffset(objectPath, ival, ival.length, ival[0].length, 0l, (long) startPos);
+            myWriter.int32().writeMatrixBlockWithOffset(objectPath, ival, ival.length, ival[0].length, 0l, (long) startPos);
         } else if (val instanceof long[][]) {
             long[][] lval = (long[][]) val;
-            myWriter.writeLongMatrixBlockWithOffset(objectPath, lval, lval.length, lval[0].length, 0l, (long) startPos);
+            myWriter.int64().writeMatrixBlockWithOffset(objectPath, lval, lval.length, lval[0].length, 0l, (long) startPos);
         } else if (val instanceof String[]) {
             String[] sval = (String[]) val;
-            myWriter.writeStringArrayBlockWithOffset(objectPath, sval, sval.length, (long) startPos);
+            myWriter.string().writeArrayBlockWithOffset(objectPath, sval, sval.length, (long) startPos);
         }
     }
 

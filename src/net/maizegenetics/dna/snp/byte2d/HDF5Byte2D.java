@@ -34,11 +34,11 @@ public class HDF5Byte2D extends AbstractByte2D {
     private final TaxaList myTaxa;
 
     HDF5Byte2D(IHDF5Reader reader, SiteScore.SITE_SCORE_TYPE siteScoreType) {
-        super(siteScoreType, reader.getIntAttribute(Tassel5HDF5Constants.GENOTYPES_MODULE, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA),
-                reader.getIntAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES)
+        super(siteScoreType, reader.int32().getAttr(Tassel5HDF5Constants.GENOTYPES_MODULE, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA),
+                reader.int32().getAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES)
         );
         myReader = reader;
-        myNumSites = reader.getIntAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
+        myNumSites = reader.int32().getAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
         //TODO - Maybe pass in taxa list?
         myTaxa = new TaxaListBuilder().buildFromHDF5(reader);
     }

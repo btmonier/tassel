@@ -61,22 +61,13 @@ final class PositionHDF5List implements PositionList {
             String[] snpIDs;
             int startSite=key&siteMask;
             int length=((numPositions-startSite)<BLOCKSIZE)?numPositions-startSite:BLOCKSIZE;
-//           System.out.println("Reading from HDF5 site anno:"+startSite);
             synchronized(reader) {
-                afOrder = reader.readByteMatrixBlockWithOffset(Tassel5HDF5Constants.ALLELE_FREQ_ORD, 2, length, 0l, startSite);
+                afOrder = reader.int8().readMatrixBlockWithOffset(Tassel5HDF5Constants.ALLELE_FREQ_ORD, 2, length, 0l, startSite);
                 ref=HDF5Utils.getHDF5ReferenceAlleles(reader,startSite,length);
                 anc=HDF5Utils.getHDF5AncestralAlleles(reader,startSite,length);
-//                if (reader.exists(Tassel5HDF5Constants.REF_ALLELES)) {
-//                    ref = reader.readByteArrayBlockWithOffset(Tassel5HDF5Constants.REF_ALLELES,length, startSite);
-//                } else {
-//                    ref = new byte[length];
-//                    for (int i=0; i < length; i++) {
-//                        ref[i] = GenotypeTable.UNKNOWN_ALLELE;
-//                    }
-//                }
-                maf= reader.readFloatArrayBlockWithOffset(Tassel5HDF5Constants.MAF,length, startSite);
-                paf= reader.readFloatArrayBlockWithOffset(Tassel5HDF5Constants.SITECOV,length, startSite);
-                snpIDs=reader.readStringArrayBlockWithOffset(Tassel5HDF5Constants.SNP_IDS,length, startSite);
+                maf= reader.float32().readArrayBlockWithOffset(Tassel5HDF5Constants.MAF,length, startSite);
+                paf= reader.float32().readArrayBlockWithOffset(Tassel5HDF5Constants.SITECOV,length, startSite);
+                snpIDs=reader.string().readArrayBlockWithOffset(Tassel5HDF5Constants.SNP_IDS,length, startSite);
             }
             for (int i=0; i<length; i++) {
                 int site=i+startSite;
@@ -112,7 +103,7 @@ final class PositionHDF5List implements PositionList {
     PositionHDF5List(IHDF5Reader reader) {
         this.reader=reader;
         if (reader.hasAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH,Tassel5HDF5Constants.POSITION_GENOME_VERSION)) {
-            genomeVersion = reader.getStringAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH,Tassel5HDF5Constants.POSITION_GENOME_VERSION);
+            genomeVersion = reader.string().getAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH,Tassel5HDF5Constants.POSITION_GENOME_VERSION);
         } else {
             genomeVersion = null;
         }

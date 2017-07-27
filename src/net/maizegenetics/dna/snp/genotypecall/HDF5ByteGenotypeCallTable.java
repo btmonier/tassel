@@ -51,7 +51,7 @@ class HDF5ByteGenotypeCallTable extends AbstractGenotypeCallTable {
             long offset = getSiteStartFromKey(key) << SHIFT_AMOUNT;
             byte[] data;
             synchronized (myHDF5Reader) {
-                data = myHDF5Reader.readAsByteArrayBlockWithOffset(getTaxaGenoPath(getTaxonFromKey(key)), HDF5_GENOTYPE_BLOCK_SIZE, offset);
+                data = myHDF5Reader.int8().readArrayBlockWithOffset(getTaxaGenoPath(getTaxonFromKey(key)), HDF5_GENOTYPE_BLOCK_SIZE, offset);
             }
             return data;
         }
@@ -72,10 +72,10 @@ class HDF5ByteGenotypeCallTable extends AbstractGenotypeCallTable {
             System.out.println("Reading from HDF5 site anno:" + startSite);
             System.out.println("");
             synchronized (myHDF5Reader) {
-                af = myHDF5Reader.readIntMatrixBlockWithOffset(Tassel5HDF5Constants.ALLELE_CNT, 6, length, 0l, startSite);
-                afOrder = myHDF5Reader.readByteMatrixBlockWithOffset(Tassel5HDF5Constants.ALLELE_FREQ_ORD, 6, length, 0l, startSite);
-                maf = myHDF5Reader.readFloatArrayBlockWithOffset(Tassel5HDF5Constants.MAF, length, startSite);
-                paf = myHDF5Reader.readFloatArrayBlockWithOffset(Tassel5HDF5Constants.SITECOV, length, startSite);
+                af = myHDF5Reader.int32().readMatrixBlockWithOffset(Tassel5HDF5Constants.ALLELE_CNT, 6, length, 0l, startSite);
+                afOrder = myHDF5Reader.int8().readMatrixBlockWithOffset(Tassel5HDF5Constants.ALLELE_FREQ_ORD, 6, length, 0l, startSite);
+                maf = myHDF5Reader.float32().readArrayBlockWithOffset(Tassel5HDF5Constants.MAF, length, startSite);
+                paf = myHDF5Reader.float32().readArrayBlockWithOffset(Tassel5HDF5Constants.SITECOV, length, startSite);
                 lastCachedStartSite = startSite;
             }
             return new SiteBlockAttr(startSite, afOrder, af, maf, paf);
@@ -165,8 +165,8 @@ class HDF5ByteGenotypeCallTable extends AbstractGenotypeCallTable {
         if (!HDF5Utils.isHDF5GenotypeLocked(reader)) {
             throw new IllegalStateException("The Genotype module of this HDF5 file hasn't been locked, and therefore can't be opened for reading. This could occur if the file was created using the -ko (keep open) option when running the plugin ProductionSNPCallerPluginV2. Please check your file, close if appropriate, and try again.");
         }
-        int numTaxa = reader.getIntAttribute(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA);
-        int numSites = reader.getIntAttribute(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
+        int numTaxa = reader.int32().getAttr(Tassel5HDF5Constants.GENOTYPES_ATTRIBUTES_PATH, Tassel5HDF5Constants.GENOTYPES_NUM_TAXA);
+        int numSites = reader.int32().getAttr(Tassel5HDF5Constants.POSITION_ATTRIBUTES_PATH, Tassel5HDF5Constants.POSITION_NUM_SITES);
         String[][] alleleEncodings = NucleotideAlignmentConstants.NUCLEOTIDE_ALLELES;
         return new HDF5ByteGenotypeCallTable(reader, numTaxa, numSites, false, alleleEncodings);
     }

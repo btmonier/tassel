@@ -6,8 +6,6 @@ import ch.systemsx.cisd.hdf5.IHDF5WriterConfigurator;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
-import net.maizegenetics.util.DirectoryCrawler;
-import net.maizegenetics.util.MultiMemberGZIPInputStream;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -15,9 +13,7 @@ import java.awt.*;
 import java.io.*;
 import java.util.Arrays;
 import net.maizegenetics.dna.tag.TagCounts;
-import net.maizegenetics.dna.tag.TagsByTaxa;
 import net.maizegenetics.dna.tag.TagsByTaxa.FilePacking;
-import net.maizegenetics.dna.tag.TagsByTaxaByteHDF5TagGroups;
 import static net.maizegenetics.dna.tag.TagsByTaxaByteHDF5TagGroups.encodeBySign;
 import net.maizegenetics.util.Tassel5HDF5Constants;
 
@@ -90,31 +86,31 @@ public class PanABuildPivotTBTPlugin extends AbstractPlugin {
         config.dontUseExtendableDataTypes();
         config.useUTF8CharacterEncoding();
         h5 = config.writer();
-        h5.setIntAttribute("/", "tagCount", masterTC.getTagCount());
-        h5.setIntAttribute("/", "chunkSize", Tassel5HDF5Constants.BLOCK_SIZE);
-        h5.setIntAttribute("/", "tagLengthInLong", masterTC.getTagSizeInLong());
-        h5.setIntAttribute("/", "taxaNum", taxaNames.length);
+        h5.int32().setAttr("/", "tagCount", masterTC.getTagCount());
+        h5.int32().setAttr("/", "chunkSize", Tassel5HDF5Constants.BLOCK_SIZE);
+        h5.int32().setAttr("/", "tagLengthInLong", masterTC.getTagSizeInLong());
+        h5.int32().setAttr("/", "taxaNum", taxaNames.length);
         //create tag matrix
-        h5.createLongMatrix("tags", masterTC.getTagSizeInLong(), masterTC.getTagCount(), masterTC.getTagSizeInLong(), masterTC.getTagCount());
+        h5.int64().createMatrix("tags", masterTC.getTagSizeInLong(), masterTC.getTagCount(), masterTC.getTagSizeInLong(), masterTC.getTagCount());
         h5.writeLongMatrix("tags", newTags);
-        h5.createByteArray("tagLength", masterTC.getTagCount());
+        h5.int8().createArray("tagLength", masterTC.getTagCount());
         h5.writeByteArray("tagLength", masterTC.getTagLength());
          //create TBT matrix
-        h5.createGroup("tbttg");
+        h5.object().createGroup("tbttg");
         int tagChunks = masterTC.getTagCount() >> 16;
         if (masterTC.getTagCount() % Tassel5HDF5Constants.BLOCK_SIZE > 0) {
             tagChunks++;
         }
         System.out.println(Tassel5HDF5Constants.BLOCK_SIZE);
         System.out.printf("tagChunks %d Div %g %n", tagChunks, (double) masterTC.getTagCount() / (double) Tassel5HDF5Constants.BLOCK_SIZE);
-        h5.setIntAttribute("tbttg/", "tagCount", masterTC.getTagCount());
-        h5.setIntAttribute("tbttg/", "tagChunks", tagChunks);
+        h5.int32().setAttr("tbttg/", "tagCount", masterTC.getTagCount());
+        h5.int32().setAttr("tbttg/", "tagChunks", tagChunks);
 
         for (int tc = 0; tc < tagChunks; tc++) {
-            h5.createGroup("tbttg/c" + tc);
+            h5.object().createGroup("tbttg/c" + tc);
         }
-        h5.createStringVariableLengthArray("tbttg/taxaNames", taxaNames.length);
-        h5.writeStringVariableLengthArray("tbttg/taxaNames", taxaNames);
+        h5.string().createArrayVL("tbttg/taxaNames", taxaNames.length);
+        h5.string().writeArrayVL("tbttg/taxaNames", taxaNames);
         
         long[] t;
         byte cnt = 0;
@@ -131,7 +127,7 @@ public class PanABuildPivotTBTPlugin extends AbstractPlugin {
             int chunk = i >> 16;
             String d = "tbttg/c" + chunk + "/" + i;
             byte[] deftc = encodeBySign(td);
-            h5.createByteArray(d, deftc.length);
+            h5.int8().createArray(d, deftc.length);
             h5.writeByteArray(d, deftc);
         }   
     }
