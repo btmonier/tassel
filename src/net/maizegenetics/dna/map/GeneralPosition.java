@@ -4,15 +4,15 @@
 package net.maizegenetics.dna.map;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.ComparisonChain;
 import net.maizegenetics.dna.WHICH_ALLELE;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
+import net.maizegenetics.util.GeneralAnnotation;
+import net.maizegenetics.util.GeneralAnnotationStorage;
 
 import java.text.NumberFormat;
 import java.util.Arrays;
-import net.maizegenetics.util.GeneralAnnotation;
-import net.maizegenetics.util.GeneralAnnotationStorage;
 
 /**
  * Provide information on a site and its annotations. This includes information
@@ -108,6 +108,8 @@ public final class GeneralPosition implements Position {
 
         /**
          * Constructor requires a Position before annotation of the position
+         *
+         * @see Position#builder(String, int)
          */
         public Builder(Chromosome chr, int position) {
             this(chr, position, GeneralAnnotationStorage.getBuilder());
@@ -252,7 +254,7 @@ public final class GeneralPosition implements Position {
          */
         public Builder addAnno(String key, Object value) {
             if (value instanceof Number) {
-                myAnnotations.addAnnotation(key, (Number)value);
+                myAnnotations.addAnnotation(key, (Number) value);
             } else {
                 myAnnotations.addAnnotation(key, value.toString());
             }

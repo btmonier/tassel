@@ -20,6 +20,54 @@ public interface Position extends Comparable<Position> {
     public static final String STRAND_MINUS_STR = "-";
     public static final String STRAND_UNKNOWN_STR = "N";
 
+    /**
+     * Create Position given chromosome number and position.
+     *
+     * @param chromosomeNumber chromosome number
+     * @param positionWithinChromosome physical position
+     *
+     * @return Position
+     */
+    public static Position of(int chromosomeNumber, int positionWithinChromosome) {
+        return new GeneralPosition.Builder(Chromosome.instance(chromosomeNumber), positionWithinChromosome).build();
+    }
+
+    /**
+     * Create Position given chromosome name and position.
+     *
+     * @param chromosomeName chromosome name
+     * @param positionWithinChromosome physical position
+     *
+     * @return Position
+     */
+    public static Position of(String chromosomeName, int positionWithinChromosome) {
+        return new GeneralPosition.Builder(Chromosome.instance(chromosomeName), positionWithinChromosome).build();
+    }
+
+    /**
+     * Create Position Builder given chromosome number and position.
+     *
+     * @param chromosomeNumber chromosome number
+     * @param positionWithinChromosome physical position
+     *
+     * @return Position Builder
+     */
+    public static GeneralPosition.Builder builder(int chromosomeNumber, int positionWithinChromosome) {
+        return new GeneralPosition.Builder(Chromosome.instance(chromosomeNumber), positionWithinChromosome);
+    }
+
+    /**
+     * Create Position Builder given chromosome name and position.
+     *
+     * @param chromosomeName chromosome name
+     * @param positionWithinChromosome physical position
+     *
+     * @return Position Builder
+     */
+    public static GeneralPosition.Builder builder(String chromosomeName, int positionWithinChromosome) {
+        return new GeneralPosition.Builder(Chromosome.instance(chromosomeName), positionWithinChromosome);
+    }
+
     public static String getStrand(byte value) {
         switch (value) {
             case STRAND_PLUS:
