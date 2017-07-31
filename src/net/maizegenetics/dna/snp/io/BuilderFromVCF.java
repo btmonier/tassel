@@ -492,7 +492,8 @@ class ProcessVCFBlock implements Callable<ProcessVCFBlock> {
                 if(alt.equals(".")) {variants=refS;}
                 else {variants=(refS+"/"+alt).replace(',','/')
                         .replace("<INS>", "+").replace('I', '+')
-                        .replace("<DEL>", "-").replace('D', '-');}
+                        .replace("<DEL>", "-").replace('D', '-')
+                        .replace("*", "N");}
             
                 //GeneralPosition.Builder apb=new GeneralPosition.Builder(currChr, currentPosition)
                 //                                               .knownVariants(variants); //TODO strand, variants,
@@ -601,17 +602,33 @@ class ProcessVCFBlock implements Callable<ProcessVCFBlock> {
                 int t=0;
                 for(String taxaAllG: Splitter.on("\t").split(input.substring(tabPos[hp.NUM_HAPMAP_NON_TAXA_HEADERS-1]+1))) {
                     int f=0;
-                    if(taxaAllG.equals(".")) {
+                    //if(taxaAllG.equals(".")) {
+                    if(taxaAllG.startsWith(".")) {
                         gTS[t][s] = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
+                        //need to still move up the taxa counter by one as we have covered this now.
+                        t++;
                         continue;
                     }
                     for(String fieldS: Splitter.on(":").split(taxaAllG)) {
                         if(f==iGT) {
                             //String "[.0-9]\\/[.0-9]||[.0-9]\\|[.0-9]" will match a valid diploid
                             if (!fieldS.equals(".")) { //[TAS-509] Check to make sure we are using diploids in the form 0/1 or 0|0
-                                int a1 = fieldS.charAt(0) - '0';
-                                int a2 = fieldS.charAt(2) - '0';
-                                
+                                int a1 = 0;
+                                int a2 = 0;
+                                //Should be this, but for speed we just check the character
+                                //if(fieldS.split("|/").length ==1) {
+                                if(fieldS.length() ==1) {
+                                    a1 = fieldS.charAt(0) - '0';
+                                    a2 = fieldS.charAt(0) - '0';
+                                }
+                                else {
+                                    //zrm22 Jul 31, 2017
+                                    //int a1 = fieldS.charAt(0) - '0';
+                                    //int a2 = fieldS.charAt(2) - '0';
+                                    
+                                    a1 = fieldS.charAt(0) - '0';
+                                    a2 = fieldS.charAt(2) - '0';
+                                }
                                 if(a1>alleles.length-1 || a2>alleles.length-1) {
                                     Position pos = blkPosList.get(blkPosList.size()-1);
                                     throw new IllegalStateException("\nError Processing VCF block: Mismatch of alleles.\n  At Chromosome "+ pos.getChromosome().getName() + ", Position "+pos.getPosition() +".\nAllele ID larger than number of alleles" );
@@ -634,7 +651,7 @@ class ProcessVCFBlock implements Callable<ProcessVCFBlock> {
                                 int i=0;
                                 for(String ad: Splitter.on(",").split(fieldS)){
                                     
-                                    if(alleles[i]==GenotypeTable.UNKNOWN_ALLELE || ad.equals(".")) {  //no position for depth of unknown alleles or depth is set to missing, so skip
+                                    if(alleles[i]==GenotypeTable.UNKNOWN_ALLELE || ad.equals(".") || alleles[i]==NucleotideAlignmentConstants.UNDEFINED_ALLELE || alleles[i]==NucleotideAlignmentConstants.UNDEFINED_DIPLOID_ALLELE) {  //no position for depth of unknown alleles or depth is set to missing, so skip
                                         //Uncomment when converted
                                         //dTS[t][alleles[i++]][s] = AlleleDepthUtil.depthIntToByte(AlleleDepthUtil.DEPTH_MISSING);
                                         //Comment next two lines when converted
@@ -652,6 +669,7 @@ class ProcessVCFBlock implements Callable<ProcessVCFBlock> {
                     t++;
                 }
             } catch(IllegalStateException e) {
+                e.printStackTrace();
             	throw e;
             }
             catch(Exception e) {

@@ -547,6 +547,7 @@ public class ExportUtils {
                 GeneralAnnotation ga = p.getAnnotation();
                 String annotationHolder=ga.getAnnotationKeys().stream().sorted()
                         .filter(k->!k.equals("VARIANT"))
+                        .filter(k -> !(k.equals("DP") && hasDepth)) //Get rid of the DP tag if we have depth in the genotype table already.  
                         .map(key->{
                             String[] annos=ga.getTextAnnotation(key);
                             if(annos[0].equals("TRUE")) return key;
