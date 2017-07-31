@@ -21,6 +21,7 @@ public class Chromosome implements Comparable<Chromosome> {
     public static Chromosome UNKNOWN = new Chromosome("Unknown");
     private final String myName;
     private final int myChromosomeNumber;
+    private final String myCompareString;
     private final int myLength;
     private final GeneralAnnotation myGA;
     private final int hashCode;
@@ -73,6 +74,17 @@ public class Chromosome implements Comparable<Chromosome> {
             throw new IllegalArgumentException("Chromosome: name can't be null or empty.");
         }
         myName = parseName(name);
+        Matcher matcher = DIGITS.matcher(myName);
+        if (matcher.find()) {
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < 5 - matcher.end(); i++) {
+                builder.append("0");
+            }
+            builder.append(myName);
+            myCompareString = builder.toString();
+        } else {
+            myCompareString = myName;
+        }
         myLength = length;
         int convChr = Integer.MAX_VALUE;
         try {
@@ -148,20 +160,7 @@ public class Chromosome implements Comparable<Chromosome> {
      */
     @Override
     public int compareTo(Chromosome o) {
-        if (myChromosomeNumber != Integer.MAX_VALUE && o.myChromosomeNumber != Integer.MAX_VALUE) {
-            return myChromosomeNumber - o.getChromosomeNumber();
-        }
-        Matcher matcher = DIGITS.matcher(myName);
-        if (matcher.find()) {
-            Matcher matcher2 = DIGITS.matcher(o.myName);
-            if (matcher2.find()) {
-                int result = Integer.parseInt(matcher.group()) - Integer.parseInt(matcher2.group());
-                if (result != 0) {
-                    return result;
-                }
-            }
-        }
-        return myName.compareTo(o.getName());
+        return myCompareString.compareTo(o.myCompareString);
     }
 
     /**
