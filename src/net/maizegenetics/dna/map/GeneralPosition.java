@@ -109,6 +109,7 @@ public final class GeneralPosition implements Position {
         /**
          * Constructor requires a Position before annotation of the position
          *
+         * @see Position#of(String, int)
          * @see Position#builder(String, int)
          */
         public Builder(Chromosome chr, int position) {
