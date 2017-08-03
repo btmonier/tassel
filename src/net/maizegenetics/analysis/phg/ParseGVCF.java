@@ -5,6 +5,7 @@ package net.maizegenetics.analysis.phg;
  */
 
 import com.google.common.collect.ImmutableList;
+import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.util.Tuple;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
@@ -441,15 +442,16 @@ public class ParseGVCF {
             String[] values = tokens[9].split(":");
 
             int numFormats = formats.length;
-            if (numFormats != values.length) {
+            int numValues = values.length;
+            if (numFormats < numValues) {
                 myLogger.error(myLineNum + ": " + myLine);
-                throw new IllegalArgumentException("GVCFLine: number of formats not equal to number of values.");
+                throw new IllegalArgumentException("GVCFLine: number of formats can't be less than number of values.");
             }
 
             boolean isHomoBasedOnGenotype = false;
             boolean isAlt = false;
             int alleleDepthSum = 0;
-            for (int i = 0; i < numFormats; i++) {
+            for (int i = 0; i < numValues; i++) {
                 if (formats[i].equals("DP")) {
                     myDepth = Integer.parseInt(values[i]);
                 } else if (formats[i].equals("AD")) {
@@ -473,7 +475,7 @@ public class ParseGVCF {
                             throw new IllegalStateException("ParseGVCF: genotypes (GT) can't have both / and |");
                         }
                         alleles = values[i].split("/");
-                        if (alleles[0].equals(alleles[1])) {
+                        if (!alleles[0].equals(".") && !alleles[1].equals(".") && alleles[0].equals(alleles[1])) {
                             isHomoBasedOnGenotype = true;
                         }
                         if (!alleles[0].equals("0") || !alleles[1].equals("0")) {
@@ -482,7 +484,7 @@ public class ParseGVCF {
                     } else if (values[i].contains("|")) {
                         myIsPhased = true;
                         alleles = values[i].split("|");
-                        if (alleles[0].equals(alleles[1])) {
+                        if (!alleles[0].equals(".") && !alleles[1].equals(".") && alleles[0].equals(alleles[1])) {
                             isHomoBasedOnGenotype = true;
                         }
                         if (!alleles[0].equals("0") || !alleles[1].equals("0")) {
@@ -502,13 +504,18 @@ public class ParseGVCF {
                     for (String current : alleles) {
                         int alleleIndex = -1;
                         try {
-                            alleleIndex = Integer.valueOf(current);
+                            if (!current.equals(".")) {
+                                alleleIndex = Integer.valueOf(current);
+                            }
                         } catch (NumberFormatException ne) {
                             myLogger.error(myLineNum + ": " + myLine);
-                            throw new IllegalStateException("ParseGVCF: GT index not a number.");
+                            throw new IllegalStateException("ParseGVCF: GT index not a number or .: " + current);
                         }
                         try {
-                            if (alleleIndex == 0) {
+                            if (alleleIndex == -1) {
+                                genotypeIndices.add(-1);
+                                genotypes.add(GenotypeTable.UNKNOWN_ALLELE_STR);
+                            } else if (alleleIndex == 0) {
                                 genotypeIndices.add(0);
                                 genotypes.add(myReference);
                             } else {
