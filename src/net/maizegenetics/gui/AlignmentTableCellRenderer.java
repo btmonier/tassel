@@ -51,7 +51,7 @@ public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
 
         Nucleotide, NucleotideHeterozygous, MajorAllele, MinorAllele, MajorMinorAllele,
         Heterozygous, ReferenceMasks, GeneticDistanceMasks, Depth, None, TOPM, SNPs,
-        ReferenceProbability, Projection
+        NumericGenotype, Projection
     };
     private static final RENDERING_TYPE[] GENOTYPE_RENDERING_TYPES = new RENDERING_TYPE[]{RENDERING_TYPE.MajorMinorAllele,
         RENDERING_TYPE.MajorAllele, RENDERING_TYPE.MinorAllele, RENDERING_TYPE.Heterozygous,
@@ -103,7 +103,7 @@ public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
         }
 
         if (myAlignment.hasReferenceProbablity()) {
-            temp.add(RENDERING_TYPE.ReferenceProbability);
+            temp.add(RENDERING_TYPE.NumericGenotype);
         }
 
         mySupportedRenderingTypes = new RENDERING_TYPE[temp.size()];
@@ -135,7 +135,7 @@ public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
                 return getMajorMinorAlleleRendering(table, value, isSelected, hasFocus, row, col);
             case ReferenceMasks:
                 return getReferenceMasksRendering(table, value, isSelected, hasFocus, row, col);
-            case ReferenceProbability:
+            case NumericGenotype:
                 return getReferenceProbabilityRendering(table, value, isSelected, hasFocus, row, col);
             case Projection:
                 return getProjectionRendering(table, value, isSelected, hasFocus, row, col);

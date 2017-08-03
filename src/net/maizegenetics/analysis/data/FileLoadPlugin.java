@@ -83,7 +83,7 @@ public class FileLoadPlugin extends AbstractPlugin {
         HDF5("HDF5"), TOPM("TOPM"), HDF5Schema("HDF5 Schema"), Filter("Filter"),
         NumericGenotype("Numeric Genotype"), TaxaList("Taxa List"), PositionList("Position List"),
         SqrMatrixRaw("Raw MultiBLUP Matrix"), SqrMatrixBin("Binary MultiBLUP Matrix"),
-        GOBII("GOBII"), Depth("Depth"), ReferenceProbability("Reference Probability"), Report("Report"),
+        GOBII("GOBII"), Depth("Depth"), ReferenceProbability("Numeric Genotype"), Report("Report"),
         PlinkPhenotype("Plink Phenotype"), SqrMatrixDARwinDIS("DARwin DIS"), Avro("Avro");
 
         private final String myText;

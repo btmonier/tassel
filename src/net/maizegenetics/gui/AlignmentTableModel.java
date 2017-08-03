@@ -78,7 +78,7 @@ public class AlignmentTableModel extends AbstractTableModel implements ChangeLis
     }
     
     public int getColumnWidth() {
-        if (myRenderingType == AlignmentTableCellRenderer.RENDERING_TYPE.ReferenceProbability) {
+        if (myRenderingType == AlignmentTableCellRenderer.RENDERING_TYPE.NumericGenotype) {
             return 31;
         } else {
             return 17;
@@ -93,7 +93,7 @@ public class AlignmentTableModel extends AbstractTableModel implements ChangeLis
 
         try {
             realColumn = col + myHorizontalStart;
-            if (myRenderingType == AlignmentTableCellRenderer.RENDERING_TYPE.ReferenceProbability) {
+            if (myRenderingType == AlignmentTableCellRenderer.RENDERING_TYPE.NumericGenotype) {
                 return DECIMAL_FORMAT.format(myAlignment.referenceProbability().value(row, realColumn));
             }
             return myAlignment.genotypeAsString(row, realColumn);
