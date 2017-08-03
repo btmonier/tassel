@@ -5,6 +5,7 @@ package net.maizegenetics.analysis.phg;
  */
 
 import com.google.common.collect.ImmutableList;
+import net.maizegenetics.util.Tuple;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
@@ -12,7 +13,11 @@ import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Spliterator;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 
 public class ParseGVCF {
@@ -25,12 +30,109 @@ public class ParseGVCF {
         // utility
     }
 
-    public static BlockingQueue<Future<ProcessLines>> parse(String filename) {
+    public static Tuple<List<String>, BlockingQueue<Future<ProcessLines>>> parse(String filename) {
         myLogger.info("ParseGVCF: filename: " + filename);
         ExecutorService pool = Executors.newWorkStealingPool();
         BlockingQueue<Future<ProcessLines>> queue = new LinkedBlockingQueue<>();
         pool.submit(new ReadLines(filename, queue, pool));
-        return queue;
+        ProcessLines header = null;
+        try {
+            header = queue.take().get();
+            if (!header.isHeader()) {
+                throw new IllegalStateException("ParseGVCF: should be header.");
+            }
+        } catch (Exception e) {
+            myLogger.debug(e.getMessage(), e);
+            throw new IllegalStateException("ParseGVCF: problem getting header lines.");
+        }
+        return new Tuple<>(header.lines(), queue);
+    }
+
+    /**
+     * The returns a list of the GVCF header lines and a stream of the processed data lines. If you want the stream to
+     * return the data lines in order found in the file, do not call parallel().
+     *
+     * @param filename GVCF filename
+     *
+     * @return list of header lines and stream of processed data lines
+     */
+    public static Tuple<List<String>, Stream<GVCFLine>> stream(String filename) {
+        Tuple<List<String>, BlockingQueue<Future<ProcessLines>>> temp = parse(filename);
+        return new Tuple<>(temp.getX(), StreamSupport.stream(new GVCFLineSpliterator<>(temp.getY()), false));
+    }
+
+    private static class GVCFLineSpliterator<GVCFLine> implements Spliterator<ParseGVCF.GVCFLine> {
+
+        private final BlockingQueue<Future<ProcessLines>> myQueue;
+        private List<ParseGVCF.GVCFLine> myLines = null;
+        private int myIndex = 0;
+        private int myNumLines = 0;
+
+        public GVCFLineSpliterator(BlockingQueue<Future<ProcessLines>> queue) {
+            myQueue = queue;
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super ParseGVCF.GVCFLine> action) {
+            try {
+                if (myLines == null) {
+                    ProcessLines next = myQueue.take().get();
+                    if (next.isFinal()) {
+                        return false;
+                    } else {
+                        myLines = next.processedLines();
+                        myIndex = 0;
+                        myNumLines = myLines.size();
+                    }
+                }
+                action.accept(myLines.get(myIndex));
+                myIndex++;
+                if (myIndex >= myNumLines) {
+                    myLines = null;
+                }
+                return true;
+            } catch (Exception e) {
+                myLogger.debug(e.getMessage(), e);
+                throw new IllegalStateException("ParseGVCF: problem creating stream.");
+            }
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super ParseGVCF.GVCFLine> action) {
+            try {
+                if (myLines != null) {
+                    for (int i = myIndex; i < myNumLines; i++) {
+                        action.accept(myLines.get(i));
+                    }
+                    myLines = null;
+                }
+                ProcessLines next = myQueue.take().get();
+                while (!next.isFinal()) {
+                    for (ParseGVCF.GVCFLine current : next.processedLines()) {
+                        action.accept(current);
+                    }
+                    next = myQueue.take().get();
+                }
+            } catch (Exception e) {
+                myLogger.debug(e.getMessage(), e);
+                throw new IllegalStateException("ParseGVCF: problem creating stream.");
+            }
+        }
+
+        @Override
+        public Spliterator<ParseGVCF.GVCFLine> trySplit() {
+            return null;
+        }
+
+        @Override
+        public long estimateSize() {
+            return Long.MAX_VALUE;
+        }
+
+        @Override
+        public int characteristics() {
+            return Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED;
+        }
     }
 
     public static class ProcessLines implements Callable<ProcessLines> {
