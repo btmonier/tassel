@@ -530,6 +530,21 @@ public final class NucleotideAlignmentConstants {
     }
 
     /**
+     * Convert a genotype (diploid) string (e.g. ACGTA) to arrays of diploid bytes
+     * (e.g. {0,17,34,51,0})
+     *
+     * @param diploidString haploid allele string
+     * @return encoded array of bytes
+     */
+    public static byte[] convertGenotypeStringToDiploidByteArray(String diploidString) {
+        byte[] genoBytes = new byte[diploidString.length()];
+        for (int i = 0; i < genoBytes.length; i++) {
+            genoBytes[i] = getNucleotideDiploidByte(diploidString.charAt(i));
+        }
+        return genoBytes;
+    }
+
+    /**
      * Convert a haploid (allele) string (e.g. {0,1,2,3,0}) to its reverse
      * complement (e.g. {3,0,1,2,3})
      *
