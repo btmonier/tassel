@@ -621,7 +621,6 @@ public class ParseGVCF {
                 }
 
                 if (!temp.isEmpty()) {
-                    String[] lines = new String[temp.size()];
                     myQueue.add(myPool.submit(new ProcessLines(lineNum, temp)));
                 }
 
@@ -630,6 +629,8 @@ public class ParseGVCF {
             } catch (Exception e) {
                 myLogger.debug(e.getMessage(), e);
                 throw new IllegalStateException("ParseGVCF: ReadLines: problem reading file: " + myFilename);
+            } finally {
+                myPool.shutdown();
             }
 
         }

@@ -23,7 +23,7 @@ public abstract class AbstractMaskMatrix implements MaskMatrix {
     protected final int myNumSites;
     private final Cache<Integer, BitSet> myCache;
     private final Cache<Integer, BitSet> mySmallCache;
-    private final ForkJoinPool myThreadPool = new ForkJoinPool();
+    private final ForkJoinPool myThreadPool = ForkJoinPool.commonPool();
 
     AbstractMaskMatrix(int numTaxa, int numSites) {
         myNumTaxa = numTaxa;
