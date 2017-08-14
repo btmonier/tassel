@@ -8,8 +8,16 @@ package net.maizegenetics.dna.snp.io;
 import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.*;
+import net.maizegenetics.dna.map.Position;
+import net.maizegenetics.util.Tuple;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
+
+import static java.util.stream.Collectors.collectingAndThen;
 
 /**
  *
@@ -22,6 +30,7 @@ public class ReadBedfile {
     private ReadBedfile() {
         // utility
     }
+
 
     public static List<BedFileRange> getRanges(String bedFile) {
 
@@ -69,6 +78,25 @@ public class ReadBedfile {
         return result;
 
     }
+
+
+    public static RangeSet<Position> getRangesAsPositions(String bedfile) {
+        return getRanges(bedfile).stream()
+                .map(bedFileRange -> Range.closed(Position.of(bedFileRange.myChrInt, bedFileRange.myStartPos),
+                        Position.of(bedFileRange.myChrInt, bedFileRange.myEndPos)))
+                .collect(collectingAndThen(Collectors.toSet(), TreeRangeSet::create));
+    }
+
+    public static RangeMap<Position,String> getRangesAsPositionMap(String bedfile) {
+        TreeRangeMap<Position,String> positionNameRangeMap=TreeRangeMap.create();
+        for (BedFileRange bedFileRange : getRanges(bedfile)) {
+            positionNameRangeMap.put(Range.closed(Position.of(bedFileRange.myChrInt, bedFileRange.myStartPos),
+                    Position.of(bedFileRange.myChrInt, bedFileRange.myEndPos)),
+                    bedFileRange.myName);
+        }
+        return positionNameRangeMap;
+    }
+
 
     public static class BedFileRange implements Comparable<BedFileRange> {
 
