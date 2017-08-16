@@ -650,8 +650,9 @@ class ProcessVCFBlock implements Callable<ProcessVCFBlock> {
                             if(gTS[t][s]!=GenotypeTable.UNKNOWN_DIPLOID_ALLELE) {
                                 int i=0;
                                 for(String ad: Splitter.on(",").split(fieldS)){
-                                    
-                                    if(alleles[i]==GenotypeTable.UNKNOWN_ALLELE || ad.equals(".") || alleles[i]==NucleotideAlignmentConstants.UNDEFINED_ALLELE || alleles[i]==NucleotideAlignmentConstants.UNDEFINED_DIPLOID_ALLELE) {  //no position for depth of unknown alleles or depth is set to missing, so skip
+                                    if(i>=alleles.length) continue;
+                                    if(alleles[i]==GenotypeTable.UNKNOWN_ALLELE || ad.equals(".") || alleles[i]==NucleotideAlignmentConstants.UNDEFINED_ALLELE ||
+                                            alleles[i]==NucleotideAlignmentConstants.UNDEFINED_DIPLOID_ALLELE) {  //no position for depth of unknown alleles or depth is set to missing, so skip
                                         //Uncomment when converted
                                         //dTS[t][alleles[i++]][s] = AlleleDepthUtil.depthIntToByte(AlleleDepthUtil.DEPTH_MISSING);
                                         //Comment next two lines when converted
