@@ -1,7 +1,9 @@
 package net.maizegenetics.analysis.imputation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ViterbiAlgorithmVariableStateNumber {
 
@@ -55,7 +57,7 @@ public class ViterbiAlgorithmVariableStateNumber {
 	
 	public void initialize() {
 		int n = probTrueStates.length;
-		numberOfPreviousNodeStates = n;
+		numberOfCurrentNodeStates = numberOfPreviousNodeStates = n;
 		distance = new double[n];
 		for (int i = 0; i < n; i++) {
 			try{
@@ -64,20 +66,30 @@ public class ViterbiAlgorithmVariableStateNumber {
 				e.printStackTrace();
 			}
 		}
+		
 	}
 	
 	public void updateDistanceAndHistory(int node) {
 		
 		myTransitionMatrix.setNode(node);
+		numberOfPreviousNodeStates = numberOfCurrentNodeStates;
 		numberOfCurrentNodeStates = myTransitionMatrix.getNumberOfStates();
 		double[][] candidateDistance = new double[numberOfPreviousNodeStates][numberOfCurrentNodeStates];
 		
+		int distanceLength = distance.length;
+		
+		try { //this try block for debugging
 		for (int i = 0; i < numberOfPreviousNodeStates; i++) { //this is the number of nodes for the previous anchor
 			for (int j = 0; j < numberOfCurrentNodeStates; j++) {
 				candidateDistance[i][j] = distance[i] + myTransitionMatrix.getLnTransitionProbability(i, j) + probObservationGivenState.getLnProbObsGivenState(j, obs[node], node);
 			}
 		}
-
+		} catch(Exception e) {
+			System.out.println(String.format("at node %d, distance.length = %d, numberOfPreviousNodeStates = %d, and numberOfCurrentNodeStates = %d",
+					node, distance.length, numberOfPreviousNodeStates, numberOfCurrentNodeStates));
+			throw new RuntimeException(e);
+		}
+		
 		//find the maxima
 		int[] max = new int[numberOfCurrentNodeStates];
 		for (int i = 0; i < numberOfPreviousNodeStates; i++) {
@@ -94,6 +106,23 @@ public class ViterbiAlgorithmVariableStateNumber {
 			distance[j] = candidateDistance[max[j]][j];
 			nodeHistory[j] = (byte) max[j];
 		}
+		
+		//debug
+//		System.out.print("distance: ");
+//		for (double dbl : distance) System.out.print(String.format("  %1.2e", dbl));
+//		System.out.println();
+//		System.out.println("candidate distance:");
+//		for (int i = 0; i < numberOfPreviousNodeStates; i++) {
+//			for (int j = 0; j < numberOfCurrentNodeStates; j++) {
+//				System.out.printf("%1.1e  ", candidateDistance[i][j]);
+//			}
+//			System.out.println();
+//		}
+//		System.out.print("node history: ");
+//		for (byte b : nodeHistory) System.out.print(String.format("  %d", b));
+//		System.out.println();
+//		if (node > 5) System.exit(0);
+		//end debug
 		
 		//if the min distance is less than -1e100, subtract the max distance;
 		double maxd = distance[0];
@@ -113,14 +142,15 @@ public class ViterbiAlgorithmVariableStateNumber {
 	public byte[] getMostProbableStateSequence() {
 		byte[] seq = new byte[numberOfObs];
 		byte finalState = 0;
-		for (int i = 1; i < numberOfCurrentNodeStates; i++) {
+		
+		for (int i = 1; i < distance.length; i++) {
 			if (distance[i] > distance[finalState]) finalState = (byte) i;
 		}
 		
 		//S(t) = h(t+1, S(t+1)), to decode best sequence
 		seq[numberOfObs - 1] = finalState;
 		for (int i = numberOfObs - 2; i >= 0; i--) {
-			 seq[i] = history.get(i + 1)[seq[i + 1]];
+			 seq[i] = history.get(i)[seq[i + 1]];
 		}
 		return seq;
 	}
