@@ -4,7 +4,7 @@ public class TransitionProbability {
 	protected double[][] probabilityOfATransition;
 	protected double[][] adjustedProbability;
 	protected int[] positions;
-	double avgSegmentLength = Double.NaN;
+	protected double avgSegmentLength = Double.NaN;
 	
 	/**
 	 * Use this function to set the transition probability matrix when it is to be used without specifying nodes for getTransitionProbability
