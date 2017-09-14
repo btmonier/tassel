@@ -178,7 +178,7 @@ public class ParentPhasingPlugin extends AbstractPlugin {
 			.build();
 	private PluginParameter<String> selfOut = new PluginParameter.Builder<>("selfOut", null, String.class)
 			.dependentOnParameter(correct)
-			.guiName("Combine Output Filename")
+			.guiName("Corrected Output Filename")
 			.outFile()
 			.description("The name of the corrected self phased output file. A .bin extension will be added. If this is blank, the files will not be combined and only a report comparing the two files will be generated.")
 			.build();
