@@ -25,7 +25,7 @@ public class ImputationAccuracyPlugin extends AbstractPlugin {
 
 	private PluginParameter<Boolean> isSubset = new PluginParameter.Builder<>("subset", false, Boolean.class)
             .guiName("Imputed is subset of original")
-            .description("The imputed data does not contain all of the sites in the original data.").build();
+            .description("The imputed data does not contain all of the sites or taxa in the original data.").build();
 
     public ImputationAccuracyPlugin() {
         super(null, false);
