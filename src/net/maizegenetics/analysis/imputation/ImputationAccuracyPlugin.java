@@ -108,6 +108,8 @@ public class ImputationAccuracyPlugin extends AbstractPlugin {
             genotypeToIndexMap.put(GenotypeTableUtils.getDiploidValue(minorAllele, minorAllele), 2);
             genotypeToIndexMap.put(GenotypeTable.UNKNOWN_DIPLOID_ALLELE, 3);
             for (int taxonIdx = 0; taxonIdx < origGenoTable.numberOfTaxa(); taxonIdx++) {
+            		int imputedTaxonIdx = impGenoTable.taxa().indexOf(origGenoTable.taxa().get(taxonIdx));
+            		if (imputedTaxonIdx < 0) continue;
                 byte origGeno = origGenoTable.genotype(taxonIdx, site);
                 if (origGeno == GenotypeTable.UNKNOWN_DIPLOID_ALLELE) {
                     continue;  //skip if unknown in the original data
@@ -116,9 +118,16 @@ public class ImputationAccuracyPlugin extends AbstractPlugin {
                     continue;  //skip if not missing in the masked data
                 }
                 int originalIndex = genotypeToIndexMap.getOrDefault(origGeno, 4);
-                int impIndex = genotypeToIndexMap.getOrDefault(impGenoTable.genotype(taxonIdx, imputedSite), 4);
+                
+                try {
+                		byte impGeno = impGenoTable.genotype(imputedTaxonIdx, imputedSite);
+                } catch (Exception e) {
+                		System.out.printf("Error at orig site = %d, imputed site = %d%n", site, imputedSite);
+                }
+                
+                int impIndex = genotypeToIndexMap.getOrDefault(impGenoTable.genotype(imputedTaxonIdx, imputedSite), 4);
                 if (impIndex == 4) {
-                    System.out.println(site + ":" + impGenoTable.taxa().get(taxonIdx).toString() + ":" + impGenoTable.genotype(taxonIdx, imputedSite) + NucleotideAlignmentConstants.getNucleotideIUPAC(impGenoTable.genotype(taxonIdx, imputedSite)));
+                    System.out.println(site + ":" + impGenoTable.taxa().get(taxonIdx).toString() + ":" + impGenoTable.genotype(imputedTaxonIdx, imputedSite) + NucleotideAlignmentConstants.getNucleotideIUPAC(impGenoTable.genotype(imputedTaxonIdx, imputedSite)));
                 }
                 cnts[originalIndex][impIndex]++;
             }
