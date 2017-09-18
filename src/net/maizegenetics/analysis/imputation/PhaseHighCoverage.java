@@ -190,9 +190,7 @@ public class PhaseHighCoverage {
 				
 				//this while segment finds the next window polymorphic loci
 				//stores the sites in siteIndex. indexCount is the number found, which is < window only at the end of the chromosome
-				int startS = s;{
-					
-				}
+				int startS = s;
 				while (s < chrend[c] && indexCount < window) {
 					int[] alleleCounts = countAllelesAtSite(phasedHaplotypes, s);
 					int npresent = Arrays.stream(alleleCounts).sum();
@@ -203,7 +201,8 @@ public class PhaseHighCoverage {
 						Collections.sort(index, (a,b) -> alleleCounts[a] >= alleleCounts[b] ? -1 : 1);
 						
 						//test for polymorphism (minor allele count * 4 > major allele count)
-						if (alleleCounts[index.get(1)] > 1 && alleleCounts[index.get(1)] * 4 > alleleCounts[index.get(0)]) {
+						int mult = 10; //was 4 for phase 1, but changing to 10 in phase2 teosinte
+						if (alleleCounts[index.get(1)] > 1 && alleleCounts[index.get(1)] * mult > alleleCounts[index.get(0)]) {
 							siteIndex[indexCount++] = s;
 						}
 						
@@ -219,6 +218,11 @@ public class PhaseHighCoverage {
 				
 				//if indexCount is too small, create a window by adding the new sites on the end of the previous window
 				if (indexCount < minWindow) {
+					if (!isPreviousHapValid) {
+						//at end of chromosome and no valid window has been found. Probably, the entire chromosome is homozygous.
+						System.out.printf("No windows phased in chromosome %d%n", c + 1);
+						continue; 
+					}
 					int combinedCount = previousSiteIndex.length + indexCount;
 					int[] combinedIndex = new int[combinedCount];
 					System.arraycopy(previousSiteIndex, 0, combinedIndex, 0, previousSiteIndex.length);
@@ -297,7 +301,7 @@ public class PhaseHighCoverage {
 					System.out.printf("haplotype matches at chr %d, site %d: %d, %d, %d, %d, reverse = %b\n", c + 1, s, matches[0][0],matches[0][1],matches[1][0],matches[1][1], reverseHaps);
 				}
 
-				System.out.printf("hap list 1 has %d members, 2 has %d members\n", hapIndices1.size(), hapIndices2.size());
+				System.out.printf("hap list 1 has %d members, 2 has %d members (chr %d, site %d)\n", hapIndices1.size(), hapIndices2.size(), c + 1, s);
 				List<byte[]> hapList1, hapList2;
 				if (reverseHaps) {
 					hapList1 = hapIndices2.stream().map(I -> seglist.get(I)).collect(Collectors.toList());

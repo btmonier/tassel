@@ -23,6 +23,10 @@ public class ImputationAccuracyPlugin extends AbstractPlugin {
 
     private static final Logger myLogger = Logger.getLogger(ImputationAccuracyPlugin.class);
 
+	private PluginParameter<Boolean> isSubset = new PluginParameter.Builder<>("subset", false, Boolean.class)
+            .guiName("Imputed is subset of original")
+            .description("The imputed data does not contain all of the sites in the original data.").build();
+
     public ImputationAccuracyPlugin() {
         super(null, false);
     }
@@ -35,12 +39,13 @@ public class ImputationAccuracyPlugin extends AbstractPlugin {
     protected void preProcessParameters(DataSet input) {
         List<Datum> alignInList = input.getDataOfType(GenotypeTable.class);
         if (alignInList.size() != 3) {
-            throw new IllegalArgumentException("LDKNNiImputationPlugin: preProcessParameters: Please select three Genotype Table.");
+            throw new IllegalArgumentException("ImputationAccuracyPlugin: preProcessParameters: Please select three Genotype Table.");
         }
     }
 
     @Override
     public DataSet processData(DataSet input) {
+        if (isSubset.value()) return processDataForSubset(input);
 
         // Load in the genotype table
         GenotypeTable origGenoTable = (GenotypeTable) input.getDataOfType(GenotypeTable.class).get(0).getData();
@@ -81,6 +86,48 @@ public class ImputationAccuracyPlugin extends AbstractPlugin {
         return dataSet;
     }
 
+    private DataSet processDataForSubset(DataSet input) {
+        // Load in the genotype table
+        GenotypeTable origGenoTable = (GenotypeTable) input.getDataOfType(GenotypeTable.class).get(0).getData();
+        myLogger.info("Original Genotype: " + input.getDataOfType(GenotypeTable.class).get(0).getName());
+        GenotypeTable maskGenoTable = (GenotypeTable) input.getDataOfType(GenotypeTable.class).get(1).getData();
+        myLogger.info("Masked Genotype: " + input.getDataOfType(GenotypeTable.class).get(1).getName());
+        GenotypeTable impGenoTable = (GenotypeTable) input.getDataOfType(GenotypeTable.class).get(2).getData();
+        myLogger.info("Imputed Genotype: " + input.getDataOfType(GenotypeTable.class).get(2).getName());
+
+        int[][] cnts = new int[5][5];
+        for (int site = 0; site < origGenoTable.numberOfSites(); site++) {
+        		int imputedSite = impGenoTable.positions().siteOfPhysicalPosition(origGenoTable.chromosomalPosition(site), origGenoTable.chromosome(site));
+        		if (imputedSite < 0) continue;
+            byte majorAllele = origGenoTable.majorAllele(site);
+            byte minorAllele = origGenoTable.minorAllele(site);
+            Map<Byte, Integer> genotypeToIndexMap = new HashMap<>();
+            genotypeToIndexMap.put(GenotypeTableUtils.getDiploidValue(majorAllele, majorAllele), 0);
+            genotypeToIndexMap.put(GenotypeTableUtils.getDiploidValue(majorAllele, minorAllele), 1);
+            genotypeToIndexMap.put(GenotypeTableUtils.getDiploidValue(minorAllele, majorAllele), 1);
+            genotypeToIndexMap.put(GenotypeTableUtils.getDiploidValue(minorAllele, minorAllele), 2);
+            genotypeToIndexMap.put(GenotypeTable.UNKNOWN_DIPLOID_ALLELE, 3);
+            for (int taxonIdx = 0; taxonIdx < origGenoTable.numberOfTaxa(); taxonIdx++) {
+                byte origGeno = origGenoTable.genotype(taxonIdx, site);
+                if (origGeno == GenotypeTable.UNKNOWN_DIPLOID_ALLELE) {
+                    continue;  //skip if unknown in the original data
+                }
+                if (maskGenoTable.genotype(taxonIdx, site) != GenotypeTable.UNKNOWN_DIPLOID_ALLELE) {
+                    continue;  //skip if not missing in the masked data
+                }
+                int originalIndex = genotypeToIndexMap.getOrDefault(origGeno, 4);
+                int impIndex = genotypeToIndexMap.getOrDefault(impGenoTable.genotype(taxonIdx, imputedSite), 4);
+                if (impIndex == 4) {
+                    System.out.println(site + ":" + impGenoTable.taxa().get(taxonIdx).toString() + ":" + impGenoTable.genotype(taxonIdx, imputedSite) + NucleotideAlignmentConstants.getNucleotideIUPAC(impGenoTable.genotype(taxonIdx, imputedSite)));
+                }
+                cnts[originalIndex][impIndex]++;
+            }
+        }
+
+        DataSet dataSet = new DataSet(new Datum("AccuracyReport", makeTableReport(cnts), ""), this);
+        return dataSet;
+    }
+    
     private TableReport makeTableReport(int[][] cnts) {
         String[] headers = {"Original/Imputed", "AA", "Aa", "aa", "N", "Other"};
         TableReportBuilder reportBuilder = TableReportBuilder.getInstance("ImputationAccuracy", headers);
