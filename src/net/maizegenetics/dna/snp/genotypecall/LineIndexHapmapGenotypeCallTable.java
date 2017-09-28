@@ -8,19 +8,19 @@ package net.maizegenetics.dna.snp.genotypecall;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import htsjdk.samtools.util.BlockCompressedInputStream;
+import net.maizegenetics.dna.snp.GenotypeTableUtils;
+import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
+import net.maizegenetics.dna.snp.io.LineIndex;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ForkJoinPool;
-import net.maizegenetics.dna.snp.GenotypeTableUtils;
-import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
-import net.maizegenetics.dna.snp.io.LineIndex;
-import org.apache.log4j.Logger;
 
 /**
- *
  * @author Terry Casstevens
  */
 public class LineIndexHapmapGenotypeCallTable extends AbstractGenotypeCallTable {
@@ -64,7 +64,7 @@ public class LineIndexHapmapGenotypeCallTable extends AbstractGenotypeCallTable 
                 .maximumSize(1000)
                 .build();
 
-        myThreadPool = new ForkJoinPool();
+        myThreadPool = ForkJoinPool.commonPool();
 
     }
 
