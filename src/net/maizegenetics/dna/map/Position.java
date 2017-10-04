@@ -45,6 +45,18 @@ public interface Position extends Comparable<Position> {
     }
 
     /**
+     * Create Position given chromosome and position.
+     *
+     * @param chromosome chromosome
+     * @param positionWithinChromosome physical position
+     *
+     * @return Position
+     */
+    public static Position of(Chromosome chromosome, int positionWithinChromosome) {
+        return new GeneralPosition.Builder(chromosome, positionWithinChromosome).build();
+    }
+
+    /**
      * Create Position Builder given chromosome number and position.
      *
      * @param chromosomeNumber chromosome number
