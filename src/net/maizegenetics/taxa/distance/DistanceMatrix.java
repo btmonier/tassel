@@ -79,7 +79,7 @@ public class DistanceMatrix implements TableReport {
         }
         for (int x = 0; x < myNumTaxa; x++) {
             for (int y = 0; y <= x; y++) {
-                if (Math.abs(distances[x][y] - distances[y][x]) > 0.00000001) {
+                if (Math.abs(distances[x][y] - distances[y][x]) > 0.0000001) {
                     throw new IllegalStateException("DistanceMatrix: init: values passed in are not symmetrical: " + distances[x][y] + " and: " + distances[y][x]);
                 }
                 myDistances[x][y] = (float) distances[x][y];

@@ -473,7 +473,7 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
 
     private JMenu getAssociationMenu() {
 
-        JMenu result = new JMenu("Genotype / Phenotype Association");
+        JMenu result = new JMenu("Association");
         result.setMnemonic(KeyEvent.VK_A);
 
         result.add(createMenuItem(new FixedEffectLMPlugin(this, true)));
