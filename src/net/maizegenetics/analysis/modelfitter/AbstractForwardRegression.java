@@ -73,13 +73,28 @@ public abstract class AbstractForwardRegression implements ForwardRegression {
         myBaseModel = getBaseModel();
         myModel = new ArrayList<>(myBaseModel);
 
+        //check for genotype vs. ref probability
+       
         //Initialize the siteList
         siteList = new ArrayList<>();
         long start = System.nanoTime();
-        for (int s = 0; s < numberOfSites; s++) {
-            Position pos = myGenotype.positions().get(s);
-            siteList.add(new GenotypeAdditiveSite(s, pos.getChromosome().getName(), pos.getPosition(), pos.getSNPID(), CRITERION.pval, myGenotypePhenotype.genotypeAllTaxa(s), myGenotype.majorAllele(s), myGenotype.majorAlleleFrequency(s)));
+        
+        if (myGenotype.hasGenotype()) {
+            for (int s = 0; s < numberOfSites; s++) {
+                Position pos = myGenotype.positions().get(s);
+                siteList.add(new GenotypeAdditiveSite(s, pos.getChromosome().getName(), pos.getPosition(), pos.getSNPID(), CRITERION.pval, myGenotypePhenotype.genotypeAllTaxa(s), myGenotype.majorAllele(s), myGenotype.majorAlleleFrequency(s)));
+            }
+        	
+        } else if (myGenotype.hasReferenceProbablity()) {
+            for (int s = 0; s < numberOfSites; s++) {
+                Position pos = myGenotype.positions().get(s);
+                siteList.add(new RefProbAdditiveSite(s, pos.getChromosome().getName(), pos.getPosition(), pos.getSNPID(),CRITERION.pval, myGenotypePhenotype.referenceProb(s)));
+            }
+        	
+        } else {
+        		throw new IllegalArgumentException("Input has neither genotype nor reference probability.");
         }
+        
         myLogger.debug(String.format("site list created with %d sites in %d ms.", siteList.size(), (System.nanoTime() - start) / 1000000));
 
     }
