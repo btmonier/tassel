@@ -49,6 +49,7 @@ public class BackwardForwardVariableStateNumber {
 		}
 		
 		public BackwardForwardVariableStateNumber calculateAlpha() {
+			myTransitions.setNode(0);
 			int nStates = myTransitions.getNumberOfStates();
 			int nObs = myObservations.length;
 			alpha = new LinkedList<>();
