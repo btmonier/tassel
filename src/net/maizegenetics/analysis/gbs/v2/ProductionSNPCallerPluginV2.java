@@ -357,8 +357,8 @@ public class ProductionSNPCallerPluginV2 extends AbstractPlugin {
                     String errMsg = "\n\nERROR processing " + fastqFile.toString() + "\n" +
                             "Reading entry number " + allReads + " fails the length test.\n" +
                             "Sequence length " + seqAndQual[0].length() + " minus barcode length "+ barcodeLen +
-                            " is less then maxKmerLength " + preferredTagLength + ".\n" +
-                            "Re-run your files with either a shorter mxKmerL value or a higher minimum quality score.\n";
+                            " is less than kmerLength " + preferredTagLength + ".\n" +
+                            "Re-run your files with either a shorter kmerLength value or a higher minimum quality score.\n";
                     throw new StringIndexOutOfBoundsException(errMsg);
                 }
  
