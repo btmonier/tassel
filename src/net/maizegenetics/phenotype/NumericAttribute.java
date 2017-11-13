@@ -3,6 +3,7 @@ package net.maizegenetics.phenotype;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import net.maizegenetics.phenotype.Phenotype.ATTRIBUTE_TYPE;
@@ -59,6 +60,18 @@ public class NumericAttribute implements PhenotypeAttribute {
 	
 	public float[] floatValues() {
 		return values;
+	}
+	
+	public double doubleValue(int obs) {
+		return (double) values[obs];
+	}
+	
+	public double[] doubleValues() {
+		double[] dblVal = new double[values.length];
+		for (int i = 0; i < values.length; i++) {
+			dblVal[i] = (double) values[i];
+		}
+		return dblVal;
 	}
 	
 	@Override
