@@ -1,9 +1,11 @@
 package net.maizegenetics.analysis.modelfitter;
 
 import java.awt.Frame;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,7 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
+import net.maizegenetics.taxa.Taxon;
 
 public class AdditiveSiteStorePlugin extends AbstractPlugin {
     private static Logger myLogger = Logger.getLogger(AdditiveSiteStorePlugin.class);
@@ -47,7 +50,7 @@ public class AdditiveSiteStorePlugin extends AbstractPlugin {
     @Override
     protected void preProcessParameters(DataSet input) {
         List<Datum> datumList = input.getDataOfType(GenotypeTable.class);
-        if (datumList.size() != 0)
+        if (datumList.size() != 1)
             throw new IllegalArgumentException("Exactly one genotype dataset will is required as input.");
     }
 
@@ -91,7 +94,11 @@ public class AdditiveSiteStorePlugin extends AbstractPlugin {
             };
 
             out.writeObject(new Integer(siteList.size()));
-            out.writeObject(myGenotype.taxa());
+            
+            ArrayList<String> taxaNameList = new ArrayList<>();
+            for (Taxon taxon : myGenotype.taxa()) taxaNameList.add(taxon.getName());
+            
+            out.writeObject(taxaNameList);
             siteList.stream().forEach(writeSite);
             out.flush();
             out.close();
@@ -126,4 +133,24 @@ public class AdditiveSiteStorePlugin extends AbstractPlugin {
         return "Stores genotypes coded as additive sites";
     }
 
+    public static Object[] readSiteStore(String filename) {
+    		try {
+				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));
+				int numberOfSites = ((Integer) ois.readObject()).intValue();
+				Object[] retrievedObjects = new Object[2 + numberOfSites];
+				retrievedObjects[0] = ois.readObject();
+				List<AdditiveSite> mySites = new ArrayList<>();
+				for (int s = 0; s < numberOfSites; s++) {
+					mySites.add((AdditiveSite) ois.readObject());
+				}
+				retrievedObjects[1] = mySites;
+				ois.close();
+				System.out.println("Additive Sites successfully read.");
+				return retrievedObjects;
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+    }
 }
