@@ -143,6 +143,11 @@ public class GBSEnzyme {
             initialCutSiteRemnant = new String[]{"AGCTT"};
             likelyReadEnd = new String[]{"CCGG", "AAGCTT", "CCGAGATC"}; // look for MspI site, HindIII site, or Poland et al. 2012 Y-adapter for MspI
             readEndCutSiteRemnantLength = 3;
+        } else if (enzyme.matches("(?i)hindiii-nlaiii|(?i)hind3-nla3")) {
+            theEnzyme = "HindIII-NlaIII"; // A^AGCTT   ^CATG (not blunt)
+            initialCutSiteRemnant = new String[]{"AGCTT"};
+            likelyReadEnd = new String[]{"CATG", "AAGCTT", "CATGAGATC"}; // look for NlaIII site, HindIII site, or Poland et al. 2012 Y-adapter for Nla3
+            readEndCutSiteRemnantLength = 4;
         } else if (enzyme.matches("(?i)sexa[i1]-sau3a[i1]")) {
             theEnzyme = "SexAI-Sau3AI";  // A^CCWGGT   ^GATC (not blunt)
             initialCutSiteRemnant = new String[]{"CCAGGT", "CCTGGT"};
