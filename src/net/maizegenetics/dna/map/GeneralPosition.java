@@ -97,7 +97,6 @@ public final class GeneralPosition implements Position {
         private String mySNPID = null;
         private boolean isNucleotide = true;
         private boolean isIndel = false;
-        private NumberFormat nf = NumberFormat.getInstance();
 
         //in an allele annotation objects
         private float myMAF = Float.NaN;
