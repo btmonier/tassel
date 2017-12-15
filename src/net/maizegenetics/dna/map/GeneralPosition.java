@@ -4,14 +4,12 @@
 package net.maizegenetics.dna.map;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ComparisonChain;
 import net.maizegenetics.dna.WHICH_ALLELE;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 import net.maizegenetics.util.GeneralAnnotation;
 import net.maizegenetics.util.GeneralAnnotationStorage;
 
-import java.text.NumberFormat;
 import java.util.Arrays;
 
 /**
@@ -317,30 +315,32 @@ public final class GeneralPosition implements Position {
             return false;
         }
         Position o = (Position) obj;
-        int result = ComparisonChain.start()
-                .compare(myPosition, o.getPosition()) //position is most discriminating for speed
-                .compare(myChromosome, o.getChromosome())
-                .compare(myCM, o.getCM())
-                .compare(myStrand, o.getStrand())
-                .result();
-        if (result != 0) {
-            return false;
-        }
-        return getSNPID().equals(o.getSNPID()); //This is done last as the string comparison is expensive
+        int result = compareTo(o);
+        return result == 0;
     }
 
     @Override
     public int compareTo(Position o) {
-        int result = ComparisonChain.start()
-                .compare(myChromosome, o.getChromosome())
-                .compare(myPosition, o.getPosition())
-                .compare(myCM, o.getCM())
-                .compare(myStrand, o.getStrand())
-                .result();
+        int result = myChromosome.compareTo(o.getChromosome());
         if (result != 0) {
             return result;
         }
-        return getSNPID().compareTo(o.getSNPID()); //This is done last as the string comparison is expensive
+        result = Integer.compare(myPosition, o.getPosition());
+        if (result != 0) {
+            return result;
+        }
+        result = Float.compare(myCM, o.getCM());
+        if (result != 0) {
+            return result;
+        }
+        result = Byte.compare(myStrand, o.getStrand());
+        if (result != 0) {
+            return result;
+        }
+        if (getActualSNPID() == null && o.getActualSNPID() == null) {
+            return 0;
+        }
+        return getSNPID().compareTo(o.getSNPID());
     }
 
     @Override

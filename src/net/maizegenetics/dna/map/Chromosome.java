@@ -61,7 +61,7 @@ public class Chromosome implements Comparable<Chromosome> {
      */
     public static Chromosome instance(int name) {
         String chr = String.valueOf(name);
-        return CHROMOSOME_NAME_ONLY.computeIfAbsent(chr, s -> new Chromosome(chr));
+        return instance(chr);
     }
 
     /**
@@ -98,7 +98,7 @@ public class Chromosome implements Comparable<Chromosome> {
     }
 
     /**
-     * @deprecated use Chromosome.instance(String name)
+     * @deprecated use {@link #instance(String)}
      */
     public Chromosome(String name) {
         this(name, -1, parseAnnotationFromName(name));
@@ -160,6 +160,9 @@ public class Chromosome implements Comparable<Chromosome> {
      */
     @Override
     public int compareTo(Chromosome o) {
+        if (this == o) {
+            return 0;
+        }
         return myCompareString.compareTo(o.myCompareString);
     }
 
