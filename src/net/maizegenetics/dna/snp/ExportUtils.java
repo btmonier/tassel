@@ -560,6 +560,10 @@ public class ExportUtils {
                     if(annotationHolder.equals("")) {
                         annotationHolder += "DP=" + gt.depth().depthForSite(site);
                     }
+                    else if(annotationHolder.equals(".")) {
+                        //Fix bug where we have .;DP=100 showing up.
+                        annotationHolder = "DP="+ gt.depth().depthForSite(site);
+                    }
                     else {
                         annotationHolder += ";DP=" + gt.depth().depthForSite(site);
                     }
@@ -661,9 +665,19 @@ public class ExportUtils {
                     ArrayList<Integer> depthsList = new ArrayList<Integer>();
                     //Fix missing commas in depth information
                     for(int ss = 0; ss < sortedAlleles.length; ss++) {
-                        if(ss!=indelIndex) {
-                            depthsList.add(siteAlleleDepths[sortedAlleles[ss]]);
-                            siteTotalDepth += siteAlleleDepths[sortedAlleles[ss]];
+                        if(ss!=indelIndex && sortedAlleles[ss]<siteAlleleDepths.length) {
+                            try {
+                                depthsList.add(siteAlleleDepths[sortedAlleles[ss]]);
+                                siteTotalDepth += siteAlleleDepths[sortedAlleles[ss]];
+                            }
+                            catch(Exception e) {
+                                System.out.println(Arrays.toString(alleleRedirect));
+                                System.out.println(altString);
+                                System.out.println(Arrays.toString(siteAlleleDepths));
+                                System.out.println(Arrays.toString(sortedAlleles));
+                                System.out.println(ss);
+                                throw e;
+                            }
                             //TODO Cleanup
 //                            depthsList.add(AlleleDepthUtil.depthByteToInt((byte)siteAlleleDepths[sortedAlleles[ss]]));
 //                            siteTotalDepth += AlleleDepthUtil.depthByteToInt((byte)siteAlleleDepths[sortedAlleles[ss]]);
@@ -689,7 +703,7 @@ public class ExportUtils {
 
                     int[] scores = new int[]{-1, -1, -1, -1};
                     if (values[0] != GenotypeTable.UNKNOWN_ALLELE) {
-                        int altDepth = (sortedAlleles.length < 2) ? 0 : siteAlleleDepths[sortedAlleles[1]];
+                        int altDepth = (sortedAlleles.length < 2 || sortedAlleles[1]>=siteAlleleDepths.length) ? 0 : siteAlleleDepths[sortedAlleles[1]];
                         altDepth = (altDepth<0) ? 0 : altDepth;
                         //int refDepth = (siteAlleleDepths[sortedAlleles[0]]==-1) ? 0 : siteAlleleDepths[sortedAlleles[0]];
 
