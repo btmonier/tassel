@@ -57,8 +57,9 @@ public class NumericalGenotypePlugin extends AbstractPlugin {
         }
 
     	//only the as_minor method is implemented so just display an information Dialog
-        String msg = "Genotypes will be converted to the probability that an allele drawn at random is a minor allele. "
-        		+ "\nIn TASSEL 4 this was called the 'collapse' option.";
+        String msg = "Genotypes will be converted to the probability that an allele selected at random at a site is "
+                + "\nthe major allele. In other words, homozygous major is 1.0, homozygous minor is 0.0, "
+                + "\nand heterozygous is 0.5. The results are equivalent to the TASSEL version 4 \"collapse\" method.";
         
         if (isInteractive()) {
             int convertGenotype = JOptionPane.showConfirmDialog(getParentFrame(), msg, "ReferenceProbability from Genotype", JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
@@ -95,8 +96,9 @@ public class NumericalGenotypePlugin extends AbstractPlugin {
         case use_all_alleles:
         	myNewGenotype = transformToAlleleProbability(myGenotype);
         	commentBuilder.append("\nWith allele probabilities computed.");
+        	break;
         default:
-        	return null;
+        	throw new IllegalStateException("NumericalGenotypePlugin: processData: unknown transform type: " + myTransformType.toString());
         }
         
         Datum newDatum = new Datum(nameBuilder.toString(), myNewGenotype, commentBuilder.toString());
@@ -105,12 +107,9 @@ public class NumericalGenotypePlugin extends AbstractPlugin {
     }
 
     public static GenotypeTable setAlternateMinorAllelesToMinor(GenotypeTable myGenotype) {
-    	//TODO implement
         int nsites = myGenotype.numberOfSites();
         int ntaxa = myGenotype.numberOfTaxa();
 
-        ReferenceProbability myProb;
-        
         double[][] data = GenotypeTableUtils.convertGenotypeToDoubleProbability(myGenotype, true);
 
         //build new ReferenceProbability
@@ -134,27 +133,22 @@ public class NumericalGenotypePlugin extends AbstractPlugin {
     
     public static GenotypeTable setAlternateMinorAllelesToMajor(GenotypeTable myGenotype) {
     	//TODO implement
-    	return null;
+    	throw new UnsupportedOperationException();
     }
 
     public static GenotypeTable setAlternateMinorAllelesToMissing(GenotypeTable myGenotype) {
     	//TODO implement
-    	return null;
+        throw new UnsupportedOperationException();
     }
 
     public static GenotypeTable transformToAlleleProbability(GenotypeTable myGenotype) {
     	//TODO implement
-    	return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String pluginDescription(){
-        return "This plugin creates a  numerical genotype table for input genotype data";
-    }
-
-    @Override
-    public String getCitation(){
-        return null;
+        return "This plugin creates a numerical genotype table for input genotype data";
     }
 
     @Override
@@ -178,7 +172,8 @@ public class NumericalGenotypePlugin extends AbstractPlugin {
         return "Numerical Genotype";
     }
 
-    public void setTransformType(TRANSFORM_TYPE type) {
+    // Only one type currently supported
+    private void setTransformType(TRANSFORM_TYPE type) {
     	myTransformType = type;
     }
 }
