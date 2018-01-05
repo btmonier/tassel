@@ -9,24 +9,22 @@ package net.maizegenetics.analysis.numericaltransform;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableBuilder;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
-import net.maizegenetics.dna.snp.score.ReferenceProbability;
 import net.maizegenetics.dna.snp.score.ReferenceProbabilityBuilder;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
-
-import javax.swing.*;
-
 import org.apache.log4j.Logger;
 
-import java.awt.Frame;
+import javax.swing.*;
+import java.awt.*;
 import java.net.URL;
-import java.util.*;
+import java.util.List;
 
 /**
  * Numerical Genotype Plugin.
  *
- * @author terryc
+ * @author Terry Casstevens
+ * @author Peter Bradbury
  */
 public class NumericalGenotypePlugin extends AbstractPlugin {
     private static final Logger myLogger = Logger.getLogger(NumericalGenotypePlugin.class);
@@ -110,25 +108,18 @@ public class NumericalGenotypePlugin extends AbstractPlugin {
         int nsites = myGenotype.numberOfSites();
         int ntaxa = myGenotype.numberOfTaxa();
 
-        double[][] data = GenotypeTableUtils.convertGenotypeToDoubleProbability(myGenotype, true);
+        float[][] data = GenotypeTableUtils.convertGenotypeToFloatProbability(myGenotype, false);
 
         //build new ReferenceProbability
         ReferenceProbabilityBuilder refBuilder = ReferenceProbabilityBuilder.getInstance(ntaxa, nsites, myGenotype.taxa());
         for (int t = 0; t < ntaxa; t++) {
-            float[] values = new float[nsites];
-
-            for (int s = 0; s < nsites; s++) {
-                values[s] = (float) data[s][t];
-            }
-            refBuilder.addTaxon(t, values);
+            refBuilder.addTaxon(t, data[t]);
         }
 
         //build new GenotypeTable
-        GenotypeTable numGenotype = GenotypeTableBuilder.getInstance(myGenotype.genotypeMatrix(), myGenotype.positions(),
+        return GenotypeTableBuilder.getInstance(myGenotype.genotypeMatrix(), myGenotype.positions(),
                 myGenotype.taxa(), myGenotype.depth(), myGenotype.alleleProbability(), refBuilder.build(), myGenotype.dosage(),
                 myGenotype.annotations());
-
-    	return numGenotype;
     }
     
     public static GenotypeTable setAlternateMinorAllelesToMajor(GenotypeTable myGenotype) {
