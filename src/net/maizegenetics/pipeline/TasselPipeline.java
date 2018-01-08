@@ -59,11 +59,13 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
@@ -72,7 +74,6 @@ import net.maizegenetics.analysis.data.MemoryUsagePlugin;
 import net.maizegenetics.analysis.data.PrincipalComponentsPlugin;
 
 /**
- *
  * @author Terry Casstevens
  */
 public class TasselPipeline implements PluginListener {
@@ -96,7 +97,8 @@ public class TasselPipeline implements PluginListener {
         public String toString() {
             return "-" + super.toString();
         }
-    };
+
+    }
 
     private static final Logger myLogger = Logger.getLogger(TasselPipeline.class);
     private final TASSELMainFrame myMainFrame;
@@ -147,9 +149,7 @@ public class TasselPipeline implements PluginListener {
         if (myIsInteractive) {
             pool = null;
         } else {
-            int numThreads = Runtime.getRuntime().availableProcessors() / 2;
-            numThreads = Math.max(2, numThreads);
-            pool = Executors.newFixedThreadPool(numThreads);
+            pool = ForkJoinPool.commonPool();
         }
         try {
 
@@ -252,7 +252,10 @@ public class TasselPipeline implements PluginListener {
             System.arraycopy(args, 2, temp, 0, temp.length);
             temp = addForkFlagsIfNeeded(temp);
             TasselPipelineXMLUtil.writeArgsAsXML(xmlFilename, temp);
-        } else if ((args.length >= 2) && (args[0].equalsIgnoreCase("-translateXML"))) {
+            return;
+        }
+
+        if ((args.length >= 2) && (args[0].equalsIgnoreCase("-translateXML"))) {
             String xmlFilename = args[1].trim();
             String[][] result = TasselPipelineXMLUtil.readXMLAsArgs(xmlFilename);
             for (int i = 0; i < result[0].length; i++) {
@@ -260,39 +263,64 @@ public class TasselPipeline implements PluginListener {
                 System.out.print(" ");
             }
             System.out.println("");
-        } else if ((args.length >= 1) && (args[0].equalsIgnoreCase("-debug") || args[0].equalsIgnoreCase("-log"))) {
-            String filename = null;
-            if (args.length >= 2) {
-                filename = args[1].trim();
-            }
-
-            String[] temp = null;
-            if ((filename != null) && (!filename.startsWith("-"))) {
-                try {
-                    if (args[0].equalsIgnoreCase("-debug")) {
-                        LoggingUtils.setupDebugLogfile(filename);
-                    } else {
-                        LoggingUtils.setupLogfile(filename);
-                    }
-                } catch (Exception e) {
-                    myLogger.error("Problem with file: " + filename + "\n" + e.getMessage());
-                }
-                temp = new String[args.length - 2];
-                System.arraycopy(args, 2, temp, 0, temp.length);
-            } else {
-                if (args[0].equalsIgnoreCase("-debug")) {
-                    LoggingUtils.setupDebugLogging();
-                } else {
-                    LoggingUtils.setupLogging();
-                }
-                temp = new String[args.length - 1];
-                System.arraycopy(args, 1, temp, 0, temp.length);
-            }
-
-            new TasselPipeline(temp, null);
-        } else {
-            new TasselPipeline(args, null);
+            return;
         }
+
+        String[] currentArgs = args;
+        boolean notDone = true;
+        while (notDone) {
+
+            if ((currentArgs.length >= 1) && (currentArgs[0].equalsIgnoreCase("-debug") || currentArgs[0].equalsIgnoreCase("-log"))) {
+
+                String filename = null;
+                if (currentArgs.length >= 2) {
+                    filename = currentArgs[1].trim();
+                }
+
+                if ((filename != null) && (!filename.startsWith("-"))) {
+                    try {
+                        if (currentArgs[0].equalsIgnoreCase("-debug")) {
+                            LoggingUtils.setupDebugLogfile(filename);
+                        } else {
+                            LoggingUtils.setupLogfile(filename);
+                        }
+                    } catch (Exception e) {
+                        myLogger.error("Problem with file: " + filename + "\n" + e.getMessage());
+                    }
+                    String[] temp = new String[currentArgs.length - 2];
+                    System.arraycopy(currentArgs, 2, temp, 0, temp.length);
+                    currentArgs = temp;
+                } else {
+                    if (currentArgs[0].equalsIgnoreCase("-debug")) {
+                        LoggingUtils.setupDebugLogging();
+                    } else {
+                        LoggingUtils.setupLogging();
+                    }
+                    String[] temp = new String[currentArgs.length - 1];
+                    System.arraycopy(currentArgs, 1, temp, 0, temp.length);
+                    currentArgs = temp;
+                }
+
+            } else if ((currentArgs.length >= 2) && (currentArgs[0].equalsIgnoreCase("-configParameters"))) {
+
+                String filename = currentArgs[1].trim();
+                if (!new File(filename).isFile()) {
+                    throw new IllegalArgumentException("TasselPipeline: main: -configParameters file: " + filename + " doesn't exist or isn't a file.");
+                }
+
+                ParameterCache.load(filename);
+
+                String[] temp = new String[currentArgs.length - 2];
+                System.arraycopy(currentArgs, 2, temp, 0, temp.length);
+                currentArgs = temp;
+
+            } else {
+                notDone = false;
+            }
+
+        }
+
+        new TasselPipeline(currentArgs, null);
 
     }
 
@@ -1570,7 +1598,7 @@ public class TasselPipeline implements PluginListener {
                             }
 
                             String[] result = new String[pluginArgs.size()];
-                            result = (String[]) pluginArgs.toArray(result);
+                            result = pluginArgs.toArray(result);
 
                             try {
                                 plugin.setParameters(result);
@@ -1601,7 +1629,6 @@ public class TasselPipeline implements PluginListener {
         }
 
         if (myFirstPlugin != null) {
-            //((AbstractPlugin) myFirstPlugin).trace(0);
             tracePipeline();
         } else {
             myLogger.warn("parseArgs: no arguments specified.");
@@ -1743,6 +1770,8 @@ public class TasselPipeline implements PluginListener {
         if (myIsInteractive) {
             myStepsDialog.addPlugin(plugin, myDescriptions[myCurrentDescriptionIndex]);
         }
+
+        ((AbstractPlugin) plugin).setConfigParameters();
 
     }
 
