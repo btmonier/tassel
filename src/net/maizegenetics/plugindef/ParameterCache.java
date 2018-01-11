@@ -12,6 +12,18 @@ import java.util.Properties;
  * file that is available to all plugins on the command line.
  * This is used when run_pipeline.pl -configParameters config.txt... is used.
  *
+ * config.txt example entries as follow... First five are using by GetDBConnectionPlugin -config config.txt
+ * but that should be refactored to individual PluginParameters.
+ * Then entry example would be GetDBConnectionPlugin.DBType=sqlite
+ * KinshipPlugin.method=TYPE is the standard.  PLUGIN_NAME.COMMAND_LINE_NAME=VALUE
+ *
+ * host=localHost
+ * user=sqlite
+ * password=sqlite
+ * DB=/tempFileDir/outputDir/phgTestDB.db
+ * DBtype=sqlite
+ * KinshipPlugin.method=Normalized_IBS
+ *
  * @author Terry Casstevens
  * Created January 05, 2018
  */
