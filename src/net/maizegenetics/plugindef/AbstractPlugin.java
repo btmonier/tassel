@@ -47,9 +47,9 @@ import net.maizegenetics.util.ExceptionUtils;
 import net.maizegenetics.util.Utils;
 
 import org.apache.log4j.Logger;
+import java.util.Optional;
 
 /**
- *
  * @author Terry Casstevens
  */
 abstract public class AbstractPlugin implements Plugin {
@@ -301,6 +301,21 @@ abstract public class AbstractPlugin implements Plugin {
                     myLogger.error("Argument expected to start with dash(-): " + args[i]);
                     printUsage();
                     System.exit(1);
+                }
+            }
+
+        }
+
+    }
+
+    public void setConfigParameters() {
+
+        if (ParameterCache.hasValues()) {
+
+            for (PluginParameter<?> parameter : getParameterInstances()) {
+                Optional<String> value = ParameterCache.value(this, parameter.cmdLineName());
+                if (value.isPresent()) {
+                    setParameter(parameter, value.get());
                 }
             }
 
@@ -1808,6 +1823,7 @@ abstract public class AbstractPlugin implements Plugin {
     //
     // Methods for PluginListener.
     //
+
     /**
      * Returns data set after complete.
      *
