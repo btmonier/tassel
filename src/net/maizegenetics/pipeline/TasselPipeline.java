@@ -6,55 +6,50 @@
  */
 package net.maizegenetics.pipeline;
 
-import net.maizegenetics.analysis.popgen.SequenceDiversityPlugin;
-import net.maizegenetics.analysis.distance.KinshipPlugin;
-import net.maizegenetics.analysis.distance.DistanceMatrixRangesPlugin;
-import net.maizegenetics.analysis.distance.DistanceMatrixPlugin;
-import net.maizegenetics.analysis.chart.AbstractDisplayPlugin;
-import net.maizegenetics.analysis.chart.TableDisplayPlugin;
-import net.maizegenetics.analysis.data.ConvertAlignmentCoordinatesPlugin;
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
-import net.maizegenetics.analysis.association.WeightedMLMPlugin;
-import net.maizegenetics.analysis.data.PlinkLoadPlugin;
-import net.maizegenetics.analysis.popgen.LinkageDiseqDisplayPlugin;
-import net.maizegenetics.analysis.popgen.LinkageDisequilibriumPlugin;
-import net.maizegenetics.analysis.data.CombineDataSetsPlugin;
-import net.maizegenetics.analysis.data.MergeGenotypeTablesPlugin;
-import net.maizegenetics.analysis.data.MergeAlignmentsSameSitesPlugin;
-import net.maizegenetics.analysis.data.UnionAlignmentPlugin;
-import net.maizegenetics.analysis.data.FileLoadPlugin;
-import net.maizegenetics.analysis.data.IntersectionAlignmentPlugin;
-import net.maizegenetics.analysis.data.GenotypeSummaryPlugin;
-import net.maizegenetics.analysis.data.SeparatePlugin;
-import net.maizegenetics.analysis.data.SynonymizerPlugin;
-import net.maizegenetics.analysis.data.ExportMultiplePlugin;
-import net.maizegenetics.analysis.data.HetsToUnknownPlugin;
-import net.maizegenetics.analysis.data.ProjectionLoadPlugin;
-import net.maizegenetics.analysis.filter.FilterTaxaAlignmentPlugin;
-import net.maizegenetics.analysis.filter.FilterSiteNamePlugin;
-import net.maizegenetics.analysis.filter.FilterAlignmentPlugin;
-import net.maizegenetics.analysis.filter.FilterTraitsPlugin;
-import net.maizegenetics.analysis.filter.FilterSubsetPlugin;
-import net.maizegenetics.analysis.tree.CreateTreePlugin;
-import net.maizegenetics.analysis.tree.ArchaeopteryxPlugin;
 import net.maizegenetics.analysis.association.RidgeRegressionEmmaPlugin;
-import net.maizegenetics.dna.map.TagsOnPhysMapHDF5;
-import net.maizegenetics.dna.map.TagsOnPhysicalMap;
-import net.maizegenetics.analysis.popgen.LinkageDisequilibriumComponent;
+import net.maizegenetics.analysis.association.WeightedMLMPlugin;
+import net.maizegenetics.analysis.chart.AbstractDisplayPlugin;
+import net.maizegenetics.analysis.chart.ManhattanDisplayPlugin;
+import net.maizegenetics.analysis.chart.TableDisplayPlugin;
+import net.maizegenetics.analysis.data.*;
+import net.maizegenetics.analysis.distance.DistanceMatrixPlugin;
+import net.maizegenetics.analysis.distance.DistanceMatrixRangesPlugin;
+import net.maizegenetics.analysis.distance.KinshipPlugin;
+import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
+import net.maizegenetics.analysis.filter.FilterSiteNamePlugin;
+import net.maizegenetics.analysis.filter.FilterSubsetPlugin;
+import net.maizegenetics.analysis.filter.FilterTaxaAlignmentPlugin;
+import net.maizegenetics.analysis.filter.FilterTraitsPlugin;
+import net.maizegenetics.analysis.popgen.LinkageDiseqDisplayPlugin;
 import net.maizegenetics.analysis.popgen.LinkageDisequilibrium.HetTreatment;
 import net.maizegenetics.analysis.popgen.LinkageDisequilibrium.testDesign;
-import net.maizegenetics.taxa.TaxaListBuilder;
-import net.maizegenetics.taxa.Taxon;
-import net.maizegenetics.plugindef.*;
+import net.maizegenetics.analysis.popgen.LinkageDisequilibriumComponent;
+import net.maizegenetics.analysis.popgen.LinkageDisequilibriumPlugin;
+import net.maizegenetics.analysis.popgen.SequenceDiversityPlugin;
+import net.maizegenetics.analysis.tree.ArchaeopteryxPlugin;
+import net.maizegenetics.analysis.tree.CreateTreePlugin;
+import net.maizegenetics.dna.map.Chromosome;
+import net.maizegenetics.dna.map.TagsOnPhysMapHDF5;
+import net.maizegenetics.dna.map.TagsOnPhysicalMap;
+import net.maizegenetics.plugindef.AbstractPlugin;
+import net.maizegenetics.plugindef.DataSet;
+import net.maizegenetics.plugindef.Datum;
+import net.maizegenetics.plugindef.ParameterCache;
+import net.maizegenetics.plugindef.Plugin;
+import net.maizegenetics.plugindef.PluginEvent;
+import net.maizegenetics.plugindef.PluginListener;
+import net.maizegenetics.plugindef.ThreadedPluginListener;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.progress.ProgressPanel;
 import net.maizegenetics.tassel.DataTreePanel;
 import net.maizegenetics.tassel.TASSELMainFrame;
 import net.maizegenetics.tassel.TasselLogging;
-import net.maizegenetics.util.LoggingUtils;
+import net.maizegenetics.taxa.TaxaListBuilder;
+import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.ExceptionUtils;
+import net.maizegenetics.util.LoggingUtils;
 import net.maizegenetics.util.Utils;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -62,16 +57,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
-
-import net.maizegenetics.analysis.chart.ManhattanDisplayPlugin;
-import net.maizegenetics.analysis.data.MemoryUsagePlugin;
-import net.maizegenetics.analysis.data.PrincipalComponentsPlugin;
 
 /**
  * @author Terry Casstevens
@@ -1235,10 +1231,10 @@ public class TasselPipeline implements PluginListener {
                     FilterTaxaAlignmentPlugin plugin = new FilterTaxaAlignmentPlugin(myMainFrame, myIsInteractive);
                     integratePlugin(plugin, true);
                 } else if (current.equalsIgnoreCase("-filterAlign")) {
-                    FilterAlignmentPlugin plugin = new FilterAlignmentPlugin(myMainFrame, myIsInteractive);
+                    FilterSiteBuilderPlugin plugin = new FilterSiteBuilderPlugin(myMainFrame, myIsInteractive);
                     integratePlugin(plugin, true);
                 } else if (current.equalsIgnoreCase("-filterAlignMinCount")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
@@ -1249,9 +1245,9 @@ public class TasselPipeline implements PluginListener {
                     } catch (Exception e) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: Problem parsing filter alignment min count: " + temp);
                     }
-                    plugin.setMinCount(minCount);
+                    plugin.siteMinCount(minCount);
                 } else if (current.equalsIgnoreCase("-filterAlignMinFreq")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
@@ -1262,9 +1258,9 @@ public class TasselPipeline implements PluginListener {
                     } catch (Exception e) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: Problem parsing filter alignment min frequency: " + temp);
                     }
-                    plugin.setMinFreq(minFreq);
+                    plugin.siteMinAlleleFreq(minFreq);
                 } else if (current.equalsIgnoreCase("-filterAlignMaxFreq")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
@@ -1275,9 +1271,9 @@ public class TasselPipeline implements PluginListener {
                     } catch (Exception e) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: Problem parsing filter alignment max frequency: " + temp);
                     }
-                    plugin.setMaxFreq(maxFreq);
+                    plugin.siteMaxAlleleFreq(maxFreq);
                 } else if (current.equalsIgnoreCase("-filterAlignStart")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
@@ -1288,9 +1284,9 @@ public class TasselPipeline implements PluginListener {
                     } catch (Exception e) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: Problem parsing filter alignment start: " + temp);
                     }
-                    plugin.setStart(start);
+                    plugin.startSite(start);
                 } else if (current.equalsIgnoreCase("-filterAlignEnd")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
@@ -1301,9 +1297,9 @@ public class TasselPipeline implements PluginListener {
                     } catch (Exception e) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: Problem parsing filter alignment end: " + temp);
                     }
-                    plugin.setEnd(end);
+                    plugin.endSite(end);
                 } else if (current.equalsIgnoreCase("-filterAlignStartPos")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
@@ -1314,9 +1310,9 @@ public class TasselPipeline implements PluginListener {
                     } catch (Exception e) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: Problem parsing filter alignment start physical position: " + temp);
                     }
-                    plugin.setStartPos(startPos);
+                    plugin.startPos(startPos);
                 } else if (current.equalsIgnoreCase("-filterAlignEndPos")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
@@ -1327,34 +1323,36 @@ public class TasselPipeline implements PluginListener {
                     } catch (Exception e) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: Problem parsing filter alignment end physical position: " + temp);
                     }
-                    plugin.setEndPos(endPos);
+                    plugin.endPos(endPos);
                 } else if (current.equalsIgnoreCase("-filterAlignLocus")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
                     String temp = args[index++].trim();
-                    plugin.setLocusStr(temp);
+                    Chromosome chr = Chromosome.instance(temp);
+                    plugin.startChr(chr);
+                    plugin.endChr(chr);
                 } else if (current.equalsIgnoreCase("-filterAlignExtInd")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
-                    plugin.setExtractIndels(true);
+                    throw new UnsupportedOperationException("TasselPipeline: -filterAlignExtInd currently unsupported.");
                 } else if (current.equalsIgnoreCase("-filterAlignRemMinor")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
-                    plugin.setFilterMinorSNPs(true);
+                    plugin.removeMinorSNPStates(true);
                 } else if (current.equalsIgnoreCase("-filterAlignSliding")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
-                    plugin.setDoSlidingHaps(true);
+                    throw new UnsupportedOperationException("TasselPipeline: -filterAlignSliding currently unsupported.");
                 } else if (current.equalsIgnoreCase("-filterAlignHapLen")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
@@ -1365,9 +1363,9 @@ public class TasselPipeline implements PluginListener {
                     } catch (Exception e) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: Problem parsing filter alignment haplotype length: " + temp);
                     }
-                    plugin.setWinSize(hapLen);
+                    throw new UnsupportedOperationException("TasselPipeline: -filterAlignHapLen currently unsupported.");
                 } else if (current.equalsIgnoreCase("-filterAlignStepLen")) {
-                    FilterAlignmentPlugin plugin = (FilterAlignmentPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterAlignmentPlugin.class});
+                    FilterSiteBuilderPlugin plugin = (FilterSiteBuilderPlugin) findLastPluginFromCurrentPipe(new Class[]{FilterSiteBuilderPlugin.class});
                     if (plugin == null) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No Filter Alignment step defined: " + current);
                     }
@@ -1378,7 +1376,7 @@ public class TasselPipeline implements PluginListener {
                     } catch (Exception e) {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: Problem parsing filter alignment step length: " + temp);
                     }
-                    plugin.setStepSize(stepLen);
+                    throw new UnsupportedOperationException("TasselPipeline: -filterAlignStepLen currently unsupported.");
                 } else if (current.equalsIgnoreCase("-numericalGenoTransform")) {
                     myLogger.warn("parseArgs: PLEASE USE NumericalGenotypePlugin.\n");
                     System.exit(1);
