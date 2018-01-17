@@ -1,18 +1,17 @@
 /*
  *  AbstractMaskMatrix
- * 
+ *
  *  Created on Jan 6, 2017
  */
 package net.maizegenetics.dna.snp;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import java.util.concurrent.ForkJoinPool;
 import net.maizegenetics.util.BitSet;
-import net.maizegenetics.util.UnmodifiableBitSet;
+
+import java.util.concurrent.ForkJoinPool;
 
 /**
- *
  * @author Terry Casstevens
  */
 public abstract class AbstractMaskMatrix implements MaskMatrix {
@@ -89,7 +88,7 @@ public abstract class AbstractMaskMatrix implements MaskMatrix {
 
     @Override
     public BitSet maskForSite(int site) {
-        return UnmodifiableBitSet.getInstance(getFromCache(site));
+        return siteMask(site);
     }
 
     @Override
@@ -117,10 +116,12 @@ public abstract class AbstractMaskMatrix implements MaskMatrix {
 
         @Override
         public void run() {
-            for (int s = 0; s < NUM_SITES_PER_BLOCK; s++) {
-                int site = mySite + s;
-                if (site < myNumSites && myCache.getIfPresent(site) == null) {
-                    myCache.put(site, siteMask(site));
+            int end = Math.min(mySite + NUM_SITES_PER_BLOCK, myNumSites);
+            for (int s = mySite; s < end; s++) {
+                if (myCache.getIfPresent(s) == null) {
+                    myCache.put(s, siteMask(s));
+                } else {
+                    return;
                 }
             }
         }

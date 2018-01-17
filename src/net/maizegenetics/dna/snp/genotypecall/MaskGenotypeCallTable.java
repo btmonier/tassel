@@ -1,12 +1,13 @@
 /*
  *  MaskGenotypeCallTable
- * 
+ *
  *  Created on Oct 21, 2015
  */
 package net.maizegenetics.dna.snp.genotypecall;
 
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.MaskMatrix;
+import net.maizegenetics.util.BitSet;
 
 /**
  * @author Terry Casstevens
@@ -29,6 +30,30 @@ public class MaskGenotypeCallTable extends AbstractGenotypeCallTable {
         } else {
             return myBase.genotype(taxon, site);
         }
+    }
+
+    @Override
+    public byte[] genotypeForAllTaxa(int site) {
+        BitSet mask = myMask.maskForSite(site);
+        byte[] result = myBase.genotypeForAllTaxa(site);
+        for (int t = 0; t < numberOfTaxa(); t++) {
+            if (mask.fastGet(t)) {
+                result[t] = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public byte[] genotypeForAllSites(int taxon) {
+        BitSet mask = myMask.maskForTaxon(taxon);
+        byte[] result = myBase.genotypeForAllSites(taxon);
+        for (int s = 0; s < numberOfSites(); s++) {
+            if (mask.fastGet(s)) {
+                result[s] = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
+            }
+        }
+        return result;
     }
 
     @Override
