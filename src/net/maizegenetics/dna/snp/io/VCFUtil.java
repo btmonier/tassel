@@ -2,15 +2,18 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.maizegenetics.util;
+package net.maizegenetics.dna.snp.io;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.google.common.primitives.Ints;
 
+import htsjdk.variant.variantcontext.*;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
+import net.maizegenetics.util.Tuple;
 
 /**
  *
@@ -207,6 +210,14 @@ public class VCFUtil {
          }
          return false;
      }
+     public static boolean indelMinusInKnownVariant(String[] knownVariants) {
+         for(String variant:knownVariants) {
+             if(variant.equals("-")||variant.equals("+")) {
+                 return true;
+             }
+         }
+         return false;
+     }
      
      public static Tuple<int[], String[]> resolveSortedAndKnownVariantsExport(int[] sortedAllelesInput, String[] knownVariantsInput) {
          int[] sortedAlleles = Arrays.copyOf(sortedAllelesInput, sortedAllelesInput.length);
@@ -358,4 +369,260 @@ public class VCFUtil {
          }
          return new Tuple<int[],String[]>(sortedAlleles,knownVariants);         
      }
+     
+     //Utility method to find the top 2 depths from the depth array
+     public static int[][] calcTop2Depths(int[] siteAlleleDepths) {
+       //loop through the allele depths and figure out which one
+         int highestDepth = -1;
+         int highestIndex = -1;
+         int secondHighestDepth = -1;
+         int secondHighestIndex = -1;
+         
+         for(int depthCounter = 0; depthCounter < siteAlleleDepths.length; depthCounter++) {
+             if(siteAlleleDepths[depthCounter]>highestDepth) {
+                 //Take the Current Highest Depth and push it to the second highest
+                 secondHighestDepth = highestDepth;
+                 secondHighestIndex = highestIndex;
+                 //Then set the highestDepth to the current value
+                 highestDepth = siteAlleleDepths[depthCounter];
+                 highestIndex = depthCounter;
+             }
+             else {
+                 //If not the best check for the second highest
+                 if(siteAlleleDepths[depthCounter]>secondHighestDepth) {
+                     //Then reset the second highest value with the current
+                     secondHighestDepth = siteAlleleDepths[depthCounter];
+                     secondHighestIndex = depthCounter;
+                 }
+                 //Otherwise let it fall through
+             }
+         }
+         int[][] top2Depths = {{highestIndex,highestDepth},{secondHighestIndex,secondHighestDepth}};
+         return top2Depths;
+     }
+
+
+    /**
+     * Method to convert a genotype table to a List of VariantContexts
+     *
+     * This is done by walking through the genotypeTable's positions in order.
+     * To Handle indels, we need to process a set of positions at a time
+     *
+     * It will start with the first position and hold its index temporarily
+     * Combine consecutive indel positions into this index list.
+     *  A consecutive position is one where the chromosomes match, and the current position is less than 1 physical position away from the previous
+     *      We need to check less than one as an insertion has the same physical reference position
+     *  If the consecutive position also contains an indel character "+" or "-" we need to add it to the block
+     * Otherwise(either non indel or non-consecutive) process the previous block and setup a new block with the current site
+     * @param genotypeTable
+     * @return
+     */
+     public static List<VariantContext> convertGenotypeTableToVariantContextList(GenotypeTable genotypeTable) {
+        List<VariantContext> variantContextList = new ArrayList<>();
+
+        List<Integer> indelSiteBlockList = new ArrayList<>();
+        indelSiteBlockList.add(0);
+        for(int i = 1; i < genotypeTable.numberOfSites(); i++) {
+            //Check to see if the current position is consecutive to the previous
+            //Note we need to check that the difference in physical position is less than 1 in case of insertions
+            if(genotypeTable.positions().get(i-1).getChromosome().equals(genotypeTable.positions().get(i).getChromosome()) &&
+                    (genotypeTable.positions().get(i-1).getPosition() + 1) >= genotypeTable.positions().get(i).getPosition()) {
+
+                //Figure out if we have an insertion or deletion allele
+                boolean isIndel = false;
+                for(byte allele : genotypeTable.alleles(i)){
+                    if(allele == NucleotideAlignmentConstants.INSERT_ALLELE || allele == NucleotideAlignmentConstants.GAP_ALLELE) {
+                        isIndel = true;
+                        break;
+                    }
+                }
+                if(isIndel) {
+                    //If we know it is an indel we want to add the site to the block
+                    indelSiteBlockList.add(i);
+                    continue;
+                }
+            }
+
+            //Process the current block and add it to the variantContextList
+            variantContextList.add(convertGenotypeTableSiteToVariantContext(genotypeTable,indelSiteBlockList));
+            //Reset the block
+            indelSiteBlockList = new ArrayList<>();
+            indelSiteBlockList.add(i);
+
+        }
+
+        //Process the remaining block
+        variantContextList.add(convertGenotypeTableSiteToVariantContext(genotypeTable,indelSiteBlockList));
+
+
+        return variantContextList;
+     }
+
+    /**
+     * Method to convert a list of positions into a single variantContext record
+     *
+     * If sites only has one element, it will just create genotypes for that position(Fixing indels with missing information)
+     * If sites has multiple consecutive elements, it is likely an indel
+     *  This needs to walk through the sites and combine the alleles together ignoring - and + nucleotides
+     * @param genotypeTable
+     * @param sites
+     * @return
+     */
+     public static VariantContext convertGenotypeTableSiteToVariantContext(GenotypeTable genotypeTable, List<Integer> sites) {
+
+         //Get the start position for use later
+         int startPos = genotypeTable.positions().get(sites.get(0)).getPosition();
+
+         //Create a StringBuilder object for the left and the right alleles.
+         //The StringBuilders are building the alleleString in order of sites
+         List<Tuple<StringBuilder,StringBuilder>> alleleStrings  = IntStream.range(0,genotypeTable.numberOfTaxa())
+                 .boxed()
+                 .map(index -> new Tuple<>(new StringBuilder(), new StringBuilder()))
+                 .collect(Collectors.toList());
+
+         //Set up the reference Allele String builder
+         StringBuilder referenceAlleleStringBuilder = new StringBuilder();
+
+         //Loop through each site and figure out the allele strings
+         //If it is a - or + we ignore it
+         for(Integer currentSite : sites) {
+             byte refAllele = genotypeTable.referenceAllele(currentSite);
+             if(refAllele != NucleotideAlignmentConstants.GAP_ALLELE && refAllele != NucleotideAlignmentConstants.INSERT_ALLELE) {
+                 //We add it because it is an actual allele value
+                 referenceAlleleStringBuilder.append(NucleotideAlignmentConstants.getHaplotypeNucleotide(refAllele));
+             }
+
+             //loop through each taxon
+             for(int taxonIndex = 0 ; taxonIndex < genotypeTable.numberOfTaxa(); taxonIndex++ ) {
+                 //We need to split out the genotype byte into its left and right call
+                 byte[] genotypeCalls = new byte[2];
+                 byte genotype = genotypeTable.genotype(taxonIndex,currentSite);
+                 genotypeCalls[0] = (byte) ((genotype>>4) & 15);
+                 genotypeCalls[1] = (byte) (genotype & 15);
+
+                 //Turn the bytes into strings to add to the alleleBuilders
+                 String leftCall = NucleotideAlignmentConstants.getHaplotypeNucleotide(genotypeCalls[0]);
+                 String rightCall = NucleotideAlignmentConstants.getHaplotypeNucleotide(genotypeCalls[1]);
+
+                 //Add the calls to the string builders for this taxon
+                 //We only want to add in the alleles if they are not + or minus as those are not valid VCF characters
+                 if(!leftCall.equals("-") && !leftCall.equals("+")) {
+                     alleleStrings.get(taxonIndex).getX().append(leftCall);
+                 }
+                 if(!rightCall.equals("-") && !rightCall.equals("+")) {
+                     alleleStrings.get(taxonIndex).getY().append(rightCall);
+                 }
+             }
+         }
+
+         //Because we are not going to change the String Builders any more, convert them to String objects
+         List<Tuple<String,String>> alleleStringVals = alleleStrings.stream()
+                 .map(singleAlleleTuple -> new Tuple<>(singleAlleleTuple.getX().toString(),singleAlleleTuple.getY().toString()))
+                 .collect(Collectors.toList());
+
+         //We need to check to see if we have to add in Ns for indels where the previous position is not known
+         boolean fixIndels = sites.size()==1 && alleleStringVals.stream().flatMap(alleleTuple -> Arrays.asList(alleleTuple.getX(),alleleTuple.getY()).stream()).anyMatch(alleleString -> alleleString.equals(""));
+
+
+         //Fix the allele values if we have an indel and no additional information
+         if(fixIndels) {
+             //Add an N to the reference allele
+             referenceAlleleStringBuilder.insert(0,"N");
+             //Subtract the startPosition by 1 bp as we are adding an allele to the start of the string
+             startPos--;
+             //Fix the indel positions by adding in the Ns
+             alleleStringVals = fixIndelPositions(alleleStringVals);
+         }
+         //We now have all the possible allele strings figured out we can get the Allele objects
+         Map<String,Allele> alleleStringToObjMap = createAlleleStringToObjMap(referenceAlleleStringBuilder.toString(), alleleStringVals);
+
+         //Convert the allele objects into a list so we can add them to the VariantContextBuilder
+         List<Allele> alleleObjectList = alleleStringToObjMap.keySet().stream()
+                 .map(alleleString -> alleleStringToObjMap.get(alleleString))
+                 .collect(Collectors.toList());
+
+         //Get the genotype Calls for each taxon
+         List<Genotype> genotypeList = getGenotypes(genotypeTable, alleleStringVals,alleleStringToObjMap);
+
+
+         //Create the variant Context for this record
+         VariantContextBuilder vcb = new VariantContextBuilder(".", //Is there a better source to put here?
+                                                                genotypeTable.positions().chromosomeName(sites.get(0)),
+                                                                startPos,
+                                                                startPos + referenceAlleleStringBuilder.toString().length()-1,
+                                                                alleleObjectList)
+                                                            .genotypes(genotypeList);
+
+         //Make the VaraintContext
+         return vcb.make();
+     }
+
+    /**
+     * Fix the indel positions for the allele strings
+     * Basically just add in an N at the start of each String
+     * TODO handle indels at the start of the chromosome(Add N to the end)
+     * @param alleleStringVals
+     * @return
+     */
+     private static List<Tuple<String,String>> fixIndelPositions( List<Tuple<String,String>> alleleStringVals) {
+         return alleleStringVals.stream()
+                 .map(alleleTuple -> new Tuple<>("N" + alleleTuple.getX(), "N" + alleleTuple.getY()))
+                 .collect(Collectors.toList());
+     }
+
+    /**
+     * Convert the alleleStrings into HTSJDK Allele objects and create a Mapping of String to Allele Object
+     * @param referenceString
+     * @param alleleStrings
+     * @return
+     */
+     private static Map<String, Allele> createAlleleStringToObjMap(String referenceString, List<Tuple<String,String>> alleleStrings) {
+         //We need to loop through each possible allele string and make a new HTSJDK Allele object for each one
+         //TODO setup a cache for the common ACGT ref and non Ref alleles for speed
+         Map<String,Allele> stringValueToAlleleMap = new HashMap<>();
+
+         //Setup the reference allele
+         stringValueToAlleleMap.put(referenceString, Allele.create(referenceString,true));
+
+
+         Map<String,Allele> uniqueAlternateAlleles = alleleStrings.stream()
+                 .flatMap(sbTuple -> Arrays.asList(sbTuple.getX(),sbTuple.getY()).stream()) //FlatMap the tuples
+                 .filter(alleleString -> !stringValueToAlleleMap.containsKey(alleleString))//Make sure we dont include the reference allele as we do not want to overwrite
+                 .distinct() //Remove duplicates
+                 .collect(Collectors.toMap(alleleString -> alleleString, alleleString -> Allele.create(alleleString, false))); //Convert each string to an Allele Object and add it to a map
+
+         //Add in all the unique alternate alleles to the map
+         stringValueToAlleleMap.putAll(uniqueAlternateAlleles);
+
+         return stringValueToAlleleMap;
+     }
+
+    /**
+     * Method to create a list of genotype objects for the sites
+     * @param genotypeTable
+     * @param alleleStringVals
+     * @param alleleObjectMap
+     * @return
+     */
+     private static List<Genotype> getGenotypes(GenotypeTable genotypeTable, List<Tuple<String,String>> alleleStringVals, Map<String, Allele> alleleObjectMap ) {
+         List<Genotype> genotypeList = new ArrayList<>();
+
+         for(int taxonIndex = 0; taxonIndex < genotypeTable.numberOfTaxa(); taxonIndex++) {
+             List<Allele> currentTaxonsAlleles = Arrays.asList(alleleObjectMap.get(alleleStringVals.get(taxonIndex).getX()),
+                                                                alleleObjectMap.get(alleleStringVals.get(taxonIndex).getY()));
+
+
+             GenotypeBuilder currentGenotypeBuilder = new GenotypeBuilder(genotypeTable.taxaName(taxonIndex), currentTaxonsAlleles);
+//                                                            .AD(new int[0]) // For now we do not care about depth.  TODO Figure out a better way to handle allele depth
+//                                                            .DP(0)
+//                                                            .GQ(0)
+//                                                            .PL(new int[0]);
+
+
+             genotypeList.add(currentGenotypeBuilder.make());
+         }
+
+         return genotypeList;
+     }
+
 }
