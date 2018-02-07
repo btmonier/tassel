@@ -35,17 +35,17 @@ public final class GeneralPosition implements Position {
      */
     private final Chromosome myChromosome;
     /**
-     * Physical position of the site (unknown = Float.NaN)
+     * Physical position of the site (required)
      */
     private final int myPosition;
+    /**
+     * Sub-position for any duplicate positions.
+     */
+    private final short mySubPosition;
     /**
      * Strand of the site (unknown = Byte.MIN_VALUE)
      */
     private final byte myStrand;
-    /**
-     * Genetic position in centiMorgans (unknown = Float.NaN)
-     */
-    private final float myCM;
     /**
      * Is type Nucleotide or Text
      */
@@ -90,8 +90,8 @@ public final class GeneralPosition implements Position {
         private Chromosome myChromosome;
         private int myPosition;
         // Optional parameters - initialized to default values
+        private short mySubPosition = 0;
         private byte myStrand = Position.STRAND_PLUS;
-        private float myCM = Float.NaN;
         private String mySNPID = null;
         private boolean isNucleotide = true;
         private boolean isIndel = false;
@@ -125,8 +125,8 @@ public final class GeneralPosition implements Position {
          */
         public Builder(Position aCorePosition) {
             this(aCorePosition.getChromosome(), aCorePosition.getPosition());
+            mySubPosition = aCorePosition.getSubPosition();
             myStrand = aCorePosition.getStrand();
-            myCM = aCorePosition.getCM();
             mySNPID = aCorePosition.getSNPID();
             isNucleotide = aCorePosition.isNucleotide();
             isIndel = aCorePosition.isIndel();
@@ -156,6 +156,14 @@ public final class GeneralPosition implements Position {
         }
 
         /**
+         * Set Sub-position
+         */
+        public Builder subPosition(short val) {
+            mySubPosition = val;
+            return this;
+        }
+
+        /**
          * Set strand (default=1)
          */
         public Builder strand(byte val) {
@@ -165,14 +173,6 @@ public final class GeneralPosition implements Position {
 
         public Builder strand(String val) {
             myStrand = Position.getStrand(val);
-            return this;
-        }
-
-        /**
-         * Set strand (default=Float.NaN)
-         */
-        public Builder cM(float val) {
-            myCM = val;
             return this;
         }
 
@@ -287,8 +287,8 @@ public final class GeneralPosition implements Position {
     private GeneralPosition(Builder builder) {
         myChromosome = builder.myChromosome;
         myPosition = builder.myPosition;
+        mySubPosition = builder.mySubPosition;
         myStrand = builder.myStrand;
-        myCM = builder.myCM;
         if (builder.mySNPID == null) {
             mySNPIDAsBytes = null;
         } else {
@@ -329,7 +329,7 @@ public final class GeneralPosition implements Position {
         if (result != 0) {
             return result;
         }
-        result = Float.compare(myCM, o.getCM());
+        result = Short.compare(mySubPosition, o.getSubPosition());
         if (result != 0) {
             return result;
         }
@@ -348,6 +348,7 @@ public final class GeneralPosition implements Position {
         StringBuilder sb = new StringBuilder("Position");
         sb.append("\tChr:").append(getChromosome().getName());
         sb.append("\tPos:").append(getPosition());
+        sb.append("\tSubPos:").append(getSubPosition());
         sb.append("\tName:").append(getSNPID());
         if (myVariantsAndAnno != null) {
             String[] variants = myVariantsAndAnno.getTextAnnotation("VARIANT");
@@ -364,8 +365,8 @@ public final class GeneralPosition implements Position {
         int hash = 7;
         hash = 37 * hash + this.myChromosome.hashCode();
         hash = 37 * hash + this.myPosition;
+        hash = 37 * hash + this.mySubPosition;
         hash = 37 * hash + this.myStrand;
-        hash = 37 * hash + Float.floatToIntBits(this.myCM);
         if (mySNPIDAsBytes != null) {
             hash = 37 * hash + Arrays.hashCode(this.mySNPIDAsBytes);
         }
@@ -403,6 +404,11 @@ public final class GeneralPosition implements Position {
     }
 
     @Override
+    public short getSubPosition() {
+        return mySubPosition;
+    }
+
+    @Override
     public byte getStrand() {
         return myStrand;
     }
@@ -410,11 +416,6 @@ public final class GeneralPosition implements Position {
     @Override
     public String getStrandStr() {
         return Position.getStrand(myStrand);
-    }
-
-    @Override
-    public float getCM() {
-        return myCM;
     }
 
     @Override

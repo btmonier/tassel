@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 import javax.swing.ImageIcon;
@@ -19,18 +18,15 @@ import net.maizegenetics.dna.map.GeneralPosition;
 import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.map.PositionListBuilder;
-import net.maizegenetics.dna.snp.CombineGenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.MergedGenotypeTable;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
-import net.maizegenetics.plugindef.GeneratePluginCode;
 import net.maizegenetics.plugindef.PluginEvent;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
-import net.maizegenetics.taxa.Taxon.Builder;
 import net.maizegenetics.util.GeneralAnnotation;
 
 public class MergeGenotypeTablesPluginV2 extends net.maizegenetics.plugindef.AbstractPlugin {
@@ -144,7 +140,7 @@ public class MergeGenotypeTablesPluginV2 extends net.maizegenetics.plugindef.Abs
         System.out.println("Merging Position");
         GeneralPosition.Builder mergedBuilder = new GeneralPosition.Builder(a.getChromosome(), a.getPosition());
         mergedBuilder.snpName(a.getSNPID());
-        mergedBuilder.cM(a.getCM());
+        mergedBuilder.subPosition(a.getSubPosition());
         mergedBuilder.strand(a.getStrand());
         mergedBuilder.maf(a.getGlobalMAF());
         mergedBuilder.siteCoverage(a.getGlobalSiteCoverage());

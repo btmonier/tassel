@@ -163,7 +163,7 @@ public class Chromosome implements Comparable<Chromosome> {
         if (this == o) {
             return 0;
         }
-        if (myChromosomeNumber != Integer.MAX_VALUE) {
+        if (myChromosomeNumber != Integer.MAX_VALUE && o.myChromosomeNumber != Integer.MAX_VALUE) {
             return Integer.compare(myChromosomeNumber, o.myChromosomeNumber);
         }
         return myCompareString.compareTo(o.myCompareString);
