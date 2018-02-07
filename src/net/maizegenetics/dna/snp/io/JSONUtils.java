@@ -1,6 +1,6 @@
 /*
  *  JSONUtils
- * 
+ *
  *  Created on Mar 6, 2015
  */
 package net.maizegenetics.dna.snp.io;
@@ -20,6 +20,7 @@ import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonGeneratorFactory;
 import javax.json.stream.JsonParser;
 import javax.json.stream.JsonParser.Event;
+
 import net.maizegenetics.dna.map.Chromosome;
 import net.maizegenetics.dna.map.GeneralPosition;
 import net.maizegenetics.dna.map.Position;
@@ -34,7 +35,6 @@ import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
 /**
- *
  * @author Terry Casstevens
  */
 public class JSONUtils {
@@ -224,9 +224,9 @@ public class JSONUtils {
         chromosomeToJSON(position.getChromosome(), generator);
         generator.write("position", position.getPosition());
 
-        float cm = position.getCM();
-        if (!Float.isNaN(cm)) {
-            generator.write("CM", cm);
+        short subPos = position.getSubPosition();
+        if (subPos != 0) {
+            generator.write("subPos", subPos);
         }
 
         float globalMAF = position.getGlobalMAF();
@@ -342,8 +342,8 @@ public class JSONUtils {
             Object value = entry.getValue();
             if (key.equals("SNPID")) {
                 builder.snpName((String) value);
-            } else if (key.equals("CM")) {
-                builder.cM(Float.parseFloat((String) value));
+            } else if (key.equals("subPos")) {
+                builder.subPosition(Short.parseShort((String) value));
             } else if (key.equals("globalMAF")) {
                 builder.maf(Float.parseFloat((String) value));
             } else if (key.equals("globalSiteCoverage")) {
