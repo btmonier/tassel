@@ -5,7 +5,7 @@ import net.maizegenetics.util.GeneralAnnotation;
 
 /**
  * Defines a genomic positions and its known variants. Includes attributes of
- * chromosome, position, strand, centiMorgans, name (or SNP ID), whether this
+ * chromosome, position, sub-position, strand, name (or SNP ID), whether this
  * position is a nucleotide, or includes an indel.
  *
  * @author Ed Buckler
@@ -117,16 +117,19 @@ public interface Position extends Comparable<Position> {
     public int getPosition();
 
     /**
+     * Return the sub-position of a site. This will be zero for the main
+     * physical position and sequentially numbered (1, 2, 3,...) for
+     * any (if any) sites with the same {@link #getPosition()}.
+     * This will mostly be used for insertions relative to the reference.
+     */
+    public short getSubPosition();
+
+    /**
      * Return the strand for a site definition
      */
     public byte getStrand();
 
     public String getStrandStr();
-
-    /**
-     * Return the strand for a site definition
-     */
-    public float getCM();
 
     /**
      * Return the ID (name) for a site
