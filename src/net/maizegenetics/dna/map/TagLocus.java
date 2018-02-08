@@ -5,7 +5,6 @@ package net.maizegenetics.dna.map;
 
 import net.maizegenetics.dna.tag.TagsByTaxa;
 import net.maizegenetics.dna.BaseEncoder;
-import net.maizegenetics.dna.read.PERead;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableBuilder;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
@@ -14,7 +13,7 @@ import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTableBuilder;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
-import net.maizegenetics.util.VCFUtil;
+import net.maizegenetics.dna.snp.io.VCFUtil;
 
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.log4j.Logger;
