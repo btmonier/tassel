@@ -100,15 +100,15 @@ public class BuilderFromVCFUsingHTSJDK {
 
     }
 
-    public BuilderFromVCFUsingHTSJDK instance(String vcf) {
+    public static BuilderFromVCFUsingHTSJDK instance(String vcf) {
         return new BuilderFromVCFUsingHTSJDK(vcf);
     }
 
-    public BuilderFromVCFUsingHTSJDK instance(VCFHeader header, Iterator<VariantContext> variants) {
+    public static BuilderFromVCFUsingHTSJDK instance(VCFHeader header, Iterator<VariantContext> variants) {
         return new BuilderFromVCFUsingHTSJDK(header, variants);
     }
 
-    public BuilderFromVCFUsingHTSJDK instance(VCFHeader header, List<VariantContext> variants) {
+    public static BuilderFromVCFUsingHTSJDK instance(VCFHeader header, List<VariantContext> variants) {
         return new BuilderFromVCFUsingHTSJDK(header, variants.iterator());
     }
 
@@ -297,7 +297,7 @@ public class BuilderFromVCFUsingHTSJDK {
 
         } catch (Exception e) {
             myLogger.debug(e.getMessage(), e);
-            throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: build: problem building GenotypeTable");
+            throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: build: problem building GenotypeTable\n" + e.getMessage());
         } finally {
             close();
         }
@@ -345,10 +345,6 @@ public class BuilderFromVCFUsingHTSJDK {
                     int currentPosition = context.getStart();
 
                     List<Allele> possibleAlleles = context.getAlleles();
-                    System.out.println("start: " + context.getStart());
-                    for (Allele allele : possibleAlleles) {
-                        System.out.println(allele.getBaseString());
-                    }
 
                     // Get maximum length of possible allele for this variant context
                     int maxLength = possibleAlleles.stream()
@@ -356,8 +352,6 @@ public class BuilderFromVCFUsingHTSJDK {
                             .map(String::length)
                             .max(Integer::compare)
                             .get();
-
-                    System.out.println("max length: " + maxLength);
 
                     // This holds translation from HTSJDK Allele to
                     // TASSEL nucleotide byte codes
@@ -396,7 +390,17 @@ public class BuilderFromVCFUsingHTSJDK {
 
                         int index = myPositionsToProcess.indexOf(new Tuple<>(currentPosition, (short) 0));
                         for (int i = 0; i < maxLength; i++) {
-                            myGenotypes.set(t, index++, (byte) ((first[i] << 4) | second[i]));
+                            myGenotypes.set(t, index, (byte) ((first[i] << 4) | second[i]));
+                            if (myKeepDepth) {
+                                int[] alleleDepths = context.getGenotype(t).getAD();
+                                if (alleleDepths.length != possibleAlleles.size()) {
+                                    throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: call: number allele depths (AD): " + alleleDepths.length + " doesn't equal number alleles: " + possibleAlleles.size() + " position: " + context.getStart());
+                                }
+                                for (int d = 0; d < alleleDepths.length; d++) {
+                                    myDepths[t][alleleToBytes.get(possibleAlleles.get(d))[i]][index] += alleleDepths[d];
+                                }
+                            }
+                            index++;
                         }
 
                     }
