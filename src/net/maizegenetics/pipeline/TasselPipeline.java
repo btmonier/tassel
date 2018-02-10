@@ -65,7 +65,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
@@ -145,7 +145,9 @@ public class TasselPipeline implements PluginListener {
         if (myIsInteractive) {
             pool = null;
         } else {
-            pool = ForkJoinPool.commonPool();
+            int numThreads = Runtime.getRuntime().availableProcessors() / 2;
+            numThreads = Math.max(2, numThreads);
+            pool = Executors.newFixedThreadPool(numThreads);
         }
         try {
 
@@ -226,7 +228,7 @@ public class TasselPipeline implements PluginListener {
             }
         } finally {
             if (pool != null) {
-                pool.shutdownNow();
+                pool.shutdown();
             }
         }
 
