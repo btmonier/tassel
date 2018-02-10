@@ -393,11 +393,13 @@ public class BuilderFromVCFUsingHTSJDK {
                             myGenotypes.set(t, index, (byte) ((first[i] << 4) | second[i]));
                             if (myKeepDepth) {
                                 int[] alleleDepths = context.getGenotype(t).getAD();
-                                if (alleleDepths.length != possibleAlleles.size()) {
-                                    throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: call: number allele depths (AD): " + alleleDepths.length + " doesn't equal number alleles: " + possibleAlleles.size() + " position: " + context.getStart());
-                                }
-                                for (int d = 0; d < alleleDepths.length; d++) {
-                                    myDepths[t][alleleToBytes.get(possibleAlleles.get(d))[i]][index] += alleleDepths[d];
+                                if (alleleDepths != null) {
+                                    if (alleleDepths.length != possibleAlleles.size()) {
+                                        throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: call: number allele depths (AD): " + alleleDepths.length + " doesn't equal number alleles: " + possibleAlleles.size() + " position: " + context.getStart() + " taxa: " + t + " depths: " + Arrays.toString(alleleDepths));
+                                    }
+                                    for (int d = 0; d < alleleDepths.length; d++) {
+                                        myDepths[t][alleleToBytes.get(possibleAlleles.get(d))[i]][index] += alleleDepths[d];
+                                    }
                                 }
                             }
                             index++;
