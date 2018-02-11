@@ -2,6 +2,7 @@ package net.maizegenetics.dna.snp.io;
 
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.LazyGenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
@@ -152,6 +153,9 @@ public class BuilderFromVCFUsingHTSJDK {
                 numContextsToProcess++;
 
                 VariantContext context = myVariants.next();
+                if (context.getGenotypes() instanceof LazyGenotypesContext) {
+                    ((LazyGenotypesContext)context.getGenotypes()).decode();
+                }
                 Chromosome chr = Chromosome.instance(context.getContig());
                 if (previousChromosome == null) {
                     previousChromosome = chr;
