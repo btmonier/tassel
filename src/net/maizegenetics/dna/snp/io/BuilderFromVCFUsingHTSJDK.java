@@ -45,7 +45,7 @@ public class BuilderFromVCFUsingHTSJDK {
 
     private static final Logger myLogger = Logger.getLogger(BuilderFromVCFUsingHTSJDK.class);
 
-    private static final int NUM_VARIANT_CONTEXT_PER_THREAD = 10;
+    private static final int NUM_VARIANT_CONTEXT_PER_THREAD = 100;
 
     private final VCFFileReader myReader;
     private final VCFHeader myHeader;
@@ -153,9 +153,12 @@ public class BuilderFromVCFUsingHTSJDK {
                 numContextsToProcess++;
 
                 VariantContext context = myVariants.next();
+                // This explicitly loads the variant context in the main thread, so that
+                // it will work correctly in the processing threads
                 if (context.getGenotypes() instanceof LazyGenotypesContext) {
-                    ((LazyGenotypesContext)context.getGenotypes()).decode();
+                    ((LazyGenotypesContext) context.getGenotypes()).decode();
                 }
+
                 Chromosome chr = Chromosome.instance(context.getContig());
                 if (previousChromosome == null) {
                     previousChromosome = chr;
@@ -175,17 +178,11 @@ public class BuilderFromVCFUsingHTSJDK {
                 int end = context.getEnd();
 
                 int refLength = context.getLengthOnReference();
-                List<Integer> indelLengths = context.getIndelLengths();
-                short maxLength = 0;
-                if (indelLengths != null) {
-                    int temp = context.getIndelLengths().stream()
-                            .max(Integer::compare)
-                            .get();
-                    maxLength = (short) temp;
-                    if (maxLength != temp) {
-                        throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: build: insertion longer than type short can hold: start position: " + context.getStart());
-                    }
-                }
+                short maxLength = context.getAlleles().stream()
+                        .map(Allele::getBaseString)
+                        .map(String::length)
+                        .max(Integer::compare)
+                        .get().shortValue();
 
                 if (refLength >= maxLength) {
 
@@ -351,11 +348,11 @@ public class BuilderFromVCFUsingHTSJDK {
                     List<Allele> possibleAlleles = context.getAlleles();
 
                     // Get maximum length of possible allele for this variant context
-                    int maxLength = possibleAlleles.stream()
+                    short maxLength = possibleAlleles.stream()
                             .map(Allele::getBaseString)
                             .map(String::length)
                             .max(Integer::compare)
-                            .get();
+                            .get().shortValue();
 
                     // This holds translation from HTSJDK Allele to
                     // TASSEL nucleotide byte codes
@@ -364,11 +361,15 @@ public class BuilderFromVCFUsingHTSJDK {
                     for (Allele allele : possibleAlleles) {
                         byte[] result = new byte[maxLength];
                         String value = allele.getBaseString();
-                        for (int i = 0; i < value.length(); i++) {
-                            result[i] = NucleotideAlignmentConstants.getNucleotideAlleleByte(value.charAt(i));
-                        }
-                        for (int i = value.length(); i < maxLength; i++) {
-                            result[i] = NucleotideAlignmentConstants.GAP_ALLELE;
+                        if (value.equals("*")) {
+                            Arrays.fill(result, NucleotideAlignmentConstants.GAP_ALLELE);
+                        } else {
+                            for (int i = 0; i < value.length(); i++) {
+                                result[i] = NucleotideAlignmentConstants.getNucleotideAlleleByte(value.charAt(i));
+                            }
+                            for (int i = value.length(); i < maxLength; i++) {
+                                result[i] = NucleotideAlignmentConstants.GAP_ALLELE;
+                            }
                         }
                         alleleToBytes.put(allele, result);
                     }
@@ -380,7 +381,7 @@ public class BuilderFromVCFUsingHTSJDK {
 
                         List<Allele> alleles = context.getGenotype(t).getAlleles();
                         if (alleles.size() != 2) {
-                            throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: call: not diploid: " + context.getStart());
+                            throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: call: not diploid: id: " + context.getID() + " start: " + context.getStart() + " taxon: " + t + ": " + myTaxa.get(t).getName() + " allele size: " + alleles.size());
                         }
 
                         byte[] first = alleleToBytes.get(alleles.get(0));
@@ -393,7 +394,7 @@ public class BuilderFromVCFUsingHTSJDK {
                         }
 
                         int index = myPositionsToProcess.indexOf(new Tuple<>(currentPosition, (short) 0));
-                        for (int i = 0; i < maxLength; i++) {
+                        for (short i = 0; i < maxLength; i++) {
                             myGenotypes.set(t, index, (byte) ((first[i] << 4) | second[i]));
                             if (myKeepDepth) {
                                 int[] alleleDepths = context.getGenotype(t).getAD();
