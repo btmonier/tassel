@@ -9,16 +9,13 @@ import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
+import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 import net.maizegenetics.util.Tuple;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -420,6 +417,11 @@ public class VCFUtil {
         List<Integer> indelSiteBlockList = new ArrayList<>();
         indelSiteBlockList.add(0);
         for (int i = 1; i < genotypeTable.numberOfSites(); i++) {
+
+            if(genotypeTable.positions().get(i).getPosition()==10756305 || genotypeTable.positions().get(i).getPosition() == 10756318 ||genotypeTable.positions().get(i).getPosition() == 10756319) {
+                System.out.println("HERE");
+            }
+
             //Check to see if the current position is consecutive to the previous
             //Note we need to check that the difference in physical position is less than 1 in case of insertions
             if (genotypeTable.positions().get(i - 1).getChromosome().equals(genotypeTable.positions().get(i).getChromosome()) &&
@@ -427,6 +429,12 @@ public class VCFUtil {
 
                 //Figure out if we have an insertion or deletion allele
                 boolean isIndel = false;
+
+                if(genotypeTable.referenceAllele(i)== NucleotideAlignmentConstants.INSERT_ALLELE || genotypeTable.referenceAllele(i)== NucleotideAlignmentConstants.GAP_ALLELE ) {
+                    indelSiteBlockList.add(i);
+                    continue;
+                }
+                byte[] alleles = genotypeTable.alleles(i);
                 for (byte allele : genotypeTable.alleles(i)) {
                     if (allele == NucleotideAlignmentConstants.INSERT_ALLELE || allele == NucleotideAlignmentConstants.GAP_ALLELE) {
                         isIndel = true;
@@ -472,6 +480,7 @@ public class VCFUtil {
         //Get the start position for use later
         int startPos = genotypeTable.positions().get(sites.get(0)).getPosition();
 
+
         //Create a StringBuilder object for the left and the right alleles.
         //The StringBuilders are building the alleleString in order of sites
         List<Tuple<StringBuilder, StringBuilder>> alleleStrings = IntStream.range(0, genotypeTable.numberOfTaxa())
@@ -482,6 +491,8 @@ public class VCFUtil {
         //Set up the reference Allele String builder
         StringBuilder referenceAlleleStringBuilder = new StringBuilder();
 
+        Set<String> knownVariantSet = new LinkedHashSet<>();
+
         //Loop through each site and figure out the allele strings
         //If it is a - or + we ignore it
         for (Integer currentSite : sites) {
@@ -489,6 +500,11 @@ public class VCFUtil {
             if (refAllele != NucleotideAlignmentConstants.GAP_ALLELE && refAllele != NucleotideAlignmentConstants.INSERT_ALLELE) {
                 //We add it because it is an actual allele value
                 referenceAlleleStringBuilder.append(NucleotideAlignmentConstants.getHaplotypeNucleotide(refAllele));
+            }
+
+            String[] knownVariantsAtSite = genotypeTable.positions().get(currentSite).getKnownVariants();
+            if(knownVariantsAtSite!=null) {
+                knownVariantSet.addAll(Arrays.asList(knownVariantsAtSite));
             }
 
             //loop through each taxon
@@ -503,11 +519,21 @@ public class VCFUtil {
                 String leftCall = NucleotideAlignmentConstants.getHaplotypeNucleotide(genotypeCalls[0]);
                 String rightCall = NucleotideAlignmentConstants.getHaplotypeNucleotide(genotypeCalls[1]);
 
+                if(leftCall.equals("X")) {
+                    leftCall = "N";
+                }
+
+                if(rightCall.equals("X")) {
+                    rightCall = "N";
+                }
+
                 //Add the calls to the string builders for this taxon
                 //We only want to add in the alleles if they are not + or minus as those are not valid VCF characters
+//                if (!leftCall.equals("-") && !leftCall.equals("+") && !leftCall.equals("X")) {
                 if (!leftCall.equals("-") && !leftCall.equals("+")) {
                     alleleStrings.get(taxonIndex).getX().append(leftCall);
                 }
+//                if (!rightCall.equals("-") && !rightCall.equals("+") && !rightCall.equals("X")) {
                 if (!rightCall.equals("-") && !rightCall.equals("+")) {
                     alleleStrings.get(taxonIndex).getY().append(rightCall);
                 }
@@ -532,17 +558,20 @@ public class VCFUtil {
             //Fix the indel positions by adding in the Ns
             alleleStringVals = fixIndelPositions(alleleStringVals);
         }
+
         //We now have all the possible allele strings figured out we can get the Allele objects
-        Map<String, Allele> alleleStringToObjMap = createAlleleStringToObjMap(referenceAlleleStringBuilder.toString(), alleleStringVals);
+        Map<String, Allele> alleleStringToObjMap = createAlleleStringToObjMap(referenceAlleleStringBuilder.toString(), alleleStringVals,knownVariantSet, genotypeTable.positions().get(sites.get(0)));
+
 
         //Convert the allele objects into a list so we can add them to the VariantContextBuilder
         List<Allele> alleleObjectList = alleleStringToObjMap.keySet().stream()
                 .map(alleleString -> alleleStringToObjMap.get(alleleString))
+                .filter(alleleObject -> !alleleObject.equals(Allele.NO_CALL)) //Remove No_Call(missing) alleles as they will break the variantContext
+                .distinct()//need this as X, N and * all map to Allele("N",false)
                 .collect(Collectors.toList());
 
         //Get the genotype Calls for each taxon
         List<Genotype> genotypeList = getGenotypes(genotypeTable, alleleStringVals, alleleStringToObjMap);
-
 
         //Create the variant Context for this record
         VariantContextBuilder vcb = new VariantContextBuilder(".", //Is there a better source to put here?
@@ -579,24 +608,83 @@ public class VCFUtil {
      *
      * @return
      */
-    private static Map<String, Allele> createAlleleStringToObjMap(String referenceString, List<Tuple<String, String>> alleleStrings) {
+    private static Map<String, Allele> createAlleleStringToObjMap(String referenceString, List<Tuple<String, String>> alleleStrings, Set<String> knownVariantSet,Position position) {
         //We need to loop through each possible allele string and make a new HTSJDK Allele object for each one
-        //TODO setup a cache for the common ACGT ref and non Ref alleles for speed
-        Map<String, Allele> stringValueToAlleleMap = new HashMap<>();
+        try {
 
-        //Setup the reference allele
-        stringValueToAlleleMap.put(referenceString, Allele.create(referenceString, true));
+            //TODO setup a cache for the common ACGT ref and non Ref alleles for speed
+            Map<String, Allele> stringValueToAlleleMap = new HashMap<>();
 
-        Map<String, Allele> uniqueAlternateAlleles = alleleStrings.stream()
-                .flatMap(sbTuple -> Arrays.asList(sbTuple.getX(), sbTuple.getY()).stream()) //FlatMap the tuples
-                .filter(alleleString -> !stringValueToAlleleMap.containsKey(alleleString))//Make sure we dont include the reference allele as we do not want to overwrite
-                .distinct() //Remove duplicates
-                .collect(Collectors.toMap(alleleString -> alleleString, alleleString -> Allele.create(alleleString, false))); //Convert each string to an Allele Object and add it to a map
+            if (referenceString == null || referenceString.equals("")) {
+//        if(referenceString==null) {
+                myLogger.warn("NULL reference allele found: " + position.toString() + " Putting N in for ref.");
+                stringValueToAlleleMap.put("N", Allele.create("N", true));
+            } else {
+                //Setup the reference allele
+                stringValueToAlleleMap.put(referenceString, Allele.create(referenceString, true));
+            }
+            Map<String, Allele> uniqueAlternateAlleles = alleleStrings.stream()
+                    .flatMap(sbTuple -> Arrays.asList(sbTuple.getX(), sbTuple.getY()).stream()) //FlatMap the tuples
+                    .filter(alleleString -> !stringValueToAlleleMap.containsKey(alleleString))//Make sure we dont include the reference allele as we do not want to overwrite
+                    .distinct() //Remove duplicates
+                    .filter(alleleString -> alleleString != null)
+                    .collect(Collectors.toMap(alleleString -> alleleString, alleleString -> {
+                        if(alleleString.equals("*") || alleleString.equals("X")) {
+                            return Allele.NO_CALL;
+                        }
+                        else {
+                            return Allele.create(alleleString, false);
+                        }
+                    })); //Convert each string to an Allele Object and add it to a map
 
-        //Add in all the unique alternate alleles to the map
-        stringValueToAlleleMap.putAll(uniqueAlternateAlleles);
 
-        return stringValueToAlleleMap;
+//        //Go through all the knownVariants and add new ones.
+//        for(String knownVariant : knownVariantSet) {
+//            if(!uniqueAlternateAlleles.containsKey(knownVariant) && !stringValueToAlleleMap.containsKey(knownVariant)) {
+//                uniqueAlternateAlleles.put(knownVariant, Allele.create(knownVariant, false));
+//            }
+//        }
+
+            //Add in all the unique alternate alleles to the map
+            stringValueToAlleleMap.putAll(uniqueAlternateAlleles);
+
+            Map<String, Allele> uniqueKnownVariantAlleles = knownVariantSet.stream()
+                    .filter(alleleString -> !stringValueToAlleleMap.containsKey(alleleString))//Make sure we dont include the reference allele as we do not want to overwrite
+                    .distinct() //Remove duplicates
+                    .filter(alleleString -> alleleString != null)
+//                    .collect(Collectors.toMap(alleleString -> alleleString, alleleString -> Allele.create(alleleString, false))); //Convert each string to an Allele Object and add it to a map
+                    .collect(Collectors.toMap(alleleString -> alleleString, alleleString -> {
+                        if(alleleString.equals("*") || alleleString.equals("X")) {
+                            return Allele.NO_CALL;
+                        }
+                        else {
+                            return Allele.create(alleleString, false);
+                        }
+                    })); //Convert each string to an Allele Object and add it to a map
+
+            stringValueToAlleleMap.putAll(uniqueKnownVariantAlleles);
+
+
+            //we need to check to see if we have an indel in our allele list.  If we do not, we need to remove the N key object as these genotypes will not be in the GenotypeContext
+            boolean hasIndel = false;
+            int refLength = referenceString.length();
+            for (String alleleValue : stringValueToAlleleMap.keySet()) {
+                if (alleleValue.length() != refLength) {
+                    hasIndel = true;
+                    break;
+                }
+            }
+
+            if (!hasIndel && !referenceString.equals("N") && stringValueToAlleleMap.containsKey("N")) {
+                //remove the N allele from the map as it is not valid
+                stringValueToAlleleMap.put("N", Allele.NO_CALL);
+            }
+
+            return stringValueToAlleleMap;
+        }
+        catch(Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
