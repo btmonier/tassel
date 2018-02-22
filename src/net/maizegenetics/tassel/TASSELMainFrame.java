@@ -113,8 +113,8 @@ import net.maizegenetics.gui.DialogUtils;
 public class TASSELMainFrame extends JFrame implements ActionListener {
 
     private static final Logger myLogger = Logger.getLogger(TASSELMainFrame.class);
-    public static final String version = "5.2.42";
-    public static final String versionDate = "February 1, 2018";
+    public static final String version = "5.2.43";
+    public static final String versionDate = "February 22, 2018";
     private DataTreePanel myDataTreePanel;
     //a variable to control when the progress bar was last updated
     private JFileChooser filerSave = new JFileChooser();
