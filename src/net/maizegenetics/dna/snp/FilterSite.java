@@ -1,6 +1,6 @@
 /*
  *  FilterSite
- * 
+ *
  *  Created on Jun 30, 2014
  */
 package net.maizegenetics.dna.snp;
@@ -14,25 +14,22 @@ import net.maizegenetics.dna.map.Chromosome;
 import net.maizegenetics.dna.map.PositionList;
 
 /**
- *
  * @author Terry Casstevens
  */
 final public class FilterSite implements Filter {
 
-    public static enum FILTER_SITES_ATTRIBUTES {
-
+    public enum FILTER_SITES_ATTRIBUTES {
         filterName,
         siteMinCount, siteMinAlleleFreq, siteMaxAlleleFreq, siteRangeFilterType,
         startSite, endSite, startChr, startPos, endChr,
         endPos, includeSites, siteNames, chrPosFile,
-        positionList, removeMinorSNPStates, bedFile,
+        positionList, removeMinorSNPStates, removeSitesWithIndels, bedFile,
         minHeterozygous, maxHeterozygous;
-    };
+    }
 
-    public static enum SITE_RANGE_FILTER_TYPES {
-
+    public enum SITE_RANGE_FILTER_TYPES {
         NONE, SITES, POSITIONS
-    };
+    }
 
     private final Map<FILTER_SITES_ATTRIBUTES, Object> myAttributes = new LinkedHashMap<>();
 
@@ -141,6 +138,15 @@ final public class FilterSite implements Filter {
 
     public boolean removeMinorSNPStates() {
         Boolean value = (Boolean) myAttributes.get(FILTER_SITES_ATTRIBUTES.removeMinorSNPStates);
+        if (value == null) {
+            return false;
+        } else {
+            return value;
+        }
+    }
+
+    public boolean removeSitesWithIndels() {
+        Boolean value = (Boolean) myAttributes.get(FILTER_SITES_ATTRIBUTES.removeSitesWithIndels);
         if (value == null) {
             return false;
         } else {

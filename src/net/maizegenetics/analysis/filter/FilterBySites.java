@@ -1,26 +1,27 @@
 /*
  *  FilterBySites
- * 
+ *
  *  Created on Dec 5, 2016
  */
 package net.maizegenetics.analysis.filter;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.FilterGenotypeTable;
 import net.maizegenetics.dna.snp.FilterSite;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableBuilder;
-import static net.maizegenetics.dna.snp.GenotypeTableUtils.filterSitesByBedFile;
-import static net.maizegenetics.dna.snp.GenotypeTableUtils.filterSitesByChrPos;
 import net.maizegenetics.dna.snp.genotypecall.ListStats;
 import net.maizegenetics.dna.snp.genotypecall.Stats;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static net.maizegenetics.dna.snp.GenotypeTableUtils.filterSitesByBedFile;
+import static net.maizegenetics.dna.snp.GenotypeTableUtils.filterSitesByChrPos;
+
 /**
- *
  * @author Terry Casstevens
  */
 public class FilterBySites {
@@ -106,6 +107,11 @@ public class FilterBySites {
         }
 
         Stream<Stats> stream = null;
+
+        if (filter.removeSitesWithIndels()) {
+            stream = stream(result, stream);
+            stream = stream.filter(stats -> !stats.hasIndel());
+        }
 
         if (filter.siteMinCount() != 0) {
             stream = stream(result, stream);
