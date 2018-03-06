@@ -411,8 +411,10 @@ public class StepwiseOLSModelFitter {
                 if (myGenotype.hasReferenceProbablity()) {
                 	double[] cov = new double[numberNotMissing];
                 	int count = 0;
+                	float[] siteReferenceProb = myData.referenceProb(m);
                 	for (int i = 0; i < totalNumber; i++) {
-                		if (!missing.fastGet(i)) cov[count++] = myGenotype.referenceProbability(i, m);
+//                		if (!missing.fastGet(i)) cov[count++] = myGenotype.referenceProbability(i, m);
+                		if (!missing.fastGet(i)) cov[count++] = siteReferenceProb[i];
                 	}
 
                 	if (isNested) {
@@ -426,7 +428,7 @@ public class StepwiseOLSModelFitter {
                 } else if (myGenotype.hasGenotype()) {
                 	byte minor = myGenotype.minorAllele(m);
                 	double[] cov = new double[numberNotMissing];
-                	byte[] siteGeno = AssociationUtils.getNonMissingBytes(myGenotype.genotypeAllTaxa(m), missing);
+                	byte[] siteGeno = AssociationUtils.getNonMissingBytes( myData.genotypeAllTaxa(m), missing);
                 	for (int i = 0; i < numberNotMissing; i++) {
                 		byte[] diploidAlleles = GenotypeTableUtils.getDiploidValues(siteGeno[i]);
                 		if (diploidAlleles[0] == minor) cov[i] += 0.5;
@@ -530,8 +532,9 @@ public class StepwiseOLSModelFitter {
                 if (myGenotype.hasReferenceProbablity()) {
                 	double[] cov = new double[numberNotMissing];
                 	int count = 0;
+                	float[] referenceProb = myData.referenceProb(testIndex);
                 	for (int i = 0; i < totalNumber; i++) {
-                		if (!missing.fastGet(i)) cov[count++] = myGenotype.referenceProbability(i, testIndex);
+                		if (!missing.fastGet(i)) cov[count++] = referenceProb[i];
                 	}
 
                 	if (isNested) {
@@ -545,7 +548,7 @@ public class StepwiseOLSModelFitter {
                 } else if (myGenotype.hasGenotype()) {
                 	byte minor = myGenotype.minorAllele(testIndex);
                 	double[] cov = new double[numberNotMissing];
-                	byte[] siteGeno = AssociationUtils.getNonMissingBytes(myGenotype.genotypeAllTaxa(testIndex), missing);
+                	byte[] siteGeno = AssociationUtils.getNonMissingBytes(myData.genotypeAllTaxa(testIndex), missing);
                 	for (int i = 0; i < numberNotMissing; i++) {
                 		byte[] diploidAlleles = GenotypeTableUtils.getDiploidValues(siteGeno[i]);
                 		if (diploidAlleles[0] == minor) cov[i] += 0.5;
@@ -612,8 +615,9 @@ public class StepwiseOLSModelFitter {
             if (myGenotype.hasReferenceProbablity()) {
             	double[] cov = new double[numberNotMissing];
             	int count = 0;
+            	float[] referenceProb = myData.referenceProb(s);
             	for (int i = 0; i < totalNumber; i++) {
-            		if (!missing.fastGet(i)) cov[count++] = myGenotype.referenceProbability(i, s);
+            		if (!missing.fastGet(i)) cov[count++] = referenceProb[i];
             	}
 
             	if (isNested) {
@@ -627,7 +631,7 @@ public class StepwiseOLSModelFitter {
             } else if (myGenotype.hasGenotype()) {
             	byte minor = myGenotype.minorAllele(s);
             	double[] cov = new double[numberNotMissing];
-            	byte[] siteGeno = AssociationUtils.getNonMissingBytes(myGenotype.genotypeAllTaxa(s), missing);
+            	byte[] siteGeno = AssociationUtils.getNonMissingBytes(myData.genotypeAllTaxa(s), missing);
             	for (int i = 0; i < numberNotMissing; i++) {
             		byte[] diploidAlleles = GenotypeTableUtils.getDiploidValues(siteGeno[i]);
             		if (diploidAlleles[0] == minor) cov[i] += 0.5;
@@ -988,8 +992,9 @@ public class StepwiseOLSModelFitter {
             if (myGenotype.hasReferenceProbablity()) {
             	double[] cov = new double[numberNotMissing];
             	int count = 0;
+            	float[] referenceProb = myData.referenceProb(m);
             	for (int i = 0; i < totalNumber; i++) {
-            		if (!missing.fastGet(i)) cov[count++] = myGenotype.referenceProbability(i, m);
+            		if (!missing.fastGet(i)) cov[count++] = referenceProb[i];
             	}
 
             	if (isNested) {
@@ -1003,7 +1008,7 @@ public class StepwiseOLSModelFitter {
             } else if (myGenotype.hasGenotype()) {
             	byte minor = myGenotype.minorAllele(m);
             	double[] cov = new double[numberNotMissing];
-            	byte[] siteGeno = AssociationUtils.getNonMissingBytes(myGenotype.genotypeAllTaxa(m), missing);
+            	byte[] siteGeno = AssociationUtils.getNonMissingBytes(myData.genotypeAllTaxa(m), missing);
             	for (int i = 0; i < numberNotMissing; i++) {
             		byte[] diploidAlleles = GenotypeTableUtils.getDiploidValues(siteGeno[i]);
             		if (diploidAlleles[0] == minor) cov[i] += 0.5;
