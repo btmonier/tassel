@@ -1,15 +1,16 @@
 /*
  *  Stats
- * 
+ *
  *  Created on Jan 6, 2017
  */
 package net.maizegenetics.dna.snp.genotypecall;
 
 import net.maizegenetics.dna.snp.GenotypeTable;
+import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
+
 import static net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache.HETEROZYGOUS_COUNT;
 
 /**
- *
  * @author Terry Casstevens
  */
 public class Stats {
@@ -80,6 +81,16 @@ public class Stats {
 
     }
 
+    public int numAllMinorAlleles() {
+
+        int result = 0;
+        for (int i = 1; i < myAlleleCounts[0].length; i++) {
+            result += myAlleleCounts[1][i];
+        }
+        return result;
+
+    }
+
     public int totalGametesNonMissingForSite() {
         int numAlleles = myAlleleCounts[0].length;
         int result = 0;
@@ -95,6 +106,16 @@ public class Stats {
 
     public double percentNotMissing() {
         return (double) (myNumIndices - myStats[AlleleFreqCache.UNKNOWN_COUNT]) / (double) myNumIndices;
+    }
+
+    public boolean hasIndel() {
+        int numAlleles = myAlleleCounts[0].length;
+        for (int i = 0; i < numAlleles; i++) {
+            if (myAlleleCounts[0][i] == NucleotideAlignmentConstants.GAP_ALLELE || myAlleleCounts[0][i] == NucleotideAlignmentConstants.INSERT_ALLELE) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public int index() {
