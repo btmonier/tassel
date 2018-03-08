@@ -39,7 +39,7 @@ import net.maizegenetics.stats.linearmodels.BasicShuffler;
 import net.maizegenetics.taxa.Taxon;
 
 public class StepwiseOLSModelFitter {
-	private GenotypePhenotype myData;
+	private final GenotypePhenotype myData;
 
 	//settable parameters
 	private double[] enterlimits = null;
@@ -85,8 +85,8 @@ public class StepwiseOLSModelFitter {
 	private final String[] anovaReportHeader = new String[]{"Trait", "Name","Locus","Position","df","SS","MS", "F", "pr>F", "BIC", "mBIC", "AIC", "Model Rsq"};
     private final String[] anovaReportWithCIHeader = new String[]{"Trait", "Name","Locus","Position","df","SS","MS", "F", "pr>F", "BIC", "mBIC", "AIC", "Model Rsq", "SuppLeft", "SuppRight"};
     
-	GenotypeTable myGenotype;
-	Phenotype myPhenotype;
+	private final GenotypeTable myGenotype;
+	private final Phenotype myPhenotype;
 	List<PhenotypeAttribute> dataAttributeList;
 	List<PhenotypeAttribute> factorAttributeList;
 	List<PhenotypeAttribute> covariateAttributeList;
@@ -96,14 +96,15 @@ public class StepwiseOLSModelFitter {
 	}
 
 	public StepwiseOLSModelFitter(GenotypePhenotype genoPheno, String datasetName) {
-		myData = genoPheno;
+		myData = genoPheno;       
+		myGenotype = myData.genotypeTable();
+        myPhenotype = myData.phenotype();
+
 		this.datasetName = datasetName;
 	}
 
 	public DataSet runAnalysis() {
 		//numbers of various model components
-		myGenotype = myData.genotypeTable();
-		myPhenotype = myData.phenotype();
 		dataAttributeList = myPhenotype.attributeListOfType(ATTRIBUTE_TYPE.data);
 		factorAttributeList = myPhenotype.attributeListOfType(ATTRIBUTE_TYPE.factor);
 		covariateAttributeList = myPhenotype.attributeListOfType(ATTRIBUTE_TYPE.covariate);
@@ -413,7 +414,6 @@ public class StepwiseOLSModelFitter {
                 	int count = 0;
                 	float[] siteReferenceProb = myData.referenceProb(m);
                 	for (int i = 0; i < totalNumber; i++) {
-//                		if (!missing.fastGet(i)) cov[count++] = myGenotype.referenceProbability(i, m);
                 		if (!missing.fastGet(i)) cov[count++] = siteReferenceProb[i];
                 	}
 
