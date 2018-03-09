@@ -1,30 +1,18 @@
 /*
  *  FilterSiteBuilderPlugin
- * 
+ *
  *  Created on Jun 30, 2014
  */
 package net.maizegenetics.analysis.filter;
 
 import com.google.common.collect.Range;
-
-import java.awt.Frame;
-import java.lang.reflect.Field;
-import java.net.URL;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.ImageIcon;
-
 import net.maizegenetics.analysis.data.GenotypeSummaryPlugin;
 import net.maizegenetics.dna.map.Chromosome;
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.FilterList;
 import net.maizegenetics.dna.snp.FilterSite;
-import net.maizegenetics.dna.snp.FilterSite.SITE_RANGE_FILTER_TYPES;
 import net.maizegenetics.dna.snp.FilterSite.FILTER_SITES_ATTRIBUTES;
+import net.maizegenetics.dna.snp.FilterSite.SITE_RANGE_FILTER_TYPES;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.phenotype.GenotypePhenotype;
@@ -33,11 +21,18 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
-
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
+import java.awt.*;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- *
  * @author Terry Casstevens
  */
 public class FilterSiteBuilderPlugin extends AbstractPlugin {
@@ -66,6 +61,9 @@ public class FilterSiteBuilderPlugin extends AbstractPlugin {
     private PluginParameter<Boolean> myRemoveMinorSNPStates = new PluginParameter.Builder<>(FILTER_SITES_ATTRIBUTES.removeMinorSNPStates.name(), false, Boolean.class)
             .guiName("Remove Minor SNP States")
             .description("")
+            .build();
+    private PluginParameter<Boolean> myRemoveSitesWithIndels = new PluginParameter.Builder<>(FILTER_SITES_ATTRIBUTES.removeSitesWithIndels.name(), false, Boolean.class)
+            .description("Removes sites containing an indel (+ or -)")
             .build();
     private PluginParameter<SITE_RANGE_FILTER_TYPES> mySiteFilter = new PluginParameter.Builder<>(FILTER_SITES_ATTRIBUTES.siteRangeFilterType.name(), SITE_RANGE_FILTER_TYPES.NONE, SITE_RANGE_FILTER_TYPES.class)
             .description("True if filtering by site numbers. False if filtering by chromosome and position")
@@ -486,6 +484,28 @@ public class FilterSiteBuilderPlugin extends AbstractPlugin {
      */
     public FilterSiteBuilderPlugin removeMinorSNPStates(Boolean value) {
         myRemoveMinorSNPStates = new PluginParameter<>(myRemoveMinorSNPStates, value);
+        return this;
+    }
+
+    /**
+     * Removes sites containing an indel (+ or -)
+     *
+     * @return Remove Sites With Indels
+     */
+    public Boolean removeSitesWithIndels() {
+        return myRemoveSitesWithIndels.value();
+    }
+
+    /**
+     * Set Remove Sites With Indels. Removes sites containing
+     * an indel (+ or -)
+     *
+     * @param value Remove Sites With Indels
+     *
+     * @return this plugin
+     */
+    public FilterSiteBuilderPlugin removeSitesWithIndels(Boolean value) {
+        myRemoveSitesWithIndels = new PluginParameter<>(myRemoveSitesWithIndels, value);
         return this;
     }
 

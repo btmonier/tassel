@@ -536,9 +536,9 @@ public class ParseGVCF {
 
             if (endSpecified) {
                 for (int current : myGenotypeIndices) {
-                    if (current != 0) {
+                    if (current != 0 && current != -1) {
                         myLogger.error(myLineNum + ": " + myLine);
-                        throw new IllegalStateException("GVCFLine: END was specified, but GT is not 0");
+                        throw new IllegalStateException("GVCFLine: END was specified, but GT is not 0 (reference) or . (missing): it is: " + current);
                     }
                 }
                 myIsReferenceBlock = true;
