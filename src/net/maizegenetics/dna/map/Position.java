@@ -117,12 +117,12 @@ public interface Position extends Comparable<Position> {
     public int getPosition();
 
     /**
-     * Return the sub-position of a site. This will be zero for the main
+     * Return the insertion-position of a site. This will be zero for the main
      * physical position and sequentially numbered (1, 2, 3,...) for
      * any (if any) sites with the same {@link #getPosition()}.
      * This will mostly be used for insertions relative to the reference.
      */
-    public short getSubPosition();
+    public short getInsertionPosition();
 
     /**
      * Return the strand for a site definition

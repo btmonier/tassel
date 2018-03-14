@@ -140,7 +140,7 @@ public class MergeGenotypeTablesPluginV2 extends net.maizegenetics.plugindef.Abs
         System.out.println("Merging Position");
         GeneralPosition.Builder mergedBuilder = new GeneralPosition.Builder(a.getChromosome(), a.getPosition());
         mergedBuilder.snpName(a.getSNPID());
-        mergedBuilder.subPosition(a.getSubPosition());
+        mergedBuilder.insertionPosition(a.getInsertionPosition());
         mergedBuilder.strand(a.getStrand());
         mergedBuilder.maf(a.getGlobalMAF());
         mergedBuilder.siteCoverage(a.getGlobalSiteCoverage());
