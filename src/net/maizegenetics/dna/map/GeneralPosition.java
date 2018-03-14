@@ -39,9 +39,9 @@ public final class GeneralPosition implements Position {
      */
     private final int myPosition;
     /**
-     * Sub-position for any duplicate positions.
+     * Insertion-position for any insertions relative to reference.
      */
-    private final short mySubPosition;
+    private final short myInsertionPosition;
     /**
      * Strand of the site (unknown = Byte.MIN_VALUE)
      */
@@ -90,7 +90,7 @@ public final class GeneralPosition implements Position {
         private Chromosome myChromosome;
         private int myPosition;
         // Optional parameters - initialized to default values
-        private short mySubPosition = 0;
+        private short myInsertionPosition = 0;
         private byte myStrand = Position.STRAND_PLUS;
         private String mySNPID = null;
         private boolean isNucleotide = true;
@@ -125,7 +125,7 @@ public final class GeneralPosition implements Position {
          */
         public Builder(Position aCorePosition) {
             this(aCorePosition.getChromosome(), aCorePosition.getPosition());
-            mySubPosition = aCorePosition.getSubPosition();
+            myInsertionPosition = aCorePosition.getInsertionPosition();
             myStrand = aCorePosition.getStrand();
             mySNPID = aCorePosition.getSNPID();
             isNucleotide = aCorePosition.isNucleotide();
@@ -156,10 +156,10 @@ public final class GeneralPosition implements Position {
         }
 
         /**
-         * Set Sub-position
+         * Set Insertion-position
          */
-        public Builder subPosition(short val) {
-            mySubPosition = val;
+        public Builder insertionPosition(short val) {
+            myInsertionPosition = val;
             return this;
         }
 
@@ -287,7 +287,7 @@ public final class GeneralPosition implements Position {
     private GeneralPosition(Builder builder) {
         myChromosome = builder.myChromosome;
         myPosition = builder.myPosition;
-        mySubPosition = builder.mySubPosition;
+        myInsertionPosition = builder.myInsertionPosition;
         myStrand = builder.myStrand;
         if (builder.mySNPID == null) {
             mySNPIDAsBytes = null;
@@ -329,7 +329,7 @@ public final class GeneralPosition implements Position {
         if (result != 0) {
             return result;
         }
-        result = Short.compare(mySubPosition, o.getSubPosition());
+        result = Short.compare(myInsertionPosition, o.getInsertionPosition());
         if (result != 0) {
             return result;
         }
@@ -348,7 +348,7 @@ public final class GeneralPosition implements Position {
         StringBuilder sb = new StringBuilder("Position");
         sb.append("\tChr:").append(getChromosome().getName());
         sb.append("\tPos:").append(getPosition());
-        sb.append("\tSubPos:").append(getSubPosition());
+        sb.append("\tInsertionPos:").append(getInsertionPosition());
         sb.append("\tName:").append(getSNPID());
         if (myVariantsAndAnno != null) {
             String[] variants = myVariantsAndAnno.getTextAnnotation("VARIANT");
@@ -365,7 +365,7 @@ public final class GeneralPosition implements Position {
         int hash = 7;
         hash = 37 * hash + this.myChromosome.hashCode();
         hash = 37 * hash + this.myPosition;
-        hash = 37 * hash + this.mySubPosition;
+        hash = 37 * hash + this.myInsertionPosition;
         hash = 37 * hash + this.myStrand;
         if (mySNPIDAsBytes != null) {
             hash = 37 * hash + Arrays.hashCode(this.mySNPIDAsBytes);
@@ -404,8 +404,8 @@ public final class GeneralPosition implements Position {
     }
 
     @Override
-    public short getSubPosition() {
-        return mySubPosition;
+    public short getInsertionPosition() {
+        return myInsertionPosition;
     }
 
     @Override

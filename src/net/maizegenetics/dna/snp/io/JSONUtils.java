@@ -224,7 +224,7 @@ public class JSONUtils {
         chromosomeToJSON(position.getChromosome(), generator);
         generator.write("position", position.getPosition());
 
-        short subPos = position.getSubPosition();
+        short subPos = position.getInsertionPosition();
         if (subPos != 0) {
             generator.write("subPos", subPos);
         }
@@ -343,7 +343,7 @@ public class JSONUtils {
             if (key.equals("SNPID")) {
                 builder.snpName((String) value);
             } else if (key.equals("subPos")) {
-                builder.subPosition(Short.parseShort((String) value));
+                builder.insertionPosition(Short.parseShort((String) value));
             } else if (key.equals("globalMAF")) {
                 builder.maf(Float.parseFloat((String) value));
             } else if (key.equals("globalSiteCoverage")) {
