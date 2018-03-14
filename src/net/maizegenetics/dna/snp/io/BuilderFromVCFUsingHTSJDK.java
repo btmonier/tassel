@@ -222,7 +222,7 @@ public class BuilderFromVCFUsingHTSJDK {
                     }
 
                     for (short i = 1; i < maxLength; i++) {
-                        Position subpos = new GeneralPosition.Builder(pos).subPosition(i).build();
+                        Position subpos = new GeneralPosition.Builder(pos).insertionPosition(i).build();
                         if (previousPosition == null || subpos.compareTo(previousPosition) > 0) {
                             positionListBuilder.add(subpos);
                             previousPosition = subpos;
