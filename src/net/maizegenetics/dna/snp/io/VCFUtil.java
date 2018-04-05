@@ -417,11 +417,6 @@ public class VCFUtil {
         List<Integer> indelSiteBlockList = new ArrayList<>();
         indelSiteBlockList.add(0);
         for (int i = 1; i < genotypeTable.numberOfSites(); i++) {
-
-            if(genotypeTable.positions().get(i).getPosition()==10756305 || genotypeTable.positions().get(i).getPosition() == 10756318 ||genotypeTable.positions().get(i).getPosition() == 10756319) {
-                System.out.println("HERE");
-            }
-
             //Check to see if the current position is consecutive to the previous
             //Note we need to check that the difference in physical position is less than 1 in case of insertions
             if (genotypeTable.positions().get(i - 1).getChromosome().equals(genotypeTable.positions().get(i).getChromosome()) &&
@@ -529,11 +524,9 @@ public class VCFUtil {
 
                 //Add the calls to the string builders for this taxon
                 //We only want to add in the alleles if they are not + or minus as those are not valid VCF characters
-//                if (!leftCall.equals("-") && !leftCall.equals("+") && !leftCall.equals("X")) {
                 if (!leftCall.equals("-") && !leftCall.equals("+")) {
                     alleleStrings.get(taxonIndex).getX().append(leftCall);
                 }
-//                if (!rightCall.equals("-") && !rightCall.equals("+") && !rightCall.equals("X")) {
                 if (!rightCall.equals("-") && !rightCall.equals("+")) {
                     alleleStrings.get(taxonIndex).getY().append(rightCall);
                 }
@@ -616,7 +609,6 @@ public class VCFUtil {
             Map<String, Allele> stringValueToAlleleMap = new HashMap<>();
 
             if (referenceString == null || referenceString.equals("")) {
-//        if(referenceString==null) {
                 myLogger.warn("NULL reference allele found: " + position.toString() + " Putting N in for ref.");
                 stringValueToAlleleMap.put("N", Allele.create("N", true));
             } else {
@@ -637,14 +629,6 @@ public class VCFUtil {
                         }
                     })); //Convert each string to an Allele Object and add it to a map
 
-
-//        //Go through all the knownVariants and add new ones.
-//        for(String knownVariant : knownVariantSet) {
-//            if(!uniqueAlternateAlleles.containsKey(knownVariant) && !stringValueToAlleleMap.containsKey(knownVariant)) {
-//                uniqueAlternateAlleles.put(knownVariant, Allele.create(knownVariant, false));
-//            }
-//        }
-
             //Add in all the unique alternate alleles to the map
             stringValueToAlleleMap.putAll(uniqueAlternateAlleles);
 
@@ -652,7 +636,6 @@ public class VCFUtil {
                     .filter(alleleString -> !stringValueToAlleleMap.containsKey(alleleString))//Make sure we dont include the reference allele as we do not want to overwrite
                     .distinct() //Remove duplicates
                     .filter(alleleString -> alleleString != null)
-//                    .collect(Collectors.toMap(alleleString -> alleleString, alleleString -> Allele.create(alleleString, false))); //Convert each string to an Allele Object and add it to a map
                     .collect(Collectors.toMap(alleleString -> alleleString, alleleString -> {
                         if(alleleString.equals("*") || alleleString.equals("X")) {
                             return Allele.NO_CALL;
