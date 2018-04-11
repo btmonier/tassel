@@ -429,7 +429,7 @@ public class VCFUtil {
                     indelSiteBlockList.add(i);
                     continue;
                 }
-                byte[] alleles = genotypeTable.alleles(i);
+
                 for (byte allele : genotypeTable.alleles(i)) {
                     if (allele == NucleotideAlignmentConstants.INSERT_ALLELE || allele == NucleotideAlignmentConstants.GAP_ALLELE) {
                         isIndel = true;
@@ -504,32 +504,24 @@ public class VCFUtil {
 
             //loop through each taxon
             for (int taxonIndex = 0; taxonIndex < genotypeTable.numberOfTaxa(); taxonIndex++) {
-                //We need to split out the genotype byte into its left and right call
-                byte[] genotypeCalls = new byte[2];
-                byte genotype = genotypeTable.genotype(taxonIndex, currentSite);
-                genotypeCalls[0] = (byte) ((genotype >> 4) & 15);
-                genotypeCalls[1] = (byte) (genotype & 15);
+                String[] genotypeCalls = genotypeTable.genotypeAsStringArray(taxonIndex,currentSite);
 
-                //Turn the bytes into strings to add to the alleleBuilders
-                String leftCall = NucleotideAlignmentConstants.getHaplotypeNucleotide(genotypeCalls[0]);
-                String rightCall = NucleotideAlignmentConstants.getHaplotypeNucleotide(genotypeCalls[1]);
-
-                if(leftCall.equals("X")) {
-                    leftCall = "N";
+                if(genotypeCalls[0].equals(NucleotideAlignmentConstants.UNDEFINED_ALLELE_STR)) {
+                    genotypeCalls[0] = GenotypeTable.UNKNOWN_ALLELE_STR;
                 }
-
-                if(rightCall.equals("X")) {
-                    rightCall = "N";
+                if(genotypeCalls[1].equals(NucleotideAlignmentConstants.UNDEFINED_ALLELE_STR)) {
+                    genotypeCalls[1] = GenotypeTable.UNKNOWN_ALLELE_STR;
                 }
 
                 //Add the calls to the string builders for this taxon
                 //We only want to add in the alleles if they are not + or minus as those are not valid VCF characters
-                if (!leftCall.equals("-") && !leftCall.equals("+")) {
-                    alleleStrings.get(taxonIndex).getX().append(leftCall);
+                if (!genotypeCalls[0].equals(NucleotideAlignmentConstants.GAP_ALLELE_STR) && !genotypeCalls[0].equals(NucleotideAlignmentConstants.INSERT_ALLELE_STR)) {
+                    alleleStrings.get(taxonIndex).getX().append(genotypeCalls[0]);
                 }
-                if (!rightCall.equals("-") && !rightCall.equals("+")) {
-                    alleleStrings.get(taxonIndex).getY().append(rightCall);
+                if (!genotypeCalls[1].equals(NucleotideAlignmentConstants.GAP_ALLELE_STR) && !genotypeCalls[1].equals(NucleotideAlignmentConstants.INSERT_ALLELE_STR)) {
+                    alleleStrings.get(taxonIndex).getY().append(genotypeCalls[1]);
                 }
+
             }
         }
 
@@ -581,6 +573,7 @@ public class VCFUtil {
     /**
      * Fix the indel positions for the allele strings
      * Basically just add in an N at the start of each String
+     *
      * TODO handle indels at the start of the chromosome(Add N to the end)
      *
      * @param alleleStringVals
@@ -610,7 +603,7 @@ public class VCFUtil {
 
             if (referenceString == null || referenceString.equals("")) {
                 myLogger.warn("NULL reference allele found: " + position.toString() + " Putting N in for ref.");
-                stringValueToAlleleMap.put("N", Allele.create("N", true));
+                stringValueToAlleleMap.put(GenotypeTable.UNKNOWN_ALLELE_STR, Allele.create("N", true));
             } else {
                 //Setup the reference allele
                 stringValueToAlleleMap.put(referenceString, Allele.create(referenceString, true));
@@ -621,7 +614,7 @@ public class VCFUtil {
                     .distinct() //Remove duplicates
                     .filter(alleleString -> alleleString != null)
                     .collect(Collectors.toMap(alleleString -> alleleString, alleleString -> {
-                        if(alleleString.equals("*") || alleleString.equals("X")) {
+                        if(alleleString.equals("*") || alleleString.equals(NucleotideAlignmentConstants.UNDEFINED_ALLELE_STR)) {
                             return Allele.NO_CALL;
                         }
                         else {
@@ -637,7 +630,7 @@ public class VCFUtil {
                     .distinct() //Remove duplicates
                     .filter(alleleString -> alleleString != null)
                     .collect(Collectors.toMap(alleleString -> alleleString, alleleString -> {
-                        if(alleleString.equals("*") || alleleString.equals("X")) {
+                        if(alleleString.equals("*") || alleleString.equals(NucleotideAlignmentConstants.UNDEFINED_ALLELE_STR)) {
                             return Allele.NO_CALL;
                         }
                         else {
@@ -658,9 +651,9 @@ public class VCFUtil {
                 }
             }
 
-            if (!hasIndel && !referenceString.equals("N") && stringValueToAlleleMap.containsKey("N")) {
+            if (!hasIndel && !referenceString.equals(GenotypeTable.UNKNOWN_ALLELE_STR) && stringValueToAlleleMap.containsKey(GenotypeTable.UNKNOWN_ALLELE_STR)) {
                 //remove the N allele from the map as it is not valid
-                stringValueToAlleleMap.put("N", Allele.NO_CALL);
+                stringValueToAlleleMap.put(GenotypeTable.UNKNOWN_ALLELE_STR, Allele.NO_CALL);
             }
 
             return stringValueToAlleleMap;
@@ -674,17 +667,17 @@ public class VCFUtil {
      * Method to create a list of genotype objects for the sites
      *
      * @param genotypeTable
-     * @param alleleStringVals
-     * @param alleleObjectMap
+     * @param listOfAlleleCalls
+     * @param callToAlleleObjMap
      *
      * @return
      */
-    private static List<Genotype> getGenotypes(GenotypeTable genotypeTable, List<Tuple<String, String>> alleleStringVals, Map<String, Allele> alleleObjectMap) {
+    private static List<Genotype> getGenotypes(GenotypeTable genotypeTable, List<Tuple<String, String>> listOfAlleleCalls, Map<String, Allele> callToAlleleObjMap) {
         List<Genotype> genotypeList = new ArrayList<>();
 
         for (int taxonIndex = 0; taxonIndex < genotypeTable.numberOfTaxa(); taxonIndex++) {
-            List<Allele> currentTaxonsAlleles = Arrays.asList(alleleObjectMap.get(alleleStringVals.get(taxonIndex).getX()),
-                    alleleObjectMap.get(alleleStringVals.get(taxonIndex).getY()));
+            List<Allele> currentTaxonsAlleles = Arrays.asList(callToAlleleObjMap.get(listOfAlleleCalls.get(taxonIndex).getX()),
+                    callToAlleleObjMap.get(listOfAlleleCalls.get(taxonIndex).getY()));
 
 
             GenotypeBuilder currentGenotypeBuilder = new GenotypeBuilder(genotypeTable.taxaName(taxonIndex), currentTaxonsAlleles);
