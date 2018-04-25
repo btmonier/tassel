@@ -212,7 +212,7 @@ public class BuilderFromVCFUsingHTSJDK {
                 } else {
 
                     if (refLength != 1) {
-                        throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: build: expected reference to be length 1 for insertion record: start position: " + context.getStart());
+                        throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: build: expected reference to be length 1 for insertion record: chr: " + chr.getName() + " start position: " + context.getStart());
                     }
 
                     int position = context.getStart();
