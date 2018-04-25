@@ -388,17 +388,23 @@ public class BuilderFromVCFUsingHTSJDK {
                     for (int t = 0; t < myNumTaxa; t++) {
 
                         List<Allele> alleles = context.getGenotype(t).getAlleles();
-                        if (alleles.size() != 2) {
-                            throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: call: not diploid: id: " + context.getID() + " start: " + context.getStart() + " taxon: " + t + ": " + myTaxa.get(t).getName() + " allele size: " + alleles.size());
+                        int numAlleles = alleles.size();
+                        if (numAlleles != 1 && numAlleles != 2) {
+                            throw new IllegalStateException("BuilderFromVCFUsingHTSJDK: call: not haploid or diploid: id: " + context.getID() + " start: " + context.getStart() + " taxon: " + t + ": " + myTaxa.get(t).getName() + " allele size: " + numAlleles);
                         }
 
                         byte[] first = alleleToBytes.get(alleles.get(0));
                         if (first == null) {
                             first = unknownAllele;
                         }
-                        byte[] second = alleleToBytes.get(alleles.get(1));
-                        if (second == null) {
-                            second = unknownAllele;
+                        byte[] second = null;
+                        if (numAlleles == 2) {
+                            second = alleleToBytes.get(alleles.get(1));
+                            if (second == null) {
+                                second = unknownAllele;
+                            }
+                        } else {
+                            second = first;
                         }
 
                         int index = myPositionsToProcess.indexOf(new Tuple<>(currentPosition, (short) 0));
