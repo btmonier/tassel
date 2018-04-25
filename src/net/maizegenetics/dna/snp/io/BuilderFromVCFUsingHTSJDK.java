@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 /**
  * This builder reads a VCF formatted file and creates a {@link GenotypeTable}
@@ -178,8 +179,11 @@ public class BuilderFromVCFUsingHTSJDK {
                 int end = context.getEnd();
 
                 int refLength = context.getLengthOnReference();
-                short maxLength = context.getAlleles().stream()
+                List<Allele> possibleAlleles = context.getAlleles();
+                List<String> knownVariants = possibleAlleles.stream()
                         .map(Allele::getBaseString)
+                        .collect(Collectors.toList());
+                short maxLength = knownVariants.stream()
                         .map(String::length)
                         .max(Integer::compare)
                         .get().shortValue();
@@ -191,6 +195,9 @@ public class BuilderFromVCFUsingHTSJDK {
                         GeneralPosition.Builder posBuilder = new GeneralPosition.Builder(chr, position);
                         if (!context.getID().equals(".")) {
                             posBuilder.snpName(context.getID());
+                        }
+                        if (position == start) {
+                            posBuilder.knownVariants(knownVariants.toArray(new String[knownVariants.size()]));
                         }
                         Position pos = posBuilder.build();
 
@@ -213,6 +220,7 @@ public class BuilderFromVCFUsingHTSJDK {
                     if (!context.getID().equals(".")) {
                         posBuilder.snpName(context.getID());
                     }
+                    posBuilder.knownVariants((String[]) knownVariants.toArray());
                     Position pos = posBuilder.build();
 
                     if (previousPosition == null || pos.compareTo(previousPosition) > 0) {
@@ -222,10 +230,10 @@ public class BuilderFromVCFUsingHTSJDK {
                     }
 
                     for (short i = 1; i < maxLength; i++) {
-                        Position subpos = new GeneralPosition.Builder(pos).insertionPosition(i).build();
-                        if (previousPosition == null || subpos.compareTo(previousPosition) > 0) {
-                            positionListBuilder.add(subpos);
-                            previousPosition = subpos;
+                        Position insertionPos = new GeneralPosition.Builder(pos).insertionPosition(i).build();
+                        if (previousPosition == null || insertionPos.compareTo(previousPosition) > 0) {
+                            positionListBuilder.add(insertionPos);
+                            previousPosition = insertionPos;
                             positionsToProcess.add(new Tuple<>(position, i));
                         }
                     }
