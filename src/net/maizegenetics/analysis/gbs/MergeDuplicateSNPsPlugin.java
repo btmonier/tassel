@@ -16,7 +16,7 @@ import net.maizegenetics.dna.map.PositionListBuilder;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
-import net.maizegenetics.util.VCFUtil;
+import net.maizegenetics.dna.snp.io.VCFUtil;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;

@@ -5,11 +5,10 @@ package net.maizegenetics.dna.snp;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Multimap;
-import com.google.common.primitives.Ints;
 
 import net.maizegenetics.dna.WHICH_ALLELE;
 import net.maizegenetics.dna.map.Position;
-import net.maizegenetics.dna.snp.score.AlleleDepthUtil;
+import net.maizegenetics.dna.snp.io.VCFUtil;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.*;
