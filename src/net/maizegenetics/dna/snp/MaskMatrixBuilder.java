@@ -163,19 +163,24 @@ public class MaskMatrixBuilder {
                 numOfMasksToKeep++;
                 remainder -= 1.0;
             }
-            BitSet copy = new OpenBitSet(current);
-            int numCleared = 0;
-            while (true) {
-                int site = random.nextInt(myNumSites);
-                if (copy.getAndClear(site)) {
-                    numCleared++;
-                    if (numCleared >= numOfMasksToKeep) {
-                        break;
+
+            if (numOfMasksToKeep != 0) {
+
+                BitSet copy = new OpenBitSet(current);
+                int numCleared = 0;
+                while (true) {
+                    int site = random.nextInt(myNumSites);
+                    if (copy.getAndClear(site)) {
+                        numCleared++;
+                        if (numCleared >= numOfMasksToKeep) {
+                            break;
+                        }
                     }
                 }
+                current.xor(copy);
+                totalNumMasked += numOfMasksToKeep;
+
             }
-            current.xor(copy);
-            totalNumMasked += numOfMasksToKeep;
         }
 
         return totalNumMasked;
@@ -197,19 +202,24 @@ public class MaskMatrixBuilder {
                 numOfMasksToKeep++;
                 remainder -= 1.0;
             }
-            BitSet copy = new OpenBitSet(current);
-            int numCleared = 0;
-            while (true) {
-                int taxon = random.nextInt(myNumTaxa);
-                if (copy.getAndClear(taxon)) {
-                    numCleared++;
-                    if (numCleared >= numOfMasksToKeep) {
-                        break;
+
+            if (numOfMasksToKeep != 0) {
+
+                BitSet copy = new OpenBitSet(current);
+                int numCleared = 0;
+                while (true) {
+                    int taxon = random.nextInt(myNumTaxa);
+                    if (copy.getAndClear(taxon)) {
+                        numCleared++;
+                        if (numCleared >= numOfMasksToKeep) {
+                            break;
+                        }
                     }
                 }
+                current.xor(copy);
+                totalNumMasked += numOfMasksToKeep;
+
             }
-            current.xor(copy);
-            totalNumMasked += numOfMasksToKeep;
         }
 
         return totalNumMasked;
