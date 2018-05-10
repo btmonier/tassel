@@ -13,7 +13,6 @@ import net.maizegenetics.dna.map.TOPMUtils;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.ImportUtils;
 import net.maizegenetics.dna.snp.ReadSequenceAlignmentUtils;
-import net.maizegenetics.dna.snp.io.BuilderFromFasta;
 import net.maizegenetics.dna.snp.io.BuilderFromHapMapLIX;
 import net.maizegenetics.dna.snp.io.FilterJSONUtils;
 import net.maizegenetics.dna.snp.io.JSONUtils;
