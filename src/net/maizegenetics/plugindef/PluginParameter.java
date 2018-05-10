@@ -1,13 +1,12 @@
 package net.maizegenetics.plugindef;
 
 import com.google.common.collect.Range;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static net.maizegenetics.plugindef.AbstractPlugin.convert;
-
-import org.apache.log4j.Logger;
 
 /**
  * Defines the attributes of parameters to be used in the plugins
@@ -16,7 +15,6 @@ import org.apache.log4j.Logger;
  *
  * @author Ed Buckler
  * @author Terry Casstevens
- *
  */
 public final class PluginParameter<T> {
 
@@ -41,14 +39,15 @@ public final class PluginParameter<T> {
         NA, IN_FILE, OUT_FILE, IN_DIR, OUT_DIR, GENOTYPE_TABLE, TAXA_NAME_LIST, SITE_NAME_LIST,
         OBJECT_LIST_SINGLE_SELECT, TAXA_LIST, POSITION_LIST, DISTANCE_MATRIX,
         LABEL, PASSWORD
-    };
+    }
+
     private final PARAMETER_TYPE myParameterType;
 
     private PluginParameter(String guiName, String guiUnits, String cmdLineName,
-            String description, List<Range<Comparable<T>>> ranges, T defaultValue,
-            T value, boolean required, PARAMETER_TYPE fileType,
-            PluginParameter<?> dependentOnParameter, Object[] dependentOnParameterValue,
-            List<T> possibleValues, boolean isNullable, Class<T> type) {
+                            String description, List<Range<Comparable<T>>> ranges, T defaultValue,
+                            T value, boolean required, PARAMETER_TYPE fileType,
+                            PluginParameter<?> dependentOnParameter, Object[] dependentOnParameterValue,
+                            List<T> possibleValues, boolean isNullable, Class<T> type) {
         myGuiName = guiName;
         myUnits = guiUnits;
         myCmdLineName = cmdLineName;
@@ -296,7 +295,7 @@ public final class PluginParameter<T> {
     }
 
     public boolean isEmpty() {
-        return (myValue == null) || (myValue.toString().trim().length() == 0);
+        return (myValue == null || ((myValue instanceof String) && ((String) myValue).trim().isEmpty()));
     }
 
     public static class Builder<T> {

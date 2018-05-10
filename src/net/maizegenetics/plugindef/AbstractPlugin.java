@@ -6,31 +6,6 @@
  */
 package net.maizegenetics.plugindef;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.WindowEvent;
-
-import java.io.File;
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.text.NumberFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.io.JSONUtils;
@@ -45,8 +20,30 @@ import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.taxa.distance.ReadDistanceMatrix;
 import net.maizegenetics.util.ExceptionUtils;
 import net.maizegenetics.util.Utils;
-
 import org.apache.log4j.Logger;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.net.URI;
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -445,6 +442,12 @@ abstract public class AbstractPlugin implements Plugin {
                 builder.append(" positions");
             } else if (value instanceof List) {
                 builder.append((Arrays.toString(((List) value).toArray())));
+            } else if (value instanceof DistanceMatrix) {
+                DistanceMatrix temp = (DistanceMatrix) value;
+                builder.append(temp.getColumnCount());
+                builder.append(" columns x ");
+                builder.append(temp.getRowCount());
+                builder.append(" rows");
             } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.PASSWORD) {
                 builder.append("?????");
             } else {
