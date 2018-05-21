@@ -8,16 +8,6 @@ package net.maizegenetics.analysis.data;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import java.awt.*;
-import java.io.*;
-import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
-import javax.swing.*;
 import net.maizegenetics.analysis.gobii.GOBIIPlugin;
 import net.maizegenetics.dna.map.TOPMUtils;
 import net.maizegenetics.dna.snp.GenotypeTable;
@@ -41,11 +31,26 @@ import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
 import net.maizegenetics.taxa.distance.DistanceMatrixUtils;
 import net.maizegenetics.taxa.distance.ReadDistanceMatrix;
-import net.maizegenetics.util.*;
+import net.maizegenetics.util.HDF5TableReport;
+import net.maizegenetics.util.HDF5Utils;
+import net.maizegenetics.util.TableReportUtils;
+import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
+import java.awt.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
+
 /**
- *
  * @author Ed Buckler
  * @author Terry Casstevens
  */
@@ -62,6 +67,11 @@ public class FileLoadPlugin extends AbstractPlugin {
     private PluginParameter<Boolean> mySortPositions = new PluginParameter.Builder<>("sortPositions", false, Boolean.class)
             .description("Whether to sort genotype positions if that's possible.")
             .dependentOnParameter(myFileType, new Object[]{TasselFileType.Unknown, TasselFileType.Hapmap, TasselFileType.HapmapDiploid, TasselFileType.VCF, TasselFileType.Plink})
+            .build();
+
+    private PluginParameter<Boolean> myKeepDepth = new PluginParameter.Builder<>("keepDepth", true, Boolean.class)
+            .description("Whether to keep depth if that's possible.")
+            .dependentOnParameter(myFileType, new Object[]{TasselFileType.Unknown, TasselFileType.VCF})
             .build();
 
     private String[] myOpenFiles = null;
@@ -96,7 +106,7 @@ public class FileLoadPlugin extends AbstractPlugin {
         public String toString() {
             return myText;
         }
-    };
+    }
 
     public static final String FILE_EXT_HAPMAP = ".hmp.txt";
     public static final String FILE_EXT_HAPMAP_GZ = ".hmp.txt.gz";
@@ -153,18 +163,18 @@ public class FileLoadPlugin extends AbstractPlugin {
 
         List<TasselFileType> temp = new ArrayList<>();
         temp.addAll(Arrays.asList(new FileLoadPlugin.TasselFileType[]{
-            TasselFileType.Unknown,
-            TasselFileType.Hapmap,
-            TasselFileType.VCF,
-            TasselFileType.Plink,
-            TasselFileType.ProjectionAlignment,
-            TasselFileType.Sequence,
-            TasselFileType.Fasta,
-            TasselFileType.SqrMatrix,
-            TasselFileType.Table,
-            TasselFileType.TOPM,
-            TasselFileType.HDF5,
-            TasselFileType.HDF5Schema}));
+                TasselFileType.Unknown,
+                TasselFileType.Hapmap,
+                TasselFileType.VCF,
+                TasselFileType.Plink,
+                TasselFileType.ProjectionAlignment,
+                TasselFileType.Sequence,
+                TasselFileType.Fasta,
+                TasselFileType.SqrMatrix,
+                TasselFileType.Table,
+                TasselFileType.TOPM,
+                TasselFileType.HDF5,
+                TasselFileType.HDF5Schema}));
         myFileType = new PluginParameter<>(myFileType, temp);
 
         if (!isInteractive() && myFileType.isEmpty() && myFileType.hasPossibleValues()) {
@@ -358,7 +368,6 @@ public class FileLoadPlugin extends AbstractPlugin {
     private DataSet guessAtUnknowns(String filename) {
 
         TasselFileType guess = TasselFileType.Table;
-        DataSet tds = null;
 
         try (BufferedReader br = Utils.getBufferedReader(filename)) {
 
@@ -465,14 +474,12 @@ public class FileLoadPlugin extends AbstractPlugin {
             }
 
             myLogger.info("guessAtUnknowns: type: " + guess);
-            tds = processDatum(filename, guess);
+            return processDatum(filename, guess);
 
         } catch (Exception e) {
             myLogger.debug(e.getMessage(), e);
             throw new IllegalStateException("FileLoadPlugin: Problem loading file: " + filename + ".  Error: " + e.getMessage());
         }
-
-        return tds;
 
     }
 
@@ -530,7 +537,7 @@ public class FileLoadPlugin extends AbstractPlugin {
                     if (inFile.endsWith(".gz")) {
                         suffix = FILE_EXT_VCF + ".gz";
                     }
-                    result = ImportUtils.readFromVCF(inFile, this, true, sortPositions());
+                    result = ImportUtils.readFromVCF(inFile, this, keepDepth(), sortPositions());
                     break;
                 }
                 case Sequence: {
@@ -697,6 +704,27 @@ public class FileLoadPlugin extends AbstractPlugin {
      */
     public FileLoadPlugin sortPositions(Boolean value) {
         mySortPositions = new PluginParameter<>(mySortPositions, value);
+        return this;
+    }
+
+    /**
+     * Whether to keep depth if that's possible.
+     *
+     * @return Keep Depth
+     */
+    public Boolean keepDepth() {
+        return myKeepDepth.value();
+    }
+
+    /**
+     * Set Keep Depth. Whether to keep depth if that's possible.
+     *
+     * @param value Keep Depth
+     *
+     * @return this plugin
+     */
+    public FileLoadPlugin keepDepth(Boolean value) {
+        myKeepDepth = new PluginParameter<>(myKeepDepth, value);
         return this;
     }
 

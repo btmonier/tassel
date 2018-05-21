@@ -12,31 +12,23 @@ import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTableBuilder;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
+import net.maizegenetics.util.ProgressListener;
 import net.maizegenetics.util.Utils;
-
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
-import static net.maizegenetics.dna.snp.NucleotideAlignmentConstants.A_ALLELE;
-import static net.maizegenetics.dna.snp.NucleotideAlignmentConstants.C_ALLELE;
-import static net.maizegenetics.dna.snp.NucleotideAlignmentConstants.GAP_ALLELE;
-import static net.maizegenetics.dna.snp.NucleotideAlignmentConstants.G_ALLELE;
-import static net.maizegenetics.dna.snp.NucleotideAlignmentConstants.INSERT_ALLELE;
-import static net.maizegenetics.dna.snp.NucleotideAlignmentConstants.T_ALLELE;
-import static net.maizegenetics.dna.snp.NucleotideAlignmentConstants.UNDEFINED_ALLELE;
-import net.maizegenetics.util.ProgressListener;
+import static net.maizegenetics.dna.snp.NucleotideAlignmentConstants.*;
 
 /**
  * @author Terry Casstevens
@@ -84,45 +76,35 @@ public class BuilderFromPLINK {
             int linesAtTime = (int) Math.ceil((1 << 24) / posBuild.size());
             ArrayList<String> textLines = new ArrayList<>(linesAtTime);
 
-            BufferedReader reader = Utils.getBufferedReader(myPedFile);
-            List<ProcessPLINKBlock> processBlockList = new ArrayList<>();
+            List<Future<ProcessPLINKBlock>> futures = new ArrayList<>();
             int numLines = 0;
-            try {
+            try (BufferedReader reader = Utils.getBufferedReader(myPedFile)) {
                 String currLine = reader.readLine();
                 while (currLine != null) {
                     textLines.add(currLine);
                     numLines++;
                     if (numLines % linesAtTime == 0) {
                         ProcessPLINKBlock processBlock = new ProcessPLINKBlock(textLines, genotypeCallTableBuilder, numLines - linesAtTime, numLines * 100 / numOfTaxa);
-                        processBlockList.add(processBlock);
-                        pool.execute(processBlock);
+                        futures.add(pool.submit(processBlock));
                         textLines = new ArrayList<>(linesAtTime);
                     }
                     currLine = reader.readLine();
                 }
-            } finally {
-                reader.close();
             }
 
             if (textLines.size() > 0) {
                 ProcessPLINKBlock processBlock = new ProcessPLINKBlock(textLines, genotypeCallTableBuilder, numLines - textLines.size(), 100);
-                processBlockList.add(processBlock);
-                pool.execute(processBlock);
-            }
-
-            pool.shutdown();
-            if (!pool.awaitTermination(600, TimeUnit.SECONDS)) {
-                throw new IllegalStateException("BuilderFromPLINK: processing threads timed out.");
+                futures.add(pool.submit(processBlock));
             }
 
             TaxaListBuilder taxaBuild = new TaxaListBuilder();
-            for (ProcessPLINKBlock pb : processBlockList) {
+            for (Future<ProcessPLINKBlock> future : futures) {
+                ProcessPLINKBlock pb = future.get();
                 taxaBuild.addAll(pb.getBlockTaxa());
             }
-            if (mySortTaxaAlphabetically) {
-                taxaBuild.sortTaxaAlphabetically(genotypeCallTableBuilder);
-            }
             TaxaList taxaList = taxaBuild.build();
+
+            pool.shutdown();
 
             // Check that result is in correct order. If not, either try to sort
             // or just throw an error (determined by what was passed to fullSort)
@@ -139,9 +121,12 @@ public class BuilderFromPLINK {
             }
             GenotypeCallTable g = genotypeCallTableBuilder.build();
             result = GenotypeTableBuilder.getInstance(g, posBuild.build(), taxaList);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+
+        } catch (Exception e) {
+            myLogger.debug(e.getMessage(), e);
+            throw new IllegalStateException("BuilderFromPLINK: build: problem processing: " + e.getMessage());
         }
+
         return result;
     }
 
@@ -175,10 +160,9 @@ public class BuilderFromPLINK {
 
         Map<String, Chromosome> chromosomes = new HashMap<>();
         List<Position> positions = new ArrayList<>();
-        BufferedReader reader = Utils.getBufferedReader(mapfile);
 
         int lineNum = 1;
-        try {
+        try (BufferedReader reader = Utils.getBufferedReader(mapfile)) {
             String line = reader.readLine();
             while (line != null) {
                 String[] tokens = WHITESPACE_PATTERN.split(line);
@@ -187,7 +171,7 @@ public class BuilderFromPLINK {
                 }
                 Chromosome chr = chromosomes.get(tokens[PLINK_MAP_CHROMOSOME_INDEX]);
                 if (chr == null) {
-                    chr = new Chromosome(new String(tokens[PLINK_MAP_CHROMOSOME_INDEX]));
+                    chr = Chromosome.instance(new String(tokens[PLINK_MAP_CHROMOSOME_INDEX]));
                     chromosomes.put(tokens[PLINK_MAP_CHROMOSOME_INDEX], chr);
                 }
                 GeneralPosition current = new GeneralPosition.Builder(chr, Integer.parseInt(tokens[PLINK_MAP_POSITION_INDEX]))
@@ -199,12 +183,6 @@ public class BuilderFromPLINK {
         } catch (Exception e) {
             myLogger.debug(e.getMessage(), e);
             throw new IllegalStateException("BuilderFromPLINK: processSites: problem with: " + mapfile + " line: " + lineNum);
-        } finally {
-            try {
-                reader.close();
-            } catch (Exception ex) {
-                // do nothing
-            }
         }
 
         PositionListBuilder result = new PositionListBuilder();
@@ -226,7 +204,7 @@ public class BuilderFromPLINK {
     private static final int PLINK_PED_SEX_INDEX = 4;
     private static final int PLINK_PED_PHENOTYPE_INDEX = 5;
 
-    private class ProcessPLINKBlock implements Runnable {
+    private class ProcessPLINKBlock implements Callable<ProcessPLINKBlock> {
 
         private final int myNumTaxaToProcess;
         private ArrayList<String> myTextLines;
@@ -245,7 +223,8 @@ public class BuilderFromPLINK {
         }
 
         @Override
-        public void run() {
+        public ProcessPLINKBlock call() throws Exception {
+
             for (int t = 0; t < myNumTaxaToProcess; t++) {
                 String input = myTextLines.get(t);
                 try {
@@ -259,20 +238,27 @@ public class BuilderFromPLINK {
                         myBuilder.setBase(taxonIndex, i / 4, GenotypeTableUtils.getDiploidValue(getPLINKAlleleByte(tokens[NUM_PLINK_NON_SITE_HEADERS].charAt(i)),
                                 getPLINKAlleleByte(tokens[NUM_PLINK_NON_SITE_HEADERS].charAt(i + 2))));
                     }
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    myLogger.debug(e.getMessage(), e);
+                    throw new IllegalStateException("BuilderFromPLINK: ProcessPLINKBlock: problem: to many genotypes in file: " + myPedFile + " line: " + input.substring(0, Math.min(input.length(), 50)));
                 } catch (Exception e) {
-                    myLogger.error("Error parsing this row " + input);
-                    throw e;
+                    myLogger.debug(e.getMessage(), e);
+                    throw new IllegalStateException("BuilderFromPLINK: ProcessPLINKBlock: problem: " + e.getMessage() + " file: " + myPedFile + " line: " + input.substring(0, Math.min(input.length(), 50)));
                 }
             }
             myTextLines = null;
             if (myProgressListener != null) {
                 myProgressListener.progress(myProgress, null);
             }
+
+            return this;
+
         }
 
         List<Taxon> getBlockTaxa() {
             return myBlockTaxaList;
         }
+
     }
 
     private static final Map<String, Byte> PLINK_ALLELE_HASH = new HashMap<>();
