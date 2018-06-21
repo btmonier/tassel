@@ -1,16 +1,10 @@
 /*
  *  HMatrixPlugin
- * 
+ *
  *  Created on Oct 23, 2015
  */
 package net.maizegenetics.analysis.distance;
 
-import java.awt.Frame;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import javax.swing.ImageIcon;
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix;
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory;
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition;
@@ -21,6 +15,13 @@ import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
+
+import javax.swing.*;
+import java.awt.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Josh Lamos-Sweeney
@@ -59,32 +60,21 @@ public class HMatrixPlugin extends AbstractPlugin {
         aDoubleMatrix.invert();
         DistanceMatrix aInverse = new DistanceMatrix(aDoubleMatrix.toArray(), aMatrix().getTaxaList());
 
-        DoubleMatrix gDoubleMatrix = DoubleMatrixFactory.DEFAULT.make(gMatrix());
-        gDoubleMatrix.invert();
-        DistanceMatrix gInverse = new DistanceMatrix(gDoubleMatrix.toArray(), gMatrix().getTaxaList());
+        DistanceMatrix gStarMatrix = generateGStarMatrix(aMatrix(), gMatrix(), weight());
+        DoubleMatrix gStarDoubleMatrix = DoubleMatrixFactory.DEFAULT.make(gStarMatrix);
+        gStarDoubleMatrix.invert();
+        DistanceMatrix gStarInverse = new DistanceMatrix(gStarDoubleMatrix.toArray(), gMatrix().getTaxaList());
 
-        DistanceMatrix matrix = generateCombinedMatrix(aInverse, gInverse, weight());
+
+        DistanceMatrix matrix = generateCombinedMatrix(aInverse, gStarInverse);
         result.add(new Datum("Combined A and G Matrix", matrix, null));
         result.add(new Datum("A Matrix Inverse", aInverse, null));
-        result.add(new Datum("G Matrix Inverse", gInverse, null));
+        result.add(new Datum("G* Matrix Inverse", gStarInverse, null));
 
         return new DataSet(result, this);
 
     }
 
-    // The following getters and setters were auto-generated.
-    // Please use this method to re-generate.
-    //
-    // public static void main(String[] args) {
-    //     GeneratePluginCode.generate(HMatrixPlugin.class);
-    // }
-    /**
-     * Convenience method to run plugin with one return object.
-     */
-    // TODO: Replace <Type> with specific type.
-    //public <Type> runPlugin(DataSet input) {
-    //    return (<Type>) performFunction(input).getData(0).getData();
-    //}
     /**
      * Pedigree Matrix
      *
@@ -149,22 +139,57 @@ public class HMatrixPlugin extends AbstractPlugin {
     }
 
     /**
+     * Creates the weighted g matrix (g star 22) given the a matrix and g matrix intersections a22 and g22
+     *
+     * @param aMatrix The entire A matrix, which will be referenced to modify the G matrix to the G* matrix
+     * @param gMatrix The entire G matrix to be transformed into a G* matrix
+     * @param weight 0.0 to 1.0, the 'Trust' put in the G matrix. When creating
+     * the combined matrix, uses inverse G * weight + inverse A * 1-weight
+     *
+     * @return The combined, weighted G* matrix
+     */
+
+    private static DistanceMatrix generateGStarMatrix(DistanceMatrix aMatrix, DistanceMatrix gMatrix, double weight) {
+        double[][] doubleA = aMatrix.getDistances();
+        double[][] doubleG = gMatrix.getDistances();
+        List<Taxon> aTaxa = aMatrix.getTaxaList();
+        List<Taxon> gTaxa = gMatrix.getTaxaList();
+        int size = gTaxa.size();
+        double[][] doubleGStar = new double[size][size];
+        for (int i = 0; i < size; i++) {
+            int aLocI = aTaxa.indexOf(gTaxa.get(i));
+            if (aLocI == -1) { //Because there is no A22 for this taxa, none of its intersections are in A.
+                doubleGStar[i] = doubleG[i];
+            } else {
+                for (int j = 0; j < size; j++) {
+                    int aLocJ = aTaxa.indexOf(gTaxa.get(j));
+                    if (aLocJ == -1) {
+                        doubleGStar[i][j] = doubleG[i][j];
+                    } else {
+                        doubleGStar[i][j] = (weight * doubleG[i][j]) + ((1.0 - weight) * doubleA[aLocI][aLocJ]);
+                    }
+                }
+            }
+        }
+        return new DistanceMatrix(doubleGStar, gMatrix.getTaxaList());
+    }
+
+    /**
      * Given the inverse of an A matrix (Pedigree Kinship matrix) and a G Matrix
      * (Genetic Kinship Matrix) which contains mostly entries in the A Matrix
      * creates a combined (H) matrix.
      *
      * @param aInverse Inverted Pedigree kinship(A) matrix
-     * @param gInverse Inverted kinship(G) matrix. Should contain mostly Taxa in
+     * @param gStarInverse Inverted and weighted kinship(G*) matrix. Should contain mostly Taxa in
      * common with A matrix for best results
-     * @param weight 0.0 to 1.0, the 'Trust' put in the G matrix. When creating
-     * the combined matrix, uses inverse G * weight + inverse A * 1-weight
+     *
      * @return Combined matrix based on aInverse and gInverse
      */
     // Shorthand notation used: A' = A^-1 (A inverse) = A prime
     // a[1,1] is a11 from the research paper
-    public DistanceMatrix generateCombinedMatrix(DistanceMatrix aInverse, DistanceMatrix gInverse, double weight) {
+    public static DistanceMatrix generateCombinedMatrix(DistanceMatrix aInverse, DistanceMatrix gStarInverse) {
         List<Taxon> aTaxa = aInverse.getTaxaList();
-        List<Taxon> gTaxa = gInverse.getTaxaList();
+        List<Taxon> gTaxa = gStarInverse.getTaxaList();
 
         //Generate Taxa intersections
         List<Taxon> aOnlyTaxa = new LinkedList<>(aTaxa);
@@ -184,7 +209,7 @@ public class HMatrixPlugin extends AbstractPlugin {
         matrixOrder.addAll(unionTaxa);
 
         double[][] aPrime = aInverse.getDistances();
-        double[][] gPrime = gInverse.getDistances();
+        double[][] gStarPrime = gStarInverse.getDistances();
 
         int outputSize = aTaxa.size() + gOnlyTaxa.size();
         double[][] hPrime = new double[outputSize][outputSize];
@@ -212,11 +237,8 @@ public class HMatrixPlugin extends AbstractPlugin {
             int newI = matrixOrder.indexOf(gTaxa.get(i));
             for (int j = 0; j < gTaxa.size(); j++) {
                 int newJ = matrixOrder.indexOf(gTaxa.get(j));
-                hPrime[newI][newJ] = weight * gPrime[i][j] - (1.0 - weight) * hPrime[newI][newJ];//TODO discuss weighting. 1 becomes naive
+                hPrime[newI][newJ] = gStarPrime[i][j];
             }
-        }
-
-        for (int i = aOnlyTaxa.size(); i < aTaxa.size(); i++) {
         }
         TaxaListBuilder builder = new TaxaListBuilder();
         for (Taxon current : matrixOrder) {
@@ -231,6 +253,7 @@ public class HMatrixPlugin extends AbstractPlugin {
      * determining the optimal weights of a combined matrix.
      *
      * @param input Input matrix
+     *
      * @return Eigenvalue Decomposition of the matrix
      */
     private static EigenvalueDecomposition decompose(DistanceMatrix input) {
