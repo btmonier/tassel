@@ -1,11 +1,32 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * FILLINFindHaplotypesPlugin
  */
 package net.maizegenetics.analysis.imputation;
 
+import net.maizegenetics.analysis.distance.IBSDistanceMatrix;
+import net.maizegenetics.dna.WHICH_ALLELE;
+import net.maizegenetics.dna.map.Chromosome;
+import net.maizegenetics.dna.snp.ExportUtils;
+import net.maizegenetics.dna.snp.FilterGenotypeTable;
+import net.maizegenetics.dna.snp.GenotypeTable;
+import net.maizegenetics.dna.snp.GenotypeTableBuilder;
+import net.maizegenetics.dna.snp.GenotypeTableUtils;
+import net.maizegenetics.dna.snp.ImportUtils;
+import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
+import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTableBuilder;
+import net.maizegenetics.plugindef.AbstractPlugin;
+import net.maizegenetics.plugindef.DataSet;
+import net.maizegenetics.plugindef.PluginParameter;
+import net.maizegenetics.taxa.TaxaList;
+import net.maizegenetics.taxa.TaxaListBuilder;
+import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.BitSet;
+import net.maizegenetics.util.BitUtil;
+import net.maizegenetics.util.ExceptionUtils;
+import net.maizegenetics.util.OpenBitSet;
+import net.maizegenetics.util.Utils;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
@@ -19,27 +40,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.swing.ImageIcon;
-import net.maizegenetics.analysis.distance.IBSDistanceMatrix;
-import net.maizegenetics.dna.WHICH_ALLELE;
-import net.maizegenetics.dna.map.Chromosome;
-import net.maizegenetics.dna.snp.ExportUtils;
-import net.maizegenetics.dna.snp.FilterGenotypeTable;
-import net.maizegenetics.dna.snp.GenotypeTable;
-import net.maizegenetics.dna.snp.GenotypeTableBuilder;
-import net.maizegenetics.dna.snp.GenotypeTableUtils;
-import net.maizegenetics.dna.snp.ImportUtils;
-import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
-import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTableBuilder;
-import net.maizegenetics.plugindef.DataSet;
-import net.maizegenetics.plugindef.PluginParameter;
-import net.maizegenetics.taxa.TaxaList;
-import net.maizegenetics.taxa.TaxaListBuilder;
-import net.maizegenetics.taxa.Taxon;
-import net.maizegenetics.util.BitUtil;
-import net.maizegenetics.util.ExceptionUtils;
-import net.maizegenetics.util.OpenBitSet;
-import net.maizegenetics.util.Utils;
 
 /**
  * Creates haplotypes by finding large IBS regions within GBS data.  Starts with the 
@@ -50,7 +50,7 @@ import net.maizegenetics.util.Utils;
  * @author Ed Buckler
  * @author Kelly Swarts
  */
-public class FILLINFindHaplotypesPlugin extends net.maizegenetics.plugindef.AbstractPlugin {
+public class FILLINFindHaplotypesPlugin extends AbstractPlugin {
     //Plugin parameters
     private PluginParameter<String> hmpFile= new PluginParameter.Builder<>("hmp",null,String.class).guiName("Target file").inFile().required(true)
             .description("Input genotypes to generate haplotypes from. Usually best to use all available samples from a species. Accepts all file types supported by TASSEL5.").build();
@@ -151,7 +151,7 @@ public class FILLINFindHaplotypesPlugin extends net.maizegenetics.plugindef.Abst
     @Override
     public DataSet processData(DataSet input) {
         System.out.println("Reading: "+hmpFile.value());
-        GenotypeTable baseAlign=ImportUtils.readGuessFormat(hmpFile.value());
+        GenotypeTable baseAlign=ImportUtils.read(hmpFile.value());
         int[][] divisions=divideChromosome(baseAlign, appoxSitesPerHaplotype.value(), verboseOutput);
         System.out.printf("In taxa:%d sites:%d %n",baseAlign.numberOfTaxa(),baseAlign.numberOfSites());
         siteErrors=new int[baseAlign.numberOfSites()];
