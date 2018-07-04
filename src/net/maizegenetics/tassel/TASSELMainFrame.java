@@ -34,7 +34,6 @@ import net.maizegenetics.analysis.association.MLMPlugin;
 import net.maizegenetics.analysis.association.WeightedMLMPlugin;
 import net.maizegenetics.analysis.popgen.LinkageDiseqDisplayPlugin;
 import net.maizegenetics.analysis.popgen.LinkageDisequilibriumPlugin;
-import net.maizegenetics.analysis.filter.FilterTaxaAlignmentPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaPropertiesPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteNamePlugin;
 import net.maizegenetics.analysis.filter.FilterAlignmentPlugin;
@@ -376,7 +375,6 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         result.add(createMenuItem("Not Recommended", false));
         result.add(createMenuItem(new FilterAlignmentPlugin(this, true)));
         result.add(createMenuItem(new FilterSiteNamePlugin(this, true)));
-        result.add(createMenuItem(new FilterTaxaAlignmentPlugin(this, true)));
         result.add(createMenuItem(new FilterTaxaPropertiesPlugin(this, true)));
         return result;
     }

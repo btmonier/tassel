@@ -58,8 +58,9 @@ import net.maizegenetics.analysis.distance.DistanceMatrixPlugin;
 import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.distance.MultiDimensionalScalingPlugin;
 import net.maizegenetics.analysis.filter.FilterAlignmentPlugin;
+import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteNamePlugin;
-import net.maizegenetics.analysis.filter.FilterTaxaAlignmentPlugin;
+import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaPropertiesPlugin;
 import net.maizegenetics.analysis.filter.FilterTraitsPlugin;
 import net.maizegenetics.analysis.imputation.FILLINFindHaplotypesPlugin;
@@ -112,9 +113,10 @@ public class TasselPipelineStepsDialog extends JDialog implements PluginListener
         MENU_LOCATIONS.put(ImputationPlugin.class, "Impute");
         MENU_LOCATIONS.put(RemoveIndelsForBeaglePlugin.class, "Impute");
 
+        MENU_LOCATIONS.put(FilterSiteBuilderPlugin.class, "Filter");
         MENU_LOCATIONS.put(FilterAlignmentPlugin.class, "Filter");
         MENU_LOCATIONS.put(FilterSiteNamePlugin.class, "Filter");
-        MENU_LOCATIONS.put(FilterTaxaAlignmentPlugin.class, "Filter");
+        MENU_LOCATIONS.put(FilterTaxaBuilderPlugin.class, "Filter");
         MENU_LOCATIONS.put(FilterTaxaPropertiesPlugin.class, "Filter");
         MENU_LOCATIONS.put(FilterTraitsPlugin.class, "Filter");
 
