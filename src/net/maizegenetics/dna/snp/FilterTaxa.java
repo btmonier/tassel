@@ -1,18 +1,17 @@
 /*
  *  FilterTaxa
- * 
+ *
  *  Created on Nov 29, 2016
  */
 package net.maizegenetics.dna.snp;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import net.maizegenetics.taxa.TaxaList;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
- *
  * @author Terry Casstevens
  */
 final public class FilterTaxa implements Filter {
@@ -21,8 +20,8 @@ final public class FilterTaxa implements Filter {
 
         filterName,
         minNotMissing, minHeterozygous, maxHeterozygous,
-        includeTaxa, taxaList, taxaNames;
-    };
+        includeTaxa, taxaList;
+    }
 
     private final Map<FILTER_TAXA_ATTRIBUTES, Object> myAttributes = new LinkedHashMap<>();
 
@@ -83,22 +82,13 @@ final public class FilterTaxa implements Filter {
             return value;
         }
     }
-    
+
     public boolean includeTaxa() {
         Boolean value = (Boolean) myAttributes.get(FILTER_TAXA_ATTRIBUTES.includeTaxa);
         if (value == null) {
             return true;
         } else {
             return value;
-        }
-    }
-
-    public List<String> taxaNames() {
-        List<String> value = (List<String>) myAttributes.get(FILTER_TAXA_ATTRIBUTES.taxaNames);
-        if (value == null) {
-            return null;
-        } else {
-            return Collections.unmodifiableList(value);
         }
     }
 

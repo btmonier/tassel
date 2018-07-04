@@ -14,43 +14,51 @@
  */
 package net.maizegenetics.tassel;
 
+import net.maizegenetics.analysis.association.EqtlAssociationPlugin;
+import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
+import net.maizegenetics.analysis.association.MLMPlugin;
+import net.maizegenetics.analysis.data.GenotypeSummaryPlugin;
+import net.maizegenetics.analysis.popgen.LinkageDisequilibriumPlugin;
+import net.maizegenetics.analysis.popgen.SequenceDiversityPlugin;
+import net.maizegenetics.dna.map.Chromosome;
+import net.maizegenetics.dna.map.PositionList;
+import net.maizegenetics.dna.map.TOPMInterface;
+import net.maizegenetics.dna.snp.FilterList;
 import net.maizegenetics.dna.snp.GenotypeTable;
+import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 import net.maizegenetics.gui.GenotypeTableMask;
 import net.maizegenetics.phenotype.Phenotype;
-import net.maizegenetics.dna.map.Chromosome;
-import net.maizegenetics.taxa.distance.DistanceMatrix;
-import net.maizegenetics.taxa.IdentifierSynonymizer;
-import net.maizegenetics.util.TableReport;
-import net.maizegenetics.taxa.tree.Tree;
-
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.Plugin;
 import net.maizegenetics.plugindef.PluginEvent;
 import net.maizegenetics.plugindef.PluginListener;
-
-import net.maizegenetics.analysis.association.EqtlAssociationPlugin;
-import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
-import net.maizegenetics.analysis.popgen.SequenceDiversityPlugin;
-import net.maizegenetics.analysis.popgen.LinkageDisequilibriumPlugin;
-import net.maizegenetics.analysis.association.MLMPlugin;
-
+import net.maizegenetics.taxa.IdentifierSynonymizer;
+import net.maizegenetics.taxa.TaxaList;
+import net.maizegenetics.taxa.distance.DistanceMatrix;
+import net.maizegenetics.taxa.tree.SimpleTree;
+import net.maizegenetics.taxa.tree.Tree;
+import net.maizegenetics.util.GeneralAnnotation;
+import net.maizegenetics.util.HDF5TableReport;
+import net.maizegenetics.util.TableReport;
+import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
 import java.io.Serializable;
 import java.io.StringWriter;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -59,17 +67,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import net.maizegenetics.analysis.data.GenotypeSummaryPlugin;
-import net.maizegenetics.dna.map.PositionList;
-import net.maizegenetics.dna.map.TOPMInterface;
-import net.maizegenetics.dna.snp.FilterList;
-import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
-import net.maizegenetics.taxa.TaxaList;
-import net.maizegenetics.taxa.tree.SimpleTree;
-import net.maizegenetics.util.GeneralAnnotation;
-import net.maizegenetics.util.HDF5TableReport;
-
-import org.apache.log4j.Logger;
 
 public class DataTreePanel extends JPanel implements PluginListener {
 
@@ -340,6 +337,12 @@ public class DataTreePanel extends JPanel implements PluginListener {
                             }
                             builder.append("\n");
                         }
+                    }
+                    if (book.getData() instanceof TaxaList) {
+                        TaxaList taxa = (TaxaList) book.getData();
+                        builder.append("Number of Taxa: ");
+                        builder.append(taxa.numberOfTaxa());
+                        builder.append("\n\n");
                     }
 
                     String comment = book.getComment();

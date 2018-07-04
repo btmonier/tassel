@@ -16,6 +16,7 @@ import net.maizegenetics.gui.TaxaAvailableListModel;
 import net.maizegenetics.phenotype.GenotypePhenotype;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.taxa.TaxaList;
+import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.taxa.distance.ReadDistanceMatrix;
 import net.maizegenetics.util.ExceptionUtils;
@@ -31,6 +32,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -45,6 +47,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * @author Terry Casstevens
@@ -230,7 +233,32 @@ abstract public class AbstractPlugin implements Plugin {
             } else if (outputClass.isAssignableFrom(PositionList.class)) {
                 return (T) JSONUtils.importPositionListFromJSON(input);
             } else if (outputClass.isAssignableFrom(TaxaList.class)) {
-                return (T) JSONUtils.importTaxaListFromJSON(input);
+                String test = input.trim().substring(Math.max(0, input.length() - 8)).toLowerCase();
+                if (test.endsWith(".json") || test.endsWith(".json.gz")) {
+                    return (T) JSONUtils.importTaxaListFromJSON(input);
+                } else if (test.endsWith(".txt")) {
+                    TaxaListBuilder builder = new TaxaListBuilder();
+                    try (BufferedReader br = Utils.getBufferedReader(input)) {
+                        String line = br.readLine();
+                        Pattern sep = Pattern.compile("\\s+");
+
+                        while (line != null) {
+                            line = line.trim();
+                            String[] parsedline = sep.split(line);
+                            for (int i = 0; i < parsedline.length; i++) {
+                                if ((parsedline[i] != null) || (parsedline[i].length() != 0)) {
+                                    builder.add(parsedline[i]);
+                                }
+                            }
+                            line = br.readLine();
+                        }
+                    }
+
+                    return (T) builder.build();
+                } else {
+                    String[] taxa = input.trim().split(",");
+                    return (T) new TaxaListBuilder().addAll(taxa).build();
+                }
             } else if (outputClass.isAssignableFrom(DistanceMatrix.class)) {
                 return (T) ReadDistanceMatrix.readDistanceMatrix(input);
             } else {
@@ -673,7 +701,7 @@ abstract public class AbstractPlugin implements Plugin {
                                 String input = ((JTextField) component).getText().trim();
                                 setParameter(current.cmdLineName(), input);
                             }
-                        } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.TAXA_LIST) {
+                        } else if (TaxaList.class.isAssignableFrom(current.valueType())) {
                             if (component instanceof JComboBox) {
                                 Object temp = ((JComboBox) component).getSelectedItem();
                                 if (temp == TAXA_LIST_NONE) {
@@ -841,28 +869,6 @@ abstract public class AbstractPlugin implements Plugin {
                     panel.add(line);
                     parameterFields.put(current.cmdLineName(), field);
                 }
-            } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.TAXA_LIST) {
-                Datum datum = getTaxaListDatum();
-                if (datum != null) {
-                    JComboBox menu = new JComboBox();
-                    menu.addItem(TAXA_LIST_NONE);
-                    menu.addItem(datum);
-                    menu.setSelectedIndex(0);
-                    createEnableDisableAction(current, parameterFields, menu);
-                    JPanel temp = new JPanel(new FlowLayout(FlowLayout.CENTER));
-                    temp.add(new JLabel(current.guiName()));
-                    temp.add(menu);
-                    temp.setToolTipText(getToolTip(current));
-                    panel.add(temp);
-                    parameterFields.put(current.cmdLineName(), menu);
-                } else {
-                    JTextField field = new JTextField(TEXT_FIELD_WIDTH - 8);
-                    JButton browse = getOpenFile(dialog, field);
-                    JPanel line = getLine(current.guiName(), field, browse, getToolTip(current));
-                    createEnableDisableAction(current, parameterFields, new JComponent[]{field, browse}, field);
-                    panel.add(line);
-                    parameterFields.put(current.cmdLineName(), field);
-                }
             } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.DISTANCE_MATRIX) {
                 List<Datum> matrices = getDistanceMatrices();
                 if (!matrices.isEmpty()) {
@@ -923,20 +929,39 @@ abstract public class AbstractPlugin implements Plugin {
                 temp.add(check);
                 panel.add(temp);
                 parameterFields.put(current.cmdLineName(), check);
-            } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.TAXA_NAME_LIST) {
-                TaxaList taxa = getTaxaList();
-                JTextField field;
-                if (taxa == null) {
-                    field = new JTextField(TEXT_FIELD_WIDTH);
+            } else if (TaxaList.class.isAssignableFrom(current.valueType())) {
+
+                List<Datum> datums = getTaxaListDatum();
+                if (datums != null) {
+                    JComboBox menu = new JComboBox();
+                    menu.addItem(TAXA_LIST_NONE);
+                    for (Datum datum : datums) {
+                        menu.addItem(datum);
+                    }
+                    menu.setSelectedIndex(0);
+                    createEnableDisableAction(current, parameterFields, menu);
+                    JPanel temp = new JPanel(new FlowLayout(FlowLayout.CENTER));
+                    temp.add(new JLabel(current.guiName()));
+                    temp.add(menu);
+                    temp.setToolTipText(getToolTip(current));
+                    panel.add(temp);
+                    parameterFields.put(current.cmdLineName(), menu);
                 } else {
-                    field = new JTextField(TEXT_FIELD_WIDTH - 7);
+                    TaxaList taxa = getTaxaList();
+                    JTextField field;
+                    if (taxa == null) {
+                        field = new JTextField(TEXT_FIELD_WIDTH);
+                    } else {
+                        field = new JTextField(TEXT_FIELD_WIDTH - 7);
+                    }
+                    if (current.value() != null) {
+                        field.setText(current.value().toString());
+                    }
+                    JPanel taxaPanel = getTaxaListPanel(current.guiName(), field, current.description(), dialog, taxa);
+                    panel.add(taxaPanel);
+                    parameterFields.put(current.cmdLineName(), field);
                 }
-                if (current.value() != null) {
-                    field.setText(current.value().toString());
-                }
-                JPanel taxaPanel = getTaxaListPanel(current.guiName(), field, current.description(), dialog, taxa);
-                panel.add(taxaPanel);
-                parameterFields.put(current.cmdLineName(), field);
+
             } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.SITE_NAME_LIST) {
                 PositionList positions = getSiteNameList();
                 JTextField field;
@@ -1229,13 +1254,13 @@ abstract public class AbstractPlugin implements Plugin {
             builder.append("</tr>");
         }
         builder.append("</table>");
-        
+
         builder.append("</center>");
-        
+
         builder.append("<br><font color='red'>* parameters in red are required</font>");
 
         builder.append("</html>");
-        
+
         return builder.toString();
     }
 
@@ -1384,6 +1409,9 @@ abstract public class AbstractPlugin implements Plugin {
             taxaButton.setText("Select");
             result.add(taxaButton);
         }
+
+        JButton browse = getOpenFile(parent, ref);
+        result.add(browse);
 
         return result;
 
@@ -1581,7 +1609,7 @@ abstract public class AbstractPlugin implements Plugin {
         return null;
     }
 
-    private Datum getTaxaListDatum() {
+    private List<Datum> getTaxaListDatum() {
 
         if (myCurrentInputData == null) {
             return null;
@@ -1589,10 +1617,11 @@ abstract public class AbstractPlugin implements Plugin {
 
         List<Datum> taxaList = myCurrentInputData.getDataOfType(TaxaList.class);
         if (!taxaList.isEmpty()) {
-            return taxaList.get(0);
+            return taxaList;
         }
 
         return null;
+
     }
 
     private PositionList getSiteNameList() {

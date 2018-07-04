@@ -80,7 +80,7 @@ public class Taxon implements Comparable<Taxon> {
     }
 
     public Taxon(String name, GeneralAnnotation anno) {
-        myName = name;
+        myName = name.trim();
         hashCode = myName.hashCode();
         myAnno = anno;
     }

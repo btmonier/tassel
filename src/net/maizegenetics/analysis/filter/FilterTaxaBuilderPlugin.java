@@ -1,19 +1,11 @@
 /*
  *  FilterTaxaBuilderPlugin
- * 
+ *
  *  Created on Nov 29, 2016
  */
 package net.maizegenetics.analysis.filter;
 
 import com.google.common.collect.Range;
-import java.awt.Frame;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import javax.swing.ImageIcon;
 import net.maizegenetics.analysis.data.GenotypeSummaryPlugin;
 import net.maizegenetics.dna.snp.FilterList;
 import net.maizegenetics.dna.snp.FilterTaxa;
@@ -30,8 +22,16 @@ import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.taxa.TaxaList;
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
+import java.awt.*;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- *
  * @author Terry Casstevens
  */
 public class FilterTaxaBuilderPlugin extends AbstractPlugin {
@@ -51,13 +51,7 @@ public class FilterTaxaBuilderPlugin extends AbstractPlugin {
             .description("Include taxa from list of names or taxa list if true. Exclude otherwise.")
             .build();
     private PluginParameter<TaxaList> myTaxaList = new PluginParameter.Builder<>(FILTER_TAXA_ATTRIBUTES.taxaList.name(), null, TaxaList.class)
-            .taxaList()
-            .description("Filename of taxa list (.json or .json.gz). This is the format created by TASSEL when saving a taxa list.")
-            .build();
-    private PluginParameter<String> myTaxaNamesList = new PluginParameter.Builder<>(FILTER_TAXA_ATTRIBUTES.taxaNames.name(), null, String.class)
-            .taxaNameList()
-            .dependentOnParameter(myTaxaList, TAXA_LIST_NONE)
-            .description("Comma separated list of taxa names (No spaces in names or around commas) (i.e. D940Y,DE2,DE3).")
+            .description("Optional list of taxa to include. This can be a comma separated list of taxa (no spaces unless surrounded by quotes), file (.txt) with list of taxa names to include, or a taxa list file (.json or .json.gz). By default, all taxa will be included.")
             .build();
 
     public FilterTaxaBuilderPlugin(Frame parentFrame, boolean isInteractive) {
@@ -94,11 +88,6 @@ public class FilterTaxaBuilderPlugin extends AbstractPlugin {
                     values.put(current.cmdLineName(), current.value());
                 }
             }
-        }
-
-        Object sites = values.get(FilterTaxa.FILTER_TAXA_ATTRIBUTES.taxaNames.name());
-        if (sites != null) {
-            values.put(FilterTaxa.FILTER_TAXA_ATTRIBUTES.taxaNames.name(), getListFromString(sites.toString()));
         }
 
         List<Datum> result = new ArrayList<>();
@@ -151,46 +140,6 @@ public class FilterTaxaBuilderPlugin extends AbstractPlugin {
         result.add(new Datum(filter.filterName(), new FilterList(filter), null));
 
         return new DataSet(result, this);
-
-    }
-
-    private List<String> getListFromString(String str) {
-
-        if ((str == null) || (str.length() == 0)) {
-            return null;
-        }
-        String[] tokens = str.split(",");
-        List<String> result = new ArrayList<>();
-        for (String current : tokens) {
-            current = current.trim();
-            if (current.length() != 0) {
-                result.add(current);
-            }
-        }
-        return result;
-
-    }
-
-    private String getStringFromList(List<String> list) {
-
-        if ((list == null) || (list.isEmpty())) {
-            return null;
-        }
-
-        StringBuilder builder = new StringBuilder();
-        boolean first = true;
-        for (String current : list) {
-            current = current.trim();
-            if (current.length() != 0) {
-                if (first) {
-                    first = false;
-                } else {
-                    builder.append(",");
-                }
-                builder.append(current);
-            }
-        }
-        return builder.toString();
 
     }
 
@@ -372,24 +321,9 @@ public class FilterTaxaBuilderPlugin extends AbstractPlugin {
         return this;
     }
 
-    /**
-     * Taxa Names List
-     *
-     * @return Taxa Names List
-     */
-    public String taxaNamesList() {
-        return myTaxaNamesList.value();
-    }
-
-    /**
-     * Set Taxa Names List. Taxa Names List
-     *
-     * @param value Taxa Names List
-     *
-     * @return this plugin
-     */
-    public FilterTaxaBuilderPlugin taxaNamesList(String value) {
-        myTaxaNamesList = new PluginParameter<>(myTaxaNamesList, value);
+    public FilterTaxaBuilderPlugin taxaList(String value) {
+        myTaxaList = new PluginParameter<>(myTaxaList, convert(value, TaxaList.class));
         return this;
     }
+
 }

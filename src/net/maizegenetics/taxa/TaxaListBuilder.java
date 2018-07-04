@@ -9,7 +9,12 @@ import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTableBuilder;
 import net.maizegenetics.util.HDF5Utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A builder for creating immutable {@link TaxaList} instances.
@@ -24,8 +29,8 @@ import java.util.*;
  *       tlb.add(at);
  *       }
  *   TaxaList tl=tlb.build();}</pre>
- *   <p></p>
- *   If building from HDF5:<pre>
+ * <p></p>
+ * If building from HDF5:<pre>
  *   {@code
  *   TaxaList tl=new TaxaListBuilder().buildFromHDF5Genotypes(testMutFile);
  *   }</pre>
@@ -35,40 +40,54 @@ import java.util.*;
 public class TaxaListBuilder {
     //TODO need to move union and intersection utils to the builder
     private List<Taxon> myTaxaList;
-    private final HashMap<Taxon,Integer> tempLookup;
+    private final HashMap<Taxon, Integer> tempLookup;
 
     public TaxaListBuilder() {
         myTaxaList = new ArrayList<>();
         tempLookup = new HashMap<>();
     }
 
+    public static TaxaList getInstance(int numTaxa) {
+        TaxaListBuilder builder = new TaxaListBuilder();
+        for (int i = 0; i < numTaxa; i++) {
+            builder.add(new Taxon("Taxa_" + i));
+        }
+        return builder.build();
+    }
+
     public TaxaListBuilder add(Taxon taxon) {
-        if(tempLookup.containsKey(taxon)) {
-            throw new IllegalStateException("Taxon ["+taxon.getName()+"] already exists in the list.  Duplicated taxa not allowed.");
+        if (tempLookup.containsKey(taxon)) {
+            throw new IllegalStateException("Taxon [" + taxon.getName() + "] already exists in the list.  Duplicated taxa not allowed.");
         }
         myTaxaList.add(taxon);
-        tempLookup.put(taxon,myTaxaList.size()-1);
+        tempLookup.put(taxon, myTaxaList.size() - 1);
         return this;
     }
-    
+
+    public TaxaListBuilder add(String taxon) {
+        Taxon obj = new Taxon(taxon);
+        return add(obj);
+    }
+
     public boolean contains(Taxon taxon) {
         return tempLookup.containsKey(taxon);
     }
 
     public TaxaListBuilder addOrMerge(Taxon taxon) {
-        if(tempLookup.containsKey(taxon)) {
-            int indexOfOrig=tempLookup.get(taxon);
-            Taxon orgTaxon=myTaxaList.get(indexOfOrig);
-            Taxon.Builder tb=new Taxon.Builder(orgTaxon);
+        if (tempLookup.containsKey(taxon)) {
+            int indexOfOrig = tempLookup.get(taxon);
+            Taxon orgTaxon = myTaxaList.get(indexOfOrig);
+            Taxon.Builder tb = new Taxon.Builder(orgTaxon);
             for (Map.Entry<String, String> entry : taxon.getAnnotation().getAllAnnotationEntries()) {
-                if(!orgTaxon.getAnnotation().isAnnotatedWithValue(entry.getKey(),entry.getValue())) tb.addAnno(entry.getKey(),entry.getValue());
+                if (!orgTaxon.getAnnotation().isAnnotatedWithValue(entry.getKey(), entry.getValue()))
+                    tb.addAnno(entry.getKey(), entry.getValue());
             }
-            taxon=tb.build();
-            myTaxaList.set(indexOfOrig,taxon);
+            taxon = tb.build();
+            myTaxaList.set(indexOfOrig, taxon);
             tempLookup.put(taxon, indexOfOrig);
         } else {
             myTaxaList.add(taxon);
-            tempLookup.put(taxon, myTaxaList.size()-1);
+            tempLookup.put(taxon, myTaxaList.size() - 1);
         }
         return this;
     }
@@ -89,11 +108,11 @@ public class TaxaListBuilder {
 
     public TaxaListBuilder addAll(String[] taxa) {
         for (int i = 0, n = taxa.length; i < n; i++) {
-            add(new Taxon.Builder(taxa[i]).build());
+            add(taxa[i]);
         }
         return this;
     }
-    
+
     public TaxaListBuilder addAll(List<String> taxa) {
         for (int i = 0, n = taxa.size(); i < n; i++) {
             add(new Taxon.Builder(taxa.get(i)).build());
@@ -107,7 +126,7 @@ public class TaxaListBuilder {
         }
         return this;
     }
-    
+
     public TaxaListBuilder addAll(TaxaListBuilder builder) {
         for (Taxon current : builder.myTaxaList) {
             add(current);
@@ -123,7 +142,9 @@ public class TaxaListBuilder {
      * Builds TaxaList with annotations from an HDF5 file.  The list of Taxa come from the those taxa that have been genotyped
      * (in /Genotypes/ path), while the annotations come from the /Taxa/ path.  Frequently these two lists are
      * identical, but sometimes this can Genotypes can have a subset of the taxa in /Taxa/
+     *
      * @param reader
+     *
      * @return
      */
     public TaxaList buildFromHDF5Genotypes(IHDF5Reader reader) {
@@ -132,7 +153,7 @@ public class TaxaListBuilder {
         }
         myTaxaList.clear();
         for (String taxonName : HDF5Utils.getAllTaxaNames(reader)) {
-            if(!HDF5Utils.doTaxonCallsExist(reader,taxonName)) continue;  //if no calls exist skip it
+            if (!HDF5Utils.doTaxonCallsExist(reader, taxonName)) continue;  //if no calls exist skip it
             myTaxaList.add(HDF5Utils.getTaxon(reader, taxonName));
         }
         return build();
@@ -141,7 +162,9 @@ public class TaxaListBuilder {
     /**
      * Builds TaxaList with annotations from an HDF5 file.  The list of Taxa and annotations come from the /Taxa/ path.
      * This maybe a super set of what is present in the /Genotypes/ or /TBT/ paths.
+     *
      * @param reader
+     *
      * @return
      */
     public TaxaList buildFromHDF5(IHDF5Reader reader) {
@@ -215,7 +238,7 @@ public class TaxaListBuilder {
         return indicesOfSortByTaxa;
 
     }
-    
+
     public int numberOfTaxa() {
         return myTaxaList.size();
     }
