@@ -6,22 +6,21 @@
  */
 package net.maizegenetics.analysis.data;
 
-import java.awt.Frame;
-import java.net.URL;
-
+import net.maizegenetics.dna.snp.GenotypeTable;
+import net.maizegenetics.phenotype.Phenotype;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
-import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.plugindef.Datum;
-
-import javax.swing.*;
-
-import java.util.List;
-
+import net.maizegenetics.taxa.distance.DistanceMatrix;
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
+import java.awt.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- *
  * @author Terry Casstevens
  */
 public class GetTaxaListPlugin extends AbstractPlugin {
@@ -34,25 +33,33 @@ public class GetTaxaListPlugin extends AbstractPlugin {
 
     public DataSet processData(DataSet input) {
 
-        try {
+        List<Datum> result = new ArrayList<>();
 
-            List<Datum> alignInList = input.getDataOfType(GenotypeTable.class);
-
-            if (alignInList.size() != 1) {
-                throw new IllegalArgumentException("Invalid selection.  Please select one genotype table.");
-            }
-
-            Datum current = alignInList.get(0);
-            GenotypeTable genotypeTable = (GenotypeTable) current.getData();
+        List<Datum> datumList = input.getDataOfType(GenotypeTable.class);
+        for (Datum current : datumList) {
             String name = current.getName();
+            GenotypeTable genotypeTable = (GenotypeTable) current.getData();
+            result.add(new Datum(name + "_TaxaList", genotypeTable.taxa(), "Taxa List from " + name));
+        }
 
-            Datum outputDatum = new Datum(name + "_TaxaList", genotypeTable.taxa(), "Taxa List from " + name);
-            DataSet output = new DataSet(outputDatum, this);
+        datumList = input.getDataOfType(DistanceMatrix.class);
+        for (Datum current : datumList) {
+            String name = current.getName();
+            DistanceMatrix matrix = (DistanceMatrix) current.getData();
+            result.add(new Datum(name + "_TaxaList", matrix.getTaxaList(), "Taxa List from " + name));
+        }
 
-            return output;
+        datumList = input.getDataOfType(Phenotype.class);
+        for (Datum current : datumList) {
+            String name = current.getName();
+            Phenotype phenotype = (Phenotype) current.getData();
+            result.add(new Datum(name + "_TaxaList", phenotype.taxa(), "Taxa List from " + name));
+        }
 
-        } finally {
-            fireProgress(100);
+        if (result.isEmpty()) {
+            throw new IllegalArgumentException("GetTaxaListPlugin: processData: nothing is selected that has a taxa list.");
+        } else {
+            return new DataSet(result, this);
         }
 
     }
