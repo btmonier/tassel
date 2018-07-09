@@ -7,6 +7,11 @@
     <version>5.2.x</version>
     <name>tassel</name>
     <url>http://maven.apache.org</url>
+    <scm>
+        <connection>scm:git:git://bitbucket.org:tasseladmin/tassel-5-source.git</connection>
+        <developerConnection>scm:git:ssh://bitbucket.org:tasseladmin/tassel-5-source.git</developerConnection>
+        <url>https://bitbucket.org/tasseladmin/tassel-5-source/src</url>
+    </scm>
     <build>
         <directory>${project.basedir}/dist</directory>
         <outputDirectory>${project.basedir}/build</outputDirectory>
