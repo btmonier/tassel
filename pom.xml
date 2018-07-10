@@ -7,6 +7,12 @@
     <version>5.2.x</version>
     <name>tassel</name>
     <url>http://maven.apache.org</url>
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License, version 2.1</name>
+            <url>https://www.gnu.org/licenses/lgpl-2.1.html</url>
+        </license>
+    </licenses>
     <scm>
         <connection>scm:git:git://bitbucket.org:tasseladmin/tassel-5-source.git</connection>
         <developerConnection>scm:git:ssh://bitbucket.org:tasseladmin/tassel-5-source.git</developerConnection>
