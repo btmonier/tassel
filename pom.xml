@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -5,8 +6,11 @@
     <artifactId>tassel</artifactId>
     <packaging>jar</packaging>
     <version>5.2.x</version>
-    <name>tassel</name>
-    <url>http://maven.apache.org</url>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>TASSEL is a software package to evaluate traits associations, evolutionary patterns, and linkage
+        disequilibrium.
+    </description>
+    <url>http://www.maizegenetics.net/tassel</url>
     <licenses>
         <license>
             <name>GNU Lesser General Public License, version 2.1</name>
