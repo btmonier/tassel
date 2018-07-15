@@ -19,80 +19,32 @@
 //Company:    NCSU
 package net.maizegenetics.tassel;
 
-import net.maizegenetics.analysis.data.*;
-import net.maizegenetics.analysis.imputation.*;
-import net.maizegenetics.analysis.popgen.SequenceDiversityPlugin;
-import net.maizegenetics.analysis.distance.KinshipPlugin;
-import net.maizegenetics.analysis.distance.MultiDimensionalScalingPlugin;
-import net.maizegenetics.analysis.chart.TableDisplayPlugin;
-import net.maizegenetics.analysis.chart.ManhattanDisplayPlugin;
-import net.maizegenetics.analysis.chart.QQDisplayPlugin;
 import net.maizegenetics.analysis.association.EqtlAssociationPlugin;
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
 import net.maizegenetics.analysis.association.GenomicSelectionPlugin;
 import net.maizegenetics.analysis.association.MLMPlugin;
 import net.maizegenetics.analysis.association.WeightedMLMPlugin;
-import net.maizegenetics.analysis.popgen.LinkageDiseqDisplayPlugin;
-import net.maizegenetics.analysis.popgen.LinkageDisequilibriumPlugin;
-import net.maizegenetics.analysis.filter.FilterTaxaPropertiesPlugin;
-import net.maizegenetics.analysis.filter.FilterSiteNamePlugin;
-import net.maizegenetics.analysis.filter.FilterAlignmentPlugin;
-import net.maizegenetics.analysis.filter.FilterTraitsPlugin;
-import net.maizegenetics.analysis.tree.CreateTreePlugin;
-import net.maizegenetics.analysis.tree.ArchaeopteryxPlugin;
 import net.maizegenetics.analysis.chart.ChartDisplayPlugin;
-import net.maizegenetics.analysis.modelfitter.StepwiseOLSModelFitterPlugin;
-import net.maizegenetics.analysis.numericaltransform.NumericalGenotypePlugin;
-import net.maizegenetics.analysis.numericaltransform.TransformDataPlugin;
-import net.maizegenetics.gui.PrintHeapAction;
-import net.maizegenetics.plugindef.*;
-import net.maizegenetics.prefs.TasselPrefs;
-import net.maizegenetics.progress.ProgressPanel;
-
-import org.apache.log4j.Logger;
-
-import javax.swing.*;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
-import java.awt.font.TextAttribute;
-import java.io.*;
-import java.net.URI;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import net.maizegenetics.analysis.chart.ManhattanDisplayPlugin;
+import net.maizegenetics.analysis.chart.QQDisplayPlugin;
+import net.maizegenetics.analysis.chart.TableDisplayPlugin;
+import net.maizegenetics.analysis.data.*;
 import net.maizegenetics.analysis.distance.AMatrixPlugin;
 import net.maizegenetics.analysis.distance.AddDistanceMatrixPlugin;
 import net.maizegenetics.analysis.distance.DistanceMatrixPlugin;
 import net.maizegenetics.analysis.distance.HMatrixPlugin;
+import net.maizegenetics.analysis.distance.KinshipPlugin;
+import net.maizegenetics.analysis.distance.MultiDimensionalScalingPlugin;
 import net.maizegenetics.analysis.distance.RemoveNaNFromDistanceMatrixPlugin;
 import net.maizegenetics.analysis.distance.SubtractDistanceMatrixPlugin;
 import net.maizegenetics.analysis.distance.VCAPScanPlugin;
+import net.maizegenetics.analysis.filter.FilterAlignmentPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
+import net.maizegenetics.analysis.filter.FilterSiteNamePlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
-import net.maizegenetics.analysis.gbs.BinaryToTextPlugin;
-import net.maizegenetics.analysis.gbs.DiscoverySNPCallerPlugin;
-import net.maizegenetics.analysis.gbs.FastqToTagCountPlugin;
-import net.maizegenetics.analysis.gbs.MergeMultipleTagCountPlugin;
-import net.maizegenetics.analysis.gbs.ModifyTBTHDF5Plugin;
-import net.maizegenetics.analysis.gbs.ProductionSNPCallerPlugin;
-import net.maizegenetics.analysis.gbs.SAMConverterPlugin;
-import net.maizegenetics.analysis.gbs.SeqToTBTHDF5Plugin;
-import net.maizegenetics.analysis.gbs.TagCountToFastqPlugin;
-import net.maizegenetics.analysis.gbs.UTagCountToTagPairPlugin;
-import net.maizegenetics.analysis.gbs.UTagPairToTOPMPlugin;
+import net.maizegenetics.analysis.filter.FilterTaxaPropertiesPlugin;
+import net.maizegenetics.analysis.filter.FilterTraitsPlugin;
+import net.maizegenetics.analysis.gbs.*;
 import net.maizegenetics.analysis.gbs.v2.DiscoverySNPCallerPluginV2;
 import net.maizegenetics.analysis.gbs.v2.GBSSeqToTagDBPlugin;
 import net.maizegenetics.analysis.gbs.v2.GetTagSequenceFromDBPlugin;
@@ -102,9 +54,54 @@ import net.maizegenetics.analysis.gbs.v2.SNPCutPosTagVerificationPlugin;
 import net.maizegenetics.analysis.gbs.v2.SNPQualityProfilerPlugin;
 import net.maizegenetics.analysis.gbs.v2.TagExportToFastqPlugin;
 import net.maizegenetics.analysis.gbs.v2.UpdateSNPPositionQualityPlugin;
+import net.maizegenetics.analysis.imputation.ClusterGenotypesPlugin;
+import net.maizegenetics.analysis.imputation.FILLINFindHaplotypesPlugin;
+import net.maizegenetics.analysis.imputation.FILLINImputationPlugin;
+import net.maizegenetics.analysis.imputation.FSFHapImputationPlugin;
+import net.maizegenetics.analysis.imputation.ImputationAccuracyPlugin;
+import net.maizegenetics.analysis.imputation.LDKNNiImputationPlugin;
+import net.maizegenetics.analysis.imputation.RemoveIndelsForBeaglePlugin;
+import net.maizegenetics.analysis.modelfitter.StepwiseOLSModelFitterPlugin;
 import net.maizegenetics.analysis.numericaltransform.ImputationPlugin;
+import net.maizegenetics.analysis.numericaltransform.NumericalGenotypePlugin;
+import net.maizegenetics.analysis.numericaltransform.TransformDataPlugin;
+import net.maizegenetics.analysis.popgen.LinkageDiseqDisplayPlugin;
+import net.maizegenetics.analysis.popgen.LinkageDisequilibriumPlugin;
+import net.maizegenetics.analysis.popgen.SequenceDiversityPlugin;
+import net.maizegenetics.analysis.tree.ArchaeopteryxPlugin;
+import net.maizegenetics.analysis.tree.CreateTreePlugin;
 import net.maizegenetics.analysis.workflow.WorkflowPlugin;
 import net.maizegenetics.gui.DialogUtils;
+import net.maizegenetics.gui.PrintHeapAction;
+import net.maizegenetics.plugindef.DataSet;
+import net.maizegenetics.plugindef.Plugin;
+import net.maizegenetics.plugindef.PluginEvent;
+import net.maizegenetics.plugindef.ThreadedPluginListener;
+import net.maizegenetics.prefs.TasselPrefs;
+import net.maizegenetics.progress.ProgressPanel;
+import net.maizegenetics.util.Utils;
+import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.swing.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.font.TextAttribute;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * TASSELMainFrame
@@ -232,10 +229,114 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         jMenuBar.add(getGBSv2Menu());
         jMenuBar.add(getGBSMenu());
         jMenuBar.add(getWorkflowMenu());
+        addThirdPartyMenus(jMenuBar);
         jMenuBar.add(Box.createHorizontalGlue());
         jMenuBar.add(getHelpMenu());
 
         this.setJMenuBar(jMenuBar);
+
+    }
+
+    /**
+     * This adds plugins to the TASSEL menu specified by files named tassel_menu.xml.
+     * This can be used in jars that implement TASSEL plugins to dynamically add a menu.
+     *
+     * @param jMenuBar TASSEL Menu Bar
+     */
+    private void addThirdPartyMenus(JMenuBar jMenuBar) {
+
+        for (String current : Utils.getFullyQualifiedResourceNames("tassel_menu.xml")) {
+            myLogger.info("TASSELMainFrame: addThirdPartyMenus: adding: " + current);
+            addThirdPartyMenus(jMenuBar, current);
+        }
+
+    }
+
+    private void addThirdPartyMenus(JMenuBar jMenuBar, String filename) {
+
+        try (InputStream input = TASSELMainFrame.class.getResourceAsStream(filename)) {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(input);
+            doc.getDocumentElement().normalize();
+            Element rootElement = doc.getDocumentElement();
+            if (!(rootElement.getNodeName().equalsIgnoreCase("TasselMenus"))) {
+                throw new IllegalArgumentException("TASSELMainFrame: addThirdPartyMenus: Root Node must be TasselMenus: " + rootElement.getNodeName());
+            }
+            NodeList children = rootElement.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                Node current = children.item(i);
+                JMenu menu = createSubMenu(current);
+                if (menu != null) {
+                    jMenuBar.add(menu);
+                }
+            }
+        } catch (Exception e) {
+            myLogger.debug(e.getMessage(), e);
+            throw new IllegalStateException("TASSELMainFrame: addThirdPartyMenus: Problem reading XML file: " + filename + "\n" + e.getMessage());
+        }
+
+    }
+
+    private JMenu createSubMenu(Node rootElement) {
+
+        try {
+
+            if (!rootElement.getNodeName().trim().equalsIgnoreCase("TasselMenu")) {
+                return null;
+            }
+
+            JMenu result = new JMenu("Menu");
+
+            NodeList children = rootElement.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                Node current = children.item(i);
+                String elementName = current.getNodeName().trim();
+                if ((current.getNodeType() == Node.ELEMENT_NODE) && (elementName.equalsIgnoreCase("name"))) {
+                    result.setText(current.getTextContent().trim());
+                } else if ((current.getNodeType() == Node.ELEMENT_NODE) && (elementName.equalsIgnoreCase("TasselMenu"))) {
+                    JMenu menu = createSubMenu(current);
+                    if (menu != null) {
+                        result.add(menu);
+                    }
+                } else if ((current.getNodeType() == Node.ELEMENT_NODE) && (elementName.equalsIgnoreCase("plugin"))) {
+                    try {
+
+                        Plugin plugin = null;
+                        String possibleClassName = current.getTextContent().trim();
+                        List<String> matches = Utils.getFullyQualifiedClassNames(possibleClassName);
+                        for (String match : matches) {
+                            plugin = Plugin.getPluginInstance(match, this, true);
+                            if (plugin != null) {
+                                break;
+                            }
+                        }
+
+                        if (plugin == null) {
+                            plugin = Plugin.getPluginInstance(possibleClassName, this, true);
+                        }
+
+                        if (plugin != null) {
+                            result.add(createMenuItem(plugin, false));
+                        }
+
+                    } catch (UnsupportedOperationException usoe) {
+                        throw new IllegalArgumentException("TASSELMainFrame: addSubMenu: this plugin is not self-described: " + current);
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException("TASSELMainFrame: addSubMenu: Unknown parameter: " + current);
+                    }
+                } else if ((current.getNodeType() == Node.ELEMENT_NODE) && (elementName.equalsIgnoreCase("separator"))) {
+                    result.addSeparator();
+                }
+
+            }
+
+            return result;
+
+        } catch (Exception e) {
+            myLogger.debug(e.getMessage(), e);
+            throw new IllegalStateException("TASSELMainFrame: addSubMenu: Problem converting XML to Args: " + e.getMessage());
+        }
 
     }
 

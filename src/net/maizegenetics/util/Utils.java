@@ -5,10 +5,10 @@
  */
 package net.maizegenetics.util;
 
+import org.apache.log4j.Logger;
+
 import java.io.*;
-
 import java.net.URL;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,10 +23,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.log4j.Logger;
-
 /**
- *
  * @author terryc
  */
 public final class Utils {
@@ -147,6 +144,50 @@ public final class Utils {
         } else {
             return str.substring(0, index);
         }
+
+    }
+
+    /**
+     * This returns a set of fully qualified resource names that match the
+     * specified filename.
+     *
+     * @param filename filename
+     *
+     * @return set of resource names
+     */
+    public static Set<String> getFullyQualifiedResourceNames(String filename) {
+
+        Set<String> result = new LinkedHashSet<>();
+
+        String classpath = System.getProperty("java.class.path");
+        String[] paths = classpath.split(File.pathSeparator);
+        for (String path : paths) {
+
+            if (path.trim().length() != 0) {
+                File file = new File(path);
+                if (file.exists()) {
+
+                    try (ZipFile zFile = new ZipFile(file.getAbsolutePath());) {
+
+                        Enumeration<? extends ZipEntry> entries = zFile.entries();
+                        while (entries.hasMoreElements()) {
+                            ZipEntry entry = entries.nextElement();
+                            if (!entry.isDirectory()) {
+                                String name = entry.getName();
+                                if (name.endsWith(filename)) {
+                                    result.add("/" + name);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        myLogger.debug(e.getMessage(), e);
+                    }
+
+                }
+            }
+        }
+
+        return result;
 
     }
 
@@ -447,11 +488,9 @@ public final class Utils {
      * {@link java.util.stream.Stream#close close} method is invoked after the
      * stream operations are completed.
      *
-     *
      * @param path the path to the file
      *
      * @return the lines from the file as a {@code Stream}
-     *
      * @throws IOException if an I/O error occurs opening the file
      * @throws SecurityException In the case of the default provider, and a
      * security manager is installed, the
