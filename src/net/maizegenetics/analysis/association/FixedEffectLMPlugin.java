@@ -147,9 +147,17 @@ public class FixedEffectLMPlugin extends AbstractPlugin {
     
     public DataSet processData(DataSet data) {
     	if (phenotypeOnly.value()) {
-    		Datum myDatum = data.getDataOfType(Phenotype.class).get(0);
-    		PhenotypeLM plm = new PhenotypeLM(myDatum);
-    		return new DataSet(plm.datumList(), this);
+    	    List<Datum> datumList = data.getDataOfType(Phenotype.class);
+    	    if (datumList.size() == 1) {
+    	        Datum myDatum = datumList.get(0);
+    	        PhenotypeLM plm = new PhenotypeLM(myDatum);
+    	        return new DataSet(plm.datumList(), this);
+    	    } else if (datumList.size() == 0) {
+    	        throw new IllegalArgumentException("The phenotype only option was selected, but no phenotype data set was provided as input.");
+    	    } else {
+    	        throw new IllegalArgumentException("Multiple phenotype data sets were provided. Only one is allowed.");
+    	    }
+
     	} else {
         	FixedEffectLM myLM; 
     		Datum myDatum = data.getDataOfType(GenotypePhenotype.class).get(0);
