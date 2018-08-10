@@ -47,7 +47,6 @@ import net.maizegenetics.taxa.distance.WriteDistanceMatrix;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import com.sun.scenario.effect.Merge;
 
 public class GenomicSelectionPlugin extends AbstractPlugin {
 
