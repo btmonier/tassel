@@ -1,8 +1,9 @@
 package net.maizegenetics.util;
 
-import java.io.*;
-import java.security.MessageDigest;
 import org.apache.log4j.Logger;
+
+import java.io.InputStream;
+import java.security.MessageDigest;
 
 public class CheckSum {
 
@@ -16,11 +17,26 @@ public class CheckSum {
         return getChecksum(filename, "MD5");
     }
 
-    // Allow user to specify the protocol, e.g. MD5 or SHA-1
+    /**
+     * Allows user to specify the protocol, e.g. MD5, SHA-1, SHA-256
+     *
+     * @param filename filename to checksum
+     * @param protocol protocol
+     *
+     * @return check sum
+     */
     public static String getProtocolChecksum(String filename, String protocol) {
         return getChecksum(filename, protocol);
     }
-    
+
+    /**
+     * Allows user to specify the protocol, e.g. MD5, SHA-1, SHA-256
+     *
+     * @param filename filename to checksum
+     * @param protocol protocol
+     *
+     * @return check sum
+     */
     public static String getChecksum(String filename, String protocol) {
 
         try {
@@ -49,4 +65,28 @@ public class CheckSum {
         }
         return builder.toString();
     }
+
+    /**
+     * Allows user to specify the protocol, e.g. MD5, SHA-1, SHA-256
+     *
+     * @param str string to checksum
+     * @param protocol protocol
+     *
+     * @return check sum
+     */
+    public static String getChecksumForString(String str, String protocol) {
+
+        // from https://www.mkyong.com/java/java-md5-hashing-example/
+        try {
+            MessageDigest md = MessageDigest.getInstance(protocol);
+            md.update(str.getBytes());
+            byte byteData[] = md.digest();
+            return convertBytesToHex(byteData);
+        } catch (Exception e) {
+            myLogger.error("getChecksumForString: problem getting checksum: " + e.getMessage());
+            throw new IllegalStateException("CheckSum: getChecksumForString: error: " + e.getMessage());
+        }
+
+    }
+
 }
