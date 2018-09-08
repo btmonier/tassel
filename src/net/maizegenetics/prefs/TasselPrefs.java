@@ -39,6 +39,8 @@ public class TasselPrefs {
     public static final int TASSEL_LOG_Y_DIM_DEFAULT = -1;
     public static final String TASSEL_MAX_THREADS = "maxThreads";
     public static final int TASSEL_MAX_THREADS_DEFAULT = Math.max(Runtime.getRuntime().availableProcessors() - 1, 1);
+    public static final String TASSEL_CONFIG_FILE = "configFile";
+    public static final String TASSEL_CONFIG_FILE_DEFAULT = "";
     //
     // ExportPlugin preferences
     //
@@ -306,6 +308,14 @@ public class TasselPrefs {
             return;
         }
         putIntPref(TASSEL_TOP, TASSEL_MAX_THREADS, value);
+    }
+
+    public static String getConfigFile() {
+        return getPref(TASSEL_TOP, TASSEL_CONFIG_FILE, TASSEL_CONFIG_FILE_DEFAULT);
+    }
+
+    public static void putConfigFile(String value) {
+        putPref(TASSEL_TOP, TASSEL_CONFIG_FILE, value);
     }
 
     //

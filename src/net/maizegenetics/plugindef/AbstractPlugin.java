@@ -333,6 +333,42 @@ abstract public class AbstractPlugin implements Plugin {
 
     }
 
+    private void setFieldsToConfigParameters(Map<String, JComponent> parameterFields) {
+
+        final List<PluginParameter<?>> parameterInstances = getParameterInstances();
+        if (parameterInstances.isEmpty()) {
+            return;
+        }
+
+        for (final PluginParameter<?> current : parameterInstances) {
+            JComponent component = parameterFields.get(current.cmdLineName());
+            setFieldToConfigParameters(component, current);
+        }
+
+    }
+
+    private void setFieldToConfigParameters(JComponent component, PluginParameter<?> parameter) {
+
+        Optional<String> configValue = ParameterCache.value(this, parameter.cmdLineName());
+        if (!configValue.isPresent()) {
+            return;
+        }
+        try {
+            if (component instanceof JTextField) {
+                ((JTextField) component).setText(configValue.get());
+            } else if (component instanceof JCheckBox) {
+                Boolean value = convert(configValue.get(), Boolean.class);
+                ((JCheckBox) component).setSelected(value);
+            } else if (component instanceof JComboBox) {
+                Object value = convert(configValue.get(), parameter.valueType());
+                ((JComboBox) component).setSelectedItem(value);
+            }
+        } catch (Exception e) {
+            myLogger.warn("setFieldToConfigParameters: problem with configuration key: " + this.getClass().getName() + "." + parameter.cmdLineName() + "  value: " + configValue.get() + "\n" + e.getMessage());
+        }
+
+    }
+
     public void setConfigParameters() {
 
         if (ParameterCache.hasValues()) {
@@ -340,7 +376,11 @@ abstract public class AbstractPlugin implements Plugin {
             for (PluginParameter<?> parameter : getParameterInstances()) {
                 Optional<String> value = ParameterCache.value(this, parameter.cmdLineName());
                 if (value.isPresent()) {
-                    setParameter(parameter, value.get());
+                    try {
+                        setParameter(parameter, value.get());
+                    } catch (Exception e) {
+                        myLogger.warn("setConfigParameters: problem with configuration key: " + this.getClass().getName() + "." + parameter.cmdLineName() + "  value: " + value.get() + "\n" + e.getMessage());
+                    }
                 }
             }
 
@@ -772,6 +812,7 @@ abstract public class AbstractPlugin implements Plugin {
             @Override
             public void actionPerformed(ActionEvent e) {
                 setFieldsToDefault(parameterFields);
+                setFieldsToConfigParameters(parameterFields);
             }
         });
 
