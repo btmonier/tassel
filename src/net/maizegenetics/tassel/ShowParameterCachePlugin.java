@@ -14,6 +14,8 @@ import java.util.Enumeration;
 import java.util.List;
 
 /**
+ * This plugin creates a table report of the key / value pairs stored in the @{@link ParameterCache}
+ *
  * @author Terry Casstevens
  * Created September 08, 2018
  */
