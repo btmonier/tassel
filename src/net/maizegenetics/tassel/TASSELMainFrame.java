@@ -73,6 +73,7 @@ import net.maizegenetics.analysis.tree.CreateTreePlugin;
 import net.maizegenetics.analysis.workflow.WorkflowPlugin;
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.gui.PrintHeapAction;
+import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Plugin;
 import net.maizegenetics.plugindef.PluginEvent;
@@ -234,6 +235,8 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         jMenuBar.add(getHelpMenu());
 
         this.setJMenuBar(jMenuBar);
+
+        updatePluginsWithGlobalConfigParameters();
 
     }
 
@@ -466,6 +469,14 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
 
     }
 
+    void updatePluginsWithGlobalConfigParameters() {
+
+        for (Plugin plugin : myMenuItemHash.values()) {
+            ((AbstractPlugin) plugin).setConfigParameters();
+        }
+
+    }
+
     private JMenu getFiltersMenu() {
         JMenu result = new JMenu("Filter");
         result.setMnemonic(KeyEvent.VK_F);
@@ -636,6 +647,7 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         }, -1));
 
         fileMenu.add(createMenuItem(new PreferencesDialog(this, true), true));
+        fileMenu.add(createMenuItem(new ShowParameterCachePlugin(this, true), true));
 
         fileMenu.addSeparator();
 

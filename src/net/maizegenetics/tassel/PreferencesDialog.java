@@ -1,12 +1,14 @@
 package net.maizegenetics.tassel;
 
-import java.awt.Frame;
-import java.net.URL;
-import javax.swing.*;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
+import net.maizegenetics.plugindef.ParameterCache;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.prefs.TasselPrefs;
+
+import javax.swing.*;
+import java.awt.*;
+import java.net.URL;
 
 /**
  * @author Terry Casstevens
@@ -21,22 +23,39 @@ public class PreferencesDialog extends AbstractPlugin {
             .description("Flag whether to send logging to the console.")
             .build();
 
+    private PluginParameter<String> myConfigFile = new PluginParameter.Builder<>("configFile", TasselPrefs.TASSEL_CONFIG_FILE_DEFAULT, String.class)
+            .description("Global configuration file")
+            .required(false)
+            .inFile()
+            .build();
+
     public PreferencesDialog(Frame parentFrame, boolean isInteractive) {
         super(parentFrame, isInteractive);
+        // Load global parameter / value is config file specified
+        ParameterCache.load(TasselPrefs.getConfigFile());
     }
 
     @Override
     protected void preProcessParameters(DataSet input) {
         setParameter(myRetainRareAlleles, TasselPrefs.getAlignmentRetainRareAlleles());
         setParameter(mySendLogToConsole, TasselPrefs.getLogSendToConsole());
+        setParameter(myConfigFile, TasselPrefs.getConfigFile());
     }
 
     @Override
     public DataSet processData(DataSet input) {
+
         TasselPrefs.putAlignmentRetainRareAlleles(retainRareAlleles());
+
         TasselPrefs.putLogSendToConsole(sendLogToConsole());
         TasselLogging.updateLoggingLocation();
+
+        TasselPrefs.putConfigFile(configFile());
+        ParameterCache.load(TasselPrefs.getConfigFile());
+        ((TASSELMainFrame)getParentFrame()).updatePluginsWithGlobalConfigParameters();
+
         return null;
+
     }
 
     /**
@@ -78,6 +97,27 @@ public class PreferencesDialog extends AbstractPlugin {
      */
     public PreferencesDialog sendLogToConsole(Boolean value) {
         mySendLogToConsole = new PluginParameter<>(mySendLogToConsole, value);
+        return this;
+    }
+
+    /**
+     * Global configuration file
+     *
+     * @return Config File
+     */
+    public String configFile() {
+        return myConfigFile.value();
+    }
+
+    /**
+     * Set Config File. Global configuration file
+     *
+     * @param value Config File
+     *
+     * @return this plugin
+     */
+    public PreferencesDialog configFile(String value) {
+        myConfigFile = new PluginParameter<>(myConfigFile, value);
         return this;
     }
 

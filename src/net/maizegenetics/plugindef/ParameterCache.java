@@ -4,6 +4,7 @@ import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
+import java.util.Enumeration;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -43,14 +44,18 @@ public class ParameterCache {
      */
     public static void load(String filename) {
 
-        if (CACHE != null) {
-            throw new IllegalStateException("ParameterCache: load: cache already loaded.");
+        if (filename == null || filename.trim().isEmpty()) {
+            CACHE = null;
+            return;
         }
+
+        myLogger.info("load: loading parameter cache with: " + filename);
 
         CACHE = new Properties();
         try (BufferedReader reader = Utils.getBufferedReader(filename)) {
             CACHE.load(reader);
         } catch (Exception e) {
+            CACHE = null;
             myLogger.debug(e.getMessage(), e);
             throw new IllegalArgumentException("ParameterCache: load: problem reading properties file: " + filename);
         }
@@ -87,12 +92,33 @@ public class ParameterCache {
     }
 
     /**
+     * Returns the value if any for the given key.
+     *
+     * @param key key
+     *
+     * @return value if exists
+     */
+    public static Optional<String> value(String key) {
+        if (CACHE == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(CACHE.getProperty(key));
+    }
+
+    /**
      * Returns true if this cache has been loaded with values.
      *
      * @return true if this cache has been loaded with values.
      */
     public static boolean hasValues() {
         return CACHE != null;
+    }
+
+    public static Enumeration<?> keys() {
+        if (CACHE == null) {
+            return null;
+        }
+        return CACHE.propertyNames();
     }
 
 }
