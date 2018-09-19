@@ -261,6 +261,11 @@ abstract public class AbstractPlugin implements Plugin {
                 }
             } else if (outputClass.isAssignableFrom(DistanceMatrix.class)) {
                 return (T) ReadDistanceMatrix.readDistanceMatrix(input);
+            } else if (outputClass.isAssignableFrom(Character.class)) {
+                if (input.length() != 1) {
+                    throw new IllegalArgumentException("Should be one character");
+                }
+                return (T) new Character(input.charAt(0));
             } else {
                 return outputClass.getConstructor(String.class).newInstance(input);
             }
