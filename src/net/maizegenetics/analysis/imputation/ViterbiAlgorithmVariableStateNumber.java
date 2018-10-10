@@ -124,16 +124,16 @@ public class ViterbiAlgorithmVariableStateNumber {
 //		if (node > 5) System.exit(0);
 		//end debug
 		
-		//if the min distance is less than -1e100, subtract the max distance;
+		//if the min distance is less than -1e100, subtract the min distance;
 		double maxd = distance[0];
 		double mind = 0;
 		for (int i = 0; i < numberOfCurrentNodeStates; i++) {
-			if (distance[i] > maxd) maxd = distance[i];
+//			if (distance[i] > maxd) maxd = distance[i];
 			if (distance[i] != Double.NEGATIVE_INFINITY && distance[i] < mind) mind = distance[i];
 		}
 		if (mind < -1e100) {
 			for (int i = 0; i < numberOfCurrentNodeStates; i++) {
-				distance[i] -= maxd;
+				distance[i] -= mind;
 			}
 		}
 	}
