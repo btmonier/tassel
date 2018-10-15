@@ -12,7 +12,9 @@ public class EmissionProbability {
 	}
 	
 	public double getLnProbObsGivenState(int state, int obs) {
-		return Math.log(getProbObsGivenState(state, obs));
+	    double prob = getProbObsGivenState(state, obs);
+	    if (prob == 0.0) prob = Double.MIN_VALUE;
+		return Math.log(prob);
 	}
 
 	public double getProbObsGivenState(int state, int obs, int node) {
@@ -20,7 +22,9 @@ public class EmissionProbability {
 	}
 	
 	public double getLnProbObsGivenState(int state, int obs, int node) {
-		return Math.log(getProbObsGivenState(state, obs, node));
+        double prob = getProbObsGivenState(state, obs, node);
+        if (prob == 0.0) prob = Double.MIN_VALUE;
+        return Math.log(prob);
 	}
 
 	public void setEmissionProbability(double[][] probabilityMatrix) {
