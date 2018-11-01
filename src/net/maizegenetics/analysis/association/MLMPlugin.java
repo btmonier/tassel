@@ -66,7 +66,7 @@ public class MLMPlugin extends AbstractPlugin {
     protected DistanceMatrix kinshipMatrix;
     protected boolean analyzeByColumn;
     protected boolean useP3D = true;
-    protected CompressionType compressionType = CompressionType.Optimum;
+    protected CompressionType compressionType = CompressionType.None;
     protected double compression = 1;
     private boolean writeOutputToFile = false;
     private String outputName = null;
@@ -359,8 +359,7 @@ class MLMOptionDialog extends JDialog implements ActionListener {
     JTextField txtCustom;
     boolean runClicked = false;
     boolean useP3D = true;
-    MLMPlugin.CompressionType compressionType = MLMPlugin.CompressionType.Optimum;
-    JPanel distancePanel;
+    MLMPlugin.CompressionType compressionType = MLMPlugin.CompressionType.None;
     boolean useDiscrete = true;
     boolean useRefprob = false;
     boolean useAlleleprob = false;
@@ -377,13 +376,13 @@ class MLMOptionDialog extends JDialog implements ActionListener {
         compressionPanel.setBorder(BorderFactory.createTitledBorder("Compression Level"));
 
         //the method radio buttons
-        btnOptimum = new JRadioButton("Optimum Level", true);
+        btnOptimum = new JRadioButton("Optimum Level", false);
         btnOptimum.setActionCommand("Optimum");
         btnOptimum.addActionListener(this);
         btnCustom = new JRadioButton("Custom Level:", false);
         btnCustom.setActionCommand("Custom");
         btnCustom.addActionListener(this);
-        btnNoCompression = new JRadioButton("No Compression", false);
+        btnNoCompression = new JRadioButton("No Compression", true);
         btnNoCompression.setActionCommand("None");
         btnNoCompression.addActionListener(this);
         btnEachMarker = new JRadioButton("Re-estimate after each marker", false);
