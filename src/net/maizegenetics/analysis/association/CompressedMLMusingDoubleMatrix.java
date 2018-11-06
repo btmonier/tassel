@@ -418,8 +418,7 @@ public class CompressedMLMusingDoubleMatrix {
                     int[] alleleCounts = null;
                     
                     if (useGenotypeCalls) {
-//                    	String[] genotypes = AssociationUtils.getNonMissingValues(myGenoPheno.getStringGenotype(m), missingObsForSite);
-                    	byte[] genotypes = AssociationUtils.getNonMissingBytes(myGenoPheno.genotypeAllTaxa(m), missingObsForSite);
+                    	byte[] genotypes = ModelEffectUtils.genotypesToUnphasedSorted(AssociationUtils.getNonMissingBytes(myGenoPheno.genotypeAllTaxa(m), missingObsForSite));
                         FactorModelEffect markerEffect = new FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypes, markerIds), true);
                         X = fixed2.concatenate(markerEffect.getX(), false);
                         nAlleles = markerEffect.getNumberOfLevels();

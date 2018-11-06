@@ -167,7 +167,14 @@ public class ModelEffectUtils {
     	
     	return IntStream.range(0,n).map(i -> genoMap.get(genotypes[i]).intValue()).toArray();
     }
-    
+
+    public static byte[] genotypesToUnphasedSorted(byte[] genotypes) {
+        byte[] unphasedSorted = new byte[genotypes.length];
+        for (int g = 0; g < genotypes.length; g++) 
+            unphasedSorted[g] = GenotypeTableUtils.getUnphasedSortedDiploidValue(genotypes[g]);
+        return unphasedSorted;
+    }
+
     public static <T> int[] getIntegerLevels(ArrayList<T> originalLevels, ArrayList<T> ids) {
     	int[] intLevels = new int[originalLevels.size()];
     	HashMap<T, Integer> levelMap = new HashMap<T,Integer>();
