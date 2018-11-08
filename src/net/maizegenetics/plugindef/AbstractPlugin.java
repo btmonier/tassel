@@ -37,14 +37,17 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -223,10 +226,12 @@ abstract public class AbstractPlugin implements Plugin {
             } else if (outputClass.isAssignableFrom(String.class)) {
                 return (T) input;
             } else if (outputClass.isAssignableFrom(Integer.class)) {
-                input = input.replace(",", "");
+                char groupingSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getGroupingSeparator();
+                input = input.replace(String.valueOf(groupingSeparator), "");
                 return (T) new Integer(new BigDecimal(input).intValueExact());
             } else if (outputClass.isAssignableFrom(Double.class)) {
-                input = input.replace(",", "");
+                char groupingSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getGroupingSeparator();
+                input = input.replace(String.valueOf(groupingSeparator), "");
                 return (T) new Double(new BigDecimal(input).doubleValue());
             } else if (outputClass.isAssignableFrom(List.class)) {
                 return (T) getListFromString(input);
@@ -1752,8 +1757,7 @@ abstract public class AbstractPlugin implements Plugin {
     }
 
     /**
-     * If interactive = true, the plugin will create dialogs and panels to
-     * interacts with the user
+     * If interactive = true, the plugin will create dialogs and panels to interacts with the user
      *
      * @return boolean
      */
@@ -1788,8 +1792,12 @@ abstract public class AbstractPlugin implements Plugin {
 
     }
 
-    protected List<PluginListener> getListeners() {
-        return myListeners;
+    public List<PluginListener> getListeners() {
+        return Collections.unmodifiableList(myListeners);
+    }
+
+    public boolean hasListeners() {
+        return !myListeners.isEmpty();
     }
 
     public List<Plugin> getInputs() {
