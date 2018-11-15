@@ -13,6 +13,7 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
+import net.maizegenetics.util.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,6 +48,7 @@ public class AddReferenceToGenotypePlugin extends AbstractPlugin {
         PositionList origPositions = orig.positions();
 
         PositionListBuilder builder = new PositionListBuilder();
+        builder.genomeVersion(Utils.getFilename(reference()));
 
         origPositions.forEach(position -> {
             GeneralPosition.Builder newPosBuilder = new GeneralPosition.Builder(position);
