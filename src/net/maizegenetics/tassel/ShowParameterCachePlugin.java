@@ -49,9 +49,18 @@ public class ShowParameterCachePlugin extends AbstractPlugin {
             return o1.compareTo(o2);
         });
 
-        TableReportBuilder builder = TableReportBuilder.getInstance("Parameter Cache", new String[]{"key", "value"});
+        TableReportBuilder builder = TableReportBuilder.getInstance("Parameter Cache", new String[]{"plugin", "parameter", "value"});
         for (String key : keyList) {
-            builder.add(new Object[]{key, ParameterCache.value(key).get()});
+            int index = key.lastIndexOf('.');
+            String plugin = "";
+            String parameter = null;
+            if (index == -1) {
+                parameter = key;
+            } else {
+                plugin = key.substring(0, index);
+                parameter = key.substring(index + 1);
+            }
+            builder.add(new Object[]{plugin, parameter, ParameterCache.value(key).get()});
         }
 
         return new DataSet(new Datum("Parameter Cache", builder.build(), null), this);
