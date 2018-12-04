@@ -1,21 +1,22 @@
 /*
- *  GeneratePluginCode
+ *  GenerateRCode
  */
 package net.maizegenetics.plugindef;
 
 import com.google.common.base.CaseFormat;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
-import net.maizegenetics.dna.snp.FilterGenotypeTable;
+import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.Date;
 
 /**
- *
  * @author Terry Casstevens
+ * @author Ed Buckler
  */
 public class GenerateRCode {
 
@@ -26,10 +27,41 @@ public class GenerateRCode {
     }
 
     public static void main(String[] args) {
+        printHeader();
         generate(FilterSiteBuilderPlugin.class, "genotypeTable");
-        //FilterSiteBuilderPlugin filterPlugin = new FilterSiteBuilderPlugin();
-        //filterPlugin.setParameter("siteMinCount","0");
-        //filterPlugin.runPlugin()
+        generate(FilterTaxaBuilderPlugin.class, "genotypeTable");
+    }
+
+    private static void printHeader() {
+
+        System.out.println("#!/usr/bin/env Rscript");
+
+        System.out.println("\n#--------------------------------------------------------------------");
+        System.out.println("# Script Name:   rTASSEL.R");
+        System.out.println("# Description:   Generated R interface to TASSEL 5");
+        System.out.println("# Author:        Brandon Monier, Ed Buckler, Terry Casstevens");
+        System.out.print("# Created:       ");
+        System.out.println(new Date());
+        System.out.println("#--------------------------------------------------------------------");
+
+        System.out.println("\n## Load packages");
+        System.out.println("if (!requireNamespace(\"BiocManager\")) {");
+        System.out.println("    install.packages(\"BiocManager\")");
+        System.out.println("}");
+
+        System.out.println("\npackages <- c(");
+        System.out.println("\"rJava\"");
+        System.out.println(")");
+        System.out.println("BiocManager::install(packages)");
+        System.out.println("        library(rJava)");
+
+        System.out.println("\n## Init JVM");
+        System.out.println("rJava::.jinit()");
+
+        System.out.println("\n## Add TASSEL 5 class path");
+        System.out.println("rJava::.jaddClassPath(\"/tassel-5-standalone/lib\")");
+        System.out.println("rJava::.jaddClassPath(\"/tassel-5-standalone/sTASSEL.jar\")\n");
+
     }
 
     public static void generate(Class currentMatch, String inputObject) {
@@ -51,11 +83,11 @@ public class GenerateRCode {
         }
     }
 
-    private static void generate(AbstractPlugin plugin,String inputObject) {
+    private static void generate(AbstractPlugin plugin, String inputObject) {
         String clazz = Utils.getBasename(plugin.getClass().getName());
-        StringBuilder sb=new StringBuilder("rTASSEL::"+stringToCamelCase(clazz));
+        StringBuilder sb = new StringBuilder("rTASSEL::" + stringToCamelCase(clazz));
         sb.append(" <- function(");
-        sb.append(inputObject+",\n");
+        sb.append(inputObject + ",\n");
         for (Field field : plugin.getParameterFields()) {
             PluginParameter<?> current = null;
             try {
@@ -66,14 +98,14 @@ public class GenerateRCode {
             }
             //String guiNameAsCamelCase = stringToCamelCase(current.guiName());
             String methodName = removeMyFromString(field.getName());
-            if(!(current.defaultValue() instanceof Number)) continue;
-            sb.append("            "+methodName+"="+current.defaultValue()+",\n");
+            if (!(current.defaultValue() instanceof Number)) continue;
+            sb.append("            " + methodName + "=" + current.defaultValue() + ",\n");
 
         }
         sb.deleteCharAt(sb.lastIndexOf(","));//remove last comma
 
         sb.append(") {\n");
-        sb.append("    plugin <- rJava::.jnew(\""+plugin.getClass().getCanonicalName()+"\")\n");
+        sb.append("    plugin <- rJava::.jnew(\"" + plugin.getClass().getCanonicalName() + "\")\n");
         for (Field field : plugin.getParameterFields()) {
             PluginParameter<?> current = null;
             try {
@@ -83,11 +115,11 @@ public class GenerateRCode {
                 System.exit(1);
             }
             //String guiNameAsCamelCase = stringToCamelCase(current.guiName());
-            if(!(current.defaultValue() instanceof Number)) continue;
+            if (!(current.defaultValue() instanceof Number)) continue;
             String methodName = removeMyFromString(field.getName());
-            sb.append("    plugin$setParameter(\""+methodName+"\",toString("+methodName+"))\n");
+            sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
         }
-        sb.append("    plugin$runPlugin("+inputObject+")\n");
+        sb.append("    plugin$runPlugin(" + inputObject + ")\n");
         sb.append("}\n");
         System.out.println(sb.toString());
     }
