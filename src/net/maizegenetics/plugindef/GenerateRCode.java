@@ -4,6 +4,7 @@
 package net.maizegenetics.plugindef;
 
 import com.google.common.base.CaseFormat;
+import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
 import net.maizegenetics.util.Utils;
@@ -30,6 +31,7 @@ public class GenerateRCode {
         printHeader();
         generate(FilterSiteBuilderPlugin.class, "genotypeTable");
         generate(FilterTaxaBuilderPlugin.class, "genotypeTable");
+        generate(KinshipPlugin.class, "genotypeTable");
     }
 
     private static void printHeader() {
@@ -37,12 +39,15 @@ public class GenerateRCode {
         System.out.println("#!/usr/bin/env Rscript");
 
         System.out.println("\n#--------------------------------------------------------------------");
-        System.out.println("# Script Name:   rTASSEL.R");
+        System.out.println("# Script Name:   TasselPluginWrappers.R");
         System.out.println("# Description:   Generated R interface to TASSEL 5");
         System.out.println("# Author:        Brandon Monier, Ed Buckler, Terry Casstevens");
         System.out.print("# Created:       ");
         System.out.println(new Date());
         System.out.println("#--------------------------------------------------------------------");
+
+        System.out.println("# Preamble\n");
+        System.out.println("source(\"R/AllClasses.R\")");
 
         System.out.println("\n## Load packages");
         System.out.println("if (!requireNamespace(\"BiocManager\")) {");
@@ -53,7 +58,7 @@ public class GenerateRCode {
         System.out.println("\"rJava\"");
         System.out.println(")");
         System.out.println("BiocManager::install(packages)");
-        System.out.println("        library(rJava)");
+        System.out.println("library(rJava)");
 
         System.out.println("\n## Init JVM");
         System.out.println("rJava::.jinit()");
@@ -84,8 +89,10 @@ public class GenerateRCode {
     }
 
     private static void generate(AbstractPlugin plugin, String inputObject) {
+
         String clazz = Utils.getBasename(plugin.getClass().getName());
-        StringBuilder sb = new StringBuilder("rTASSEL::" + stringToCamelCase(clazz));
+        //StringBuilder sb = new StringBuilder("rTASSEL::" + stringToCamelCase(clazz));
+        StringBuilder sb = new StringBuilder(stringToCamelCase(clazz));
         sb.append(" <- function(");
         sb.append(inputObject + ",\n");
         for (Field field : plugin.getParameterFields()) {
@@ -96,13 +103,15 @@ public class GenerateRCode {
                 e.printStackTrace();
                 System.exit(1);
             }
-            //String guiNameAsCamelCase = stringToCamelCase(current.guiName());
             String methodName = removeMyFromString(field.getName());
-            if (!(current.defaultValue() instanceof Number)) continue;
-            sb.append("            " + methodName + "=" + current.defaultValue() + ",\n");
+            if ((current.defaultValue() instanceof Number)) {
+                sb.append("            " + methodName + "=" + current.defaultValue() + ",\n");
+            } else if ((current.defaultValue() instanceof Enum)) {
+                sb.append("            " + methodName + "=" + current.defaultValue() + ",\n");
+            }
 
         }
-        sb.deleteCharAt(sb.lastIndexOf(","));//remove last comma
+        sb.deleteCharAt(sb.lastIndexOf(",")); //remove last comma
 
         sb.append(") {\n");
         sb.append("    plugin <- rJava::.jnew(\"" + plugin.getClass().getCanonicalName() + "\")\n");
@@ -114,14 +123,18 @@ public class GenerateRCode {
                 e.printStackTrace();
                 System.exit(1);
             }
-            //String guiNameAsCamelCase = stringToCamelCase(current.guiName());
-            if (!(current.defaultValue() instanceof Number)) continue;
-            String methodName = removeMyFromString(field.getName());
-            sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
+            if ((current.defaultValue() instanceof Number)) {
+                String methodName = removeMyFromString(field.getName());
+                sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
+            } else if ((current.defaultValue() instanceof Enum)) {
+                String methodName = removeMyFromString(field.getName());
+                sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
+            }
         }
         sb.append("    plugin$runPlugin(" + inputObject + ")\n");
         sb.append("}\n");
         System.out.println(sb.toString());
+
     }
 
     private static final int DEFAULT_DESCRIPTION_LINE_LENGTH = 50;
