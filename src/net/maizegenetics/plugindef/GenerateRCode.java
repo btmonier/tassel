@@ -47,8 +47,7 @@ public class GenerateRCode {
         System.out.println("#--------------------------------------------------------------------");
 
         System.out.println("# Preamble\n");
-        System.out.println("source(\"R/AllClasses.R\")");
-
+        
         System.out.println("\n## Load packages");
         System.out.println("if (!requireNamespace(\"BiocManager\")) {");
         System.out.println("    install.packages(\"BiocManager\")");
@@ -66,6 +65,8 @@ public class GenerateRCode {
         System.out.println("\n## Add TASSEL 5 class path");
         System.out.println("rJava::.jaddClassPath(\"/tassel-5-standalone/lib\")");
         System.out.println("rJava::.jaddClassPath(\"/tassel-5-standalone/sTASSEL.jar\")\n");
+
+        System.out.println("source(\"R/AllClasses.R\")");
 
     }
 
