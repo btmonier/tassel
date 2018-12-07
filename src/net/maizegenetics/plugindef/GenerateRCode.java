@@ -103,18 +103,19 @@ public class GenerateRCode {
                 e.printStackTrace();
                 System.exit(1);
             }
-            String methodName = removeMyFromString(field.getName());
+            String methodName = current.cmdLineName();
             if ((current.defaultValue() instanceof Number)) {
                 sb.append("            " + methodName + "=" + current.defaultValue() + ",\n");
             } else if ((current.defaultValue() instanceof Enum)) {
-                sb.append("            " + methodName + "=" + current.defaultValue() + ",\n");
+                sb.append("            " + methodName + "=\"" + current.defaultValue() + "\",\n");
             }
 
         }
         sb.deleteCharAt(sb.lastIndexOf(",")); //remove last comma
 
         sb.append(") {\n");
-        sb.append("    plugin <- rJava::.jnew(\"" + plugin.getClass().getCanonicalName() + "\")\n");
+        sb.append("    plugin <- new(J(\"" + plugin.getClass().getCanonicalName() + "\"), .jnull(), FALSE)\n");
+        //sb.append("    plugin <- rJava::.jnew(\"" + plugin.getClass().getCanonicalName() + "\")\n");
         for (Field field : plugin.getParameterFields()) {
             PluginParameter<?> current = null;
             try {
@@ -123,11 +124,10 @@ public class GenerateRCode {
                 e.printStackTrace();
                 System.exit(1);
             }
+            String methodName = current.cmdLineName();
             if ((current.defaultValue() instanceof Number)) {
-                String methodName = removeMyFromString(field.getName());
                 sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
             } else if ((current.defaultValue() instanceof Enum)) {
-                String methodName = removeMyFromString(field.getName());
                 sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
             }
         }
