@@ -13,6 +13,10 @@ import javax.swing.ImageIcon
 /**
  * @author Terry Casstevens
  * Created December 06, 2018
+ *
+ * This plugin takes a genotype matrix and creates a matrix of numbers.
+ * The number values are the count of alleles that do not match the major allele
+ * at each site / taxon.
  */
 
 class GenotypeToAdditiveValuesPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin(parentFrame, isInteractive) {
@@ -27,16 +31,19 @@ class GenotypeToAdditiveValuesPlugin(parentFrame: Frame?, isInteractive: Boolean
 
         val result = ColumnMatrix.Builder(genotype.numberOfTaxa(), genotype.numberOfSites())
 
-        for (s in 0 until genotype.numberOfSites()) {
-            val site = genotype.genotypeAllTaxa(s)
-            val alleleCounts = AlleleFreqCache.allelesSortedByFrequencyNucleotide(site)
+        for (site in 0 until genotype.numberOfSites()) {
+            val siteGenotypes = genotype.genotypeAllTaxa(site)
+            val alleleCounts = AlleleFreqCache.allelesSortedByFrequencyNucleotide(siteGenotypes)
             val majorAllele = AlleleFreqCache.majorAllele(alleleCounts)
-            for (t in 0 until genotype.numberOfTaxa()) {
+
+            // value assigned to site / taxon is the number of alleles
+            // that doesn't not match the major allele.
+            for (taxon in 0 until genotype.numberOfTaxa()) {
                 var value: Byte = 0
-                val alleles = GenotypeTableUtils.getDiploidValues(site[t])
+                val alleles = GenotypeTableUtils.getDiploidValues(siteGenotypes[taxon])
                 if (alleles[0] != majorAllele) value++
                 if (alleles[1] != majorAllele) value++
-                result.set(t, s, value)
+                result.set(taxon, site, value)
             }
         }
 

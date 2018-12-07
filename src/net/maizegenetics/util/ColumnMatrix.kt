@@ -3,6 +3,8 @@ package net.maizegenetics.util
 /**
  * @author Terry Casstevens
  * Created December 06, 2018
+ *
+ * This class optimizes read-only column access of a byte matrix.
  */
 
 class ColumnMatrix private constructor(private val matrix: SuperByteMatrix) {
