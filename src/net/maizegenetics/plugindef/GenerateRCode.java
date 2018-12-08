@@ -7,12 +7,18 @@ import com.google.common.base.CaseFormat;
 import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
+import net.maizegenetics.dna.map.Position;
+import net.maizegenetics.dna.snp.GenotypeTable;
+import net.maizegenetics.dna.snp.GenotypeTableUtils;
+import net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache;
+import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -185,6 +191,80 @@ public class GenerateRCode {
             str = str.substring(2);
         }
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, str);
+    }
+
+    /**
+     * Temporary place for this experimental method.
+     * @param genotype
+     * @return int[] in column order with NA set to R approach
+     */
+    public static int[] genotypeTableToDosageIntArray(GenotypeTable genotype) {
+
+        int[] result = new int[genotype.numberOfTaxa()*genotype.numberOfSites()];
+
+        int index=0;
+        for (int site=0; site< genotype.numberOfSites(); site++) {
+            byte[] siteGenotypes = genotype.genotypeAllTaxa(site);
+            int[][] alleleCounts = AlleleFreqCache.allelesSortedByFrequencyNucleotide(siteGenotypes);
+            byte majorAllele = AlleleFreqCache.majorAllele(alleleCounts);
+            // value assigned to site / taxon is the number of alleles
+            // that doesn't not match the major allele.
+            for (int taxon=0; taxon< genotype.numberOfTaxa(); taxon++) {
+                int value = 0;
+                byte[] alleles = GenotypeTableUtils.getDiploidValues(siteGenotypes[taxon]);
+                if(alleles[0]==GenotypeTable.UNKNOWN_ALLELE || alleles[1]==GenotypeTable.UNKNOWN_ALLELE) {
+                    value = Integer.MIN_VALUE;
+                } else {
+                    if (alleles[0] != majorAllele) value++;
+                    if (alleles[1] != majorAllele) value++;
+                }
+                result[index++]=value;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Temporary place for this experimental method.
+     * @param genotype
+     * @return int[] in column order with NA set to R approach
+     */
+    public static String[] genotypeTableToSampleNameArray(GenotypeTable genotype) {
+        return (String[]) genotype.taxa().stream()
+            .map(Taxon::getName)
+            .toArray();
+    }
+
+    /**
+     * Temporary place for this experimental method.
+     * @param genotype
+     * @return int[] in column order with NA set to R approach
+     */
+    public static java.util.List genotypeTableToPositionListOfArrays(GenotypeTable genotype) {
+
+        String[] chromosomes=new String[genotype.numberOfSites()];
+        int[] startPos=new int[genotype.numberOfSites()];
+        int[] strand=new int[genotype.numberOfSites()];
+        String[] refAllele=new String[genotype.numberOfSites()];
+        String[] altAllele=new String[genotype.numberOfSites()];
+
+        for (int site=0; site< genotype.numberOfSites(); site++) {
+            Position p=genotype.positions().get(site);
+            chromosomes[site]=p.getChromosome().getName();
+            startPos[site]=p.getPosition();
+            strand[site]=p.getStrand();
+            String[] variants=p.getKnownVariants();
+            refAllele[site]=(variants.length>0)?variants[0]:"";
+            altAllele[site]=(variants.length>1)?variants[1]:"";
+        }
+        //This can be replace with a custom class in the future or List.of in Java 9
+        java.util.List<Object> list=new ArrayList<>();
+        list.add(chromosomes);
+        list.add(startPos);
+        list.add(strand);
+        list.add(refAllele);
+        list.add(altAllele);
+        return list;
     }
 
 }
