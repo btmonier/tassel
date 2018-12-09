@@ -240,7 +240,7 @@ public class GenerateRCode {
      * @param genotype
      * @return int[] in column order with NA set to R approach
      */
-    public static java.util.List genotypeTableToPositionListOfArrays(GenotypeTable genotype) {
+    public static int[] genotypeTableToPositionListOfArrays(GenotypeTable genotype) {
 
         String[] chromosomes=new String[genotype.numberOfSites()];
         int[] startPos=new int[genotype.numberOfSites()];
@@ -257,14 +257,33 @@ public class GenerateRCode {
             refAllele[site]=(variants.length>0)?variants[0]:"";
             altAllele[site]=(variants.length>1)?variants[1]:"";
         }
-        //This can be replace with a custom class in the future or List.of in Java 9
-        java.util.List<Object> list=new ArrayList<>();
-        list.add(chromosomes);
-        list.add(startPos);
-        list.add(strand);
-        list.add(refAllele);
-        list.add(altAllele);
-        return list;
+
+        return startPos;
+       // return new PositionVectors(chromosomes,startPos,strand,refAllele,altAllele);
+//        //This can be replace with a custom class in the future or List.of in Java 9
+//        java.util.List list=new ArrayList<>();
+//        list.add(chromosomes);
+//        list.add(startPos);
+//        list.add(strand);
+//        list.add(refAllele);
+//        list.add(altAllele);
+//        return list;
+    }
+
+    public static class PositionVectors {
+        public String[] chromosomes;
+        public int[] startPos;
+        public int[] strand;
+        public String[] refAllele;
+        public String[] altAllele;
+
+        public PositionVectors(String[] chromosomes, int[] startPos, int[] strand, String[] refAllele, String[] altAllele) {
+            this.chromosomes = chromosomes;
+            this.startPos = startPos;
+            this.strand = strand;
+            this.refAllele = refAllele;
+            this.altAllele = altAllele;
+        }
     }
 
 }
