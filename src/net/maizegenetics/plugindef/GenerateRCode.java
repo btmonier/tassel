@@ -230,9 +230,9 @@ public class GenerateRCode {
      * @return int[] in column order with NA set to R approach
      */
     public static String[] genotypeTableToSampleNameArray(GenotypeTable genotype) {
-        return (String[]) genotype.taxa().stream()
+        return genotype.taxa().stream()
             .map(Taxon::getName)
-            .toArray();
+                .toArray(String[]::new);
     }
 
     /**
@@ -240,7 +240,7 @@ public class GenerateRCode {
      * @param genotype
      * @return int[] in column order with NA set to R approach
      */
-    public static int[] genotypeTableToPositionListOfArrays(GenotypeTable genotype) {
+    public static PositionVectors genotypeTableToPositionListOfArrays(GenotypeTable genotype) {
 
         String[] chromosomes=new String[genotype.numberOfSites()];
         int[] startPos=new int[genotype.numberOfSites()];
@@ -258,8 +258,8 @@ public class GenerateRCode {
             altAllele[site]=(variants.length>1)?variants[1]:"";
         }
 
-        return startPos;
-       // return new PositionVectors(chromosomes,startPos,strand,refAllele,altAllele);
+       // return startPos;
+        return new PositionVectors(chromosomes,startPos,strand,refAllele,altAllele);
 //        //This can be replace with a custom class in the future or List.of in Java 9
 //        java.util.List list=new ArrayList<>();
 //        list.add(chromosomes);
