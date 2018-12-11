@@ -144,14 +144,16 @@ public class GenerateRCode {
                 sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
             }
         }
-        sb.append("    plugin$runPlugin(" + inputObject + ")\n");
-
+        
         if (outputObject.equals("genotypeTable")) {
+            sb.append("    filteredGT <- plugin$runPlugin(" + inputObject + ")\n");
             sb.append("    new(\n");
             sb.append("        Class = \"GenotypeTable\",\n");
             sb.append("        name = paste0(\"Filtered:\"),\n");
             sb.append("        jtsGenotypeTable = filteredGT\n");
             sb.append("    )\n");
+        } else {
+            sb.append("    plugin$runPlugin(" + inputObject + ")\n");
         }
 
         sb.append("}\n");
