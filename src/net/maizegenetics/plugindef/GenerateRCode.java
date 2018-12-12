@@ -8,9 +8,11 @@ import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
 import net.maizegenetics.dna.map.Position;
+import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache;
+import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
@@ -19,6 +21,9 @@ import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Date;
+
+import static net.maizegenetics.dna.map.Position.STRAND_MINUS;
+import static net.maizegenetics.dna.map.Position.STRAND_PLUS;
 
 /**
  * @author Terry Casstevens
@@ -251,7 +256,11 @@ public class GenerateRCode {
      * @return int[] in column order with NA set to R approach
      */
     public static String[] genotypeTableToSampleNameArray(GenotypeTable genotype) {
-        return genotype.taxa().stream()
+        return genotypeTableToSampleNameArray(genotype.taxa());
+    }
+
+    public static String[] genotypeTableToSampleNameArray(TaxaList taxa) {
+        return taxa.stream()
                 .map(Taxon::getName)
                 .toArray(String[]::new);
     }
@@ -259,38 +268,33 @@ public class GenerateRCode {
     /**
      * Temporary place for this experimental method.
      *
-     * @param genotype
+     * @param positions
      *
      * @return int[] in column order with NA set to R approach
      */
-    public static PositionVectors genotypeTableToPositionListOfArrays(GenotypeTable genotype) {
+    public static PositionVectors genotypeTableToPositionListOfArrays(PositionList positions) {
 
-        String[] chromosomes = new String[genotype.numberOfSites()];
-        int[] startPos = new int[genotype.numberOfSites()];
-        int[] strand = new int[genotype.numberOfSites()];
-        String[] refAllele = new String[genotype.numberOfSites()];
-        String[] altAllele = new String[genotype.numberOfSites()];
+        String[] chromosomes = new String[positions.numberOfSites()];
+        int[] startPos = new int[positions.numberOfSites()];
+        int[] strand = new int[positions.numberOfSites()];
+        String[] refAllele = new String[positions.numberOfSites()];
+        String[] altAllele = new String[positions.numberOfSites()];
 
-        for (int site = 0; site < genotype.numberOfSites(); site++) {
-            Position p = genotype.positions().get(site);
+        for (int site = 0; site < positions.numberOfSites(); site++) {
+            Position p = positions.get(site);
             chromosomes[site] = p.getChromosome().getName();
             startPos[site] = p.getPosition();
-            strand[site] = p.getStrand();
+            strand[site] = (p.getStrand()==STRAND_PLUS)?(1):((p.getStrand()==STRAND_MINUS)?(-1):(Integer.MIN_VALUE));
             String[] variants = p.getKnownVariants();
             refAllele[site] = (variants.length > 0) ? variants[0] : "";
             altAllele[site] = (variants.length > 1) ? variants[1] : "";
         }
 
-        // return startPos;
         return new PositionVectors(chromosomes, startPos, strand, refAllele, altAllele);
-//        //This can be replace with a custom class in the future or List.of in Java 9
-//        java.util.List list=new ArrayList<>();
-//        list.add(chromosomes);
-//        list.add(startPos);
-//        list.add(strand);
-//        list.add(refAllele);
-//        list.add(altAllele);
-//        return list;
+    }
+
+    public static PositionVectors genotypeTableToPositionListOfArrays(GenotypeTable genotype) {
+        return genotypeTableToPositionListOfArrays(genotype.positions());
     }
 
     public static class PositionVectors {
