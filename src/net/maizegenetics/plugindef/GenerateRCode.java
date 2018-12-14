@@ -4,6 +4,7 @@
 package net.maizegenetics.plugindef;
 
 import com.google.common.base.CaseFormat;
+import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
 import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
@@ -12,15 +13,21 @@ import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache;
+import net.maizegenetics.phenotype.Phenotype;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
+import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
-import java.awt.*;
+import java.awt.Frame;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.maizegenetics.dna.map.Position.STRAND_MINUS;
 import static net.maizegenetics.dna.map.Position.STRAND_PLUS;
@@ -42,6 +49,8 @@ public class GenerateRCode {
         generate(FilterSiteBuilderPlugin.class, "genotypeTable", "genotypeTable");
         generate(FilterTaxaBuilderPlugin.class, "genotypeTable", "genotypeTable");
         generate(KinshipPlugin.class, "genotypeTable", "distanceMatrix");
+        generate(FixedEffectLMPlugin.class, "phenotypeGenotypeTable", "tableReport");
+
     }
 
     private static void printHeader() {
@@ -115,7 +124,7 @@ public class GenerateRCode {
                 System.exit(1);
             }
             String methodName = current.cmdLineName();
-            if ((current.defaultValue() instanceof Number)) {
+            if ((current.defaultValue() instanceof Number) || (current.defaultValue() instanceof Boolean) || (current.defaultValue() instanceof String)) {
                 sb.append("            " + methodName + "=" + current.defaultValue() + ",\n");
             } else if ((current.defaultValue() instanceof Enum)) {
                 sb.append("            " + methodName + "=\"" + current.defaultValue() + "\",\n");
@@ -143,13 +152,13 @@ public class GenerateRCode {
                 System.exit(1);
             }
             String methodName = current.cmdLineName();
-            if ((current.defaultValue() instanceof Number)) {
+            if ((current.defaultValue() instanceof Number) || (current.defaultValue() instanceof Boolean) || (current.defaultValue() instanceof String)) {
                 sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
             } else if ((current.defaultValue() instanceof Enum)) {
                 sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
             }
         }
-        
+
         if (outputObject.equals("genotypeTable")) {
             sb.append("    filteredGT <- plugin$runPlugin(" + inputObject + ")\n");
             sb.append("    new(\n");
@@ -219,7 +228,6 @@ public class GenerateRCode {
      * Temporary place for this experimental method.
      *
      * @param genotype
-     *
      * @return int[] in column order with NA set to R approach
      */
     public static int[] genotypeTableToDosageIntArray(GenotypeTable genotype) {
@@ -252,7 +260,6 @@ public class GenerateRCode {
      * Temporary place for this experimental method.
      *
      * @param genotype
-     *
      * @return int[] in column order with NA set to R approach
      */
     public static String[] genotypeTableToSampleNameArray(GenotypeTable genotype) {
@@ -269,7 +276,6 @@ public class GenerateRCode {
      * Temporary place for this experimental method.
      *
      * @param positions
-     *
      * @return int[] in column order with NA set to R approach
      */
     public static PositionVectors genotypeTableToPositionListOfArrays(PositionList positions) {
@@ -284,7 +290,7 @@ public class GenerateRCode {
             Position p = positions.get(site);
             chromosomes[site] = p.getChromosome().getName();
             startPos[site] = p.getPosition();
-            strand[site] = (p.getStrand()==STRAND_PLUS)?(1):((p.getStrand()==STRAND_MINUS)?(-1):(Integer.MIN_VALUE));
+            strand[site] = (p.getStrand() == STRAND_PLUS) ? (1) : ((p.getStrand() == STRAND_MINUS) ? (-1) : (Integer.MIN_VALUE));
             String[] variants = p.getKnownVariants();
             refAllele[site] = (variants.length > 0) ? variants[0] : "";
             altAllele[site] = (variants.length > 1) ? variants[1] : "";
@@ -310,6 +316,59 @@ public class GenerateRCode {
             this.strand = strand;
             this.refAllele = refAllele;
             this.altAllele = altAllele;
+        }
+    }
+
+    /**
+     * Temporary place for this experimental method.
+     *
+     * @param positions
+     * @return int[] in column order with NA set to R approach
+     */
+    public static TableReportVectors tableReportToVectors(TableReport tableReport) {
+        if (tableReport.getRowCount() > Integer.MAX_VALUE)
+            throw new IndexOutOfBoundsException("R cannot handle more than " + Integer.MAX_VALUE + " rows");
+        int rows = (int) tableReport.getRowCount();
+        String[] columnNames = Stream.of(tableReport.getTableColumnNames()).map(Object::toString).toArray(String[]::new);
+        List dataVector = new ArrayList();
+        String[] columnType = Stream.of(tableReport.getRow(0)).map(t -> t.getClass().toString()).toArray(String[]::new);
+        for (int column = 0; column < tableReport.getColumnCount(); column++) {
+            Object o = tableReport.getValueAt(0, column);
+            if (o instanceof Float || o instanceof Double) {
+                double[] result = new double[rows];
+                for (int row = 0; row < tableReport.getRowCount(); row++) {
+                    result[row] = (Double) tableReport.getValueAt(row, column);
+                }
+                dataVector.add(result);
+            } else if (o instanceof Byte || o instanceof Short || o instanceof Integer || o instanceof Long) {
+                int[] result = new int[rows];
+                for (int row = 0; row < tableReport.getRowCount(); row++) {
+                    result[row] = (Integer) tableReport.getValueAt(row, column);
+                }
+                dataVector.add(result);
+            } else {
+                String[] result = new String[rows];
+                for (int row = 0; row < tableReport.getRowCount(); row++) {
+                    result[row] = tableReport.getValueAt(row, column).toString();
+                }
+                dataVector.add(result);
+            }
+        }
+        String[] annotation = new String[tableReport.getColumnCount()];
+        return new TableReportVectors(columnNames, columnType, annotation, dataVector);
+    }
+
+    public static class TableReportVectors {
+        public String[] columnNames;
+        public String[] columnType;
+        public String[] annotation;
+        public List dataVector = new ArrayList();
+
+        public TableReportVectors(String[] columnNames, String[] columnType, String[] annotation, List dataVector) {
+            this.columnNames = columnNames;
+            this.columnType = columnType;
+            this.annotation = annotation;
+            this.dataVector = dataVector;
         }
     }
 
