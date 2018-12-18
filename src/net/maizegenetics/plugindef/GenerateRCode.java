@@ -128,6 +128,8 @@ public class GenerateRCode {
                 sb.append("            " + methodName + "=" + current.defaultValue() + ",\n");
             } else if ((current.defaultValue() instanceof Enum)) {
                 sb.append("            " + methodName + "=\"" + current.defaultValue() + "\",\n");
+            } else if ((current.defaultValue() instanceof Boolean)) {
+                sb.append("            " + methodName + "=\"" + current.defaultValue() + "\",\n");
             }
 
         }
@@ -155,6 +157,8 @@ public class GenerateRCode {
             if ((current.defaultValue() instanceof Number) || (current.defaultValue() instanceof Boolean) || (current.defaultValue() instanceof String)) {
                 sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
             } else if ((current.defaultValue() instanceof Enum)) {
+                sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
+            } else if ((current.defaultValue() instanceof Boolean)) {
                 sb.append("    plugin$setParameter(\"" + methodName + "\",toString(" + methodName + "))\n");
             }
         }
