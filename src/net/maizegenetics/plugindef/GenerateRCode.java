@@ -8,20 +8,25 @@ import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
 import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
+import net.maizegenetics.dna.WHICH_ALLELE;
 import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache;
-import net.maizegenetics.phenotype.*;
+import net.maizegenetics.phenotype.CategoricalAttribute;
+import net.maizegenetics.phenotype.CorePhenotype;
+import net.maizegenetics.phenotype.NumericAttribute;
+import net.maizegenetics.phenotype.Phenotype;
+import net.maizegenetics.phenotype.PhenotypeAttribute;
+import net.maizegenetics.phenotype.TaxaAttribute;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
-import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
-import java.awt.Frame;
+import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -233,17 +238,31 @@ public class GenerateRCode {
      * Temporary place for this experimental method.
      *
      * @param genotype
+     *
      * @return int[] in column order with NA set to R approach
      */
-    public static int[] genotypeTableToDosageIntArray(GenotypeTable genotype) {
+    public static int[] genotypeTableToDosageIntArray(GenotypeTable genotype, boolean useRef) {
 
         int[] result = new int[genotype.numberOfTaxa() * genotype.numberOfSites()];
 
         int index = 0;
+        PositionList posList = genotype.positions();
         for (int site = 0; site < genotype.numberOfSites(); site++) {
             byte[] siteGenotypes = genotype.genotypeAllTaxa(site);
             int[][] alleleCounts = AlleleFreqCache.allelesSortedByFrequencyNucleotide(siteGenotypes);
             byte majorAllele = AlleleFreqCache.majorAllele(alleleCounts);
+
+            // Use reference if available.  If not, use major allele
+            Position posAtSite = posList.get(site);
+            byte refAllele = Byte.MAX_VALUE;
+            if (useRef) {
+                myLogger.info("genotypeTableToDosageIntArray: using refAlle at sites");
+                refAllele = posAtSite.getAllele(WHICH_ALLELE.Reference);
+            } else {
+                myLogger.info("genotypeTableToDosageIntArray: using majorAllele for ref at sites");
+                refAllele = AlleleFreqCache.majorAllele(alleleCounts);
+            }
+
             // value assigned to site / taxon is the number of alleles
             // that doesn't not match the major allele.
             for (int taxon = 0; taxon < genotype.numberOfTaxa(); taxon++) {
@@ -252,8 +271,8 @@ public class GenerateRCode {
                 if (alleles[0] == GenotypeTable.UNKNOWN_ALLELE || alleles[1] == GenotypeTable.UNKNOWN_ALLELE) {
                     value = Integer.MIN_VALUE;
                 } else {
-                    if (alleles[0] != majorAllele) value++;
-                    if (alleles[1] != majorAllele) value++;
+                    if (alleles[0] != refAllele) value++;
+                    if (alleles[1] != refAllele) value++;
                 }
                 result[index++] = value;
             }
@@ -265,6 +284,7 @@ public class GenerateRCode {
      * Temporary place for this experimental method.
      *
      * @param genotype
+     *
      * @return int[] in column order with NA set to R approach
      */
     public static String[] genotypeTableToSampleNameArray(GenotypeTable genotype) {
@@ -281,6 +301,7 @@ public class GenerateRCode {
      * Temporary place for this experimental method.
      *
      * @param positions
+     *
      * @return int[] in column order with NA set to R approach
      */
     public static PositionVectors genotypeTableToPositionListOfArrays(PositionList positions) {
@@ -328,6 +349,7 @@ public class GenerateRCode {
      * Temporary place for this experimental method.
      *
      * @param positions
+     *
      * @return int[] in column order with NA set to R approach
      */
     public static TableReportVectors tableReportToVectors(TableReport tableReport) {
@@ -396,28 +418,29 @@ public class GenerateRCode {
         types.add(Phenotype.ATTRIBUTE_TYPE.taxa);
 
         //TODO test for size of colNames
-        if(colNames.length!=attributeType.length || colNames.length!=dataVectors.size())
+        if (colNames.length != attributeType.length || colNames.length != dataVectors.size())
             throw new IllegalArgumentException("ColNames, attributeType, and dataVectors need to be same size");
         for (int i = 0; i < colNames.length; i++) {
             Object o = dataVectors.get(i);
-            if(o instanceof double[]) {
-                attributes.add(new NumericAttribute(colNames[i],(double[])o));
+            if (o instanceof double[]) {
+                attributes.add(new NumericAttribute(colNames[i], (double[]) o));
                 System.out.println(attributeType[i]);
-                Phenotype.ATTRIBUTE_TYPE attribute_type= Phenotype.ATTRIBUTE_TYPE.valueOf(attributeType[i]);
+                Phenotype.ATTRIBUTE_TYPE attribute_type = Phenotype.ATTRIBUTE_TYPE.valueOf(attributeType[i]);
                 types.add(attribute_type);
-            } else if(o instanceof int[]) {
+            } else if (o instanceof int[]) {
                 //INT min is NA
-                int[] initialTraits = (int[])o;
+                int[] initialTraits = (int[]) o;
                 float[] traitsValueWithNaN = new float[initialTraits.length];
-                for (int j = 0; j < initialTraits.length; j++) traitsValueWithNaN[j] = (initialTraits[j] == Integer.MIN_VALUE) ? Float.NaN : initialTraits[j];
-                attributes.add(new NumericAttribute(colNames[i],traitsValueWithNaN));
+                for (int j = 0; j < initialTraits.length; j++)
+                    traitsValueWithNaN[j] = (initialTraits[j] == Integer.MIN_VALUE) ? Float.NaN : initialTraits[j];
+                attributes.add(new NumericAttribute(colNames[i], traitsValueWithNaN));
                 System.out.println(attributeType[i]);
-                Phenotype.ATTRIBUTE_TYPE attribute_type= Phenotype.ATTRIBUTE_TYPE.valueOf(attributeType[i]);
+                Phenotype.ATTRIBUTE_TYPE attribute_type = Phenotype.ATTRIBUTE_TYPE.valueOf(attributeType[i]);
                 types.add(attribute_type);
-            } else if(o instanceof String[]) {
-                attributes.add(new CategoricalAttribute(colNames[i],(String[])o));
+            } else if (o instanceof String[]) {
+                attributes.add(new CategoricalAttribute(colNames[i], (String[]) o));
                 System.out.println(attributeType[i]);
-                Phenotype.ATTRIBUTE_TYPE attribute_type= Phenotype.ATTRIBUTE_TYPE.valueOf(attributeType[i]);
+                Phenotype.ATTRIBUTE_TYPE attribute_type = Phenotype.ATTRIBUTE_TYPE.valueOf(attributeType[i]);
                 types.add(attribute_type);
             } else {
                 throw new IllegalArgumentException("Unsupported type for phenotype table");
