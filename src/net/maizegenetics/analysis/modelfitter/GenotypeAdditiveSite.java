@@ -16,8 +16,8 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
     private static final long serialVersionUID = -7891486608129027827L;
     private int[] bitStore;
     private double[] byteConversion;
-    private int ntaxa;
-    private int[] taxaIndex = null;
+    protected int ntaxa;
+    protected int[] taxaIndex = null;
 
     /**
      * @param site						the site index from the originating GenotypeTable
