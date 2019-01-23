@@ -60,6 +60,10 @@ public class TranslateIndexBuilder {
             return translate;
         }
 
+        if (!translate.hasTranslations()) {
+            return base;
+        }
+
         int numIndices = translate.numIndices();
         int[] result = new int[numIndices];
         boolean ordered = true;
@@ -80,7 +84,7 @@ public class TranslateIndexBuilder {
 
         if (ordered) {
             if (isNoTranslation(result)) {
-                if (base.numIndices() == numIndices) {
+                if (base.numIndices() == numIndices && !base.hasTranslations()) {
                     return new TranslateIndex(numIndices, false);
                 } else {
                     return new TranslateIndex(numIndices, true);
