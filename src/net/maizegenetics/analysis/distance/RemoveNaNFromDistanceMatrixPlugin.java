@@ -1,17 +1,15 @@
 /*
  *  RemoveNaNFromDistanceMatrixPlugin
- * 
+ *
  *  Created on Oct 5, 2015
  */
 package net.maizegenetics.analysis.distance;
 
-import java.awt.Frame;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.ImageIcon;
+import com.google.common.collect.Range;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
+import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
@@ -20,11 +18,21 @@ import net.maizegenetics.taxa.distance.DistanceMatrixWithCounts;
 import net.maizegenetics.util.BitSet;
 import net.maizegenetics.util.OpenBitSet;
 
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- *
  * @author Terry Casstevens
  */
 public class RemoveNaNFromDistanceMatrixPlugin extends AbstractPlugin {
+
+    private PluginParameter<Double> myMaxPercentNaN = new PluginParameter.Builder<>("maxPercentNaN", 0.0, Double.class)
+            .description("Maximum percent of NaN allowed")
+            .guiName("Maximum Percent NaN")
+            .range(Range.closed(0.0, 100.0))
+            .build();
 
     public RemoveNaNFromDistanceMatrixPlugin(Frame parentFrame, boolean isInteractive) {
         super(parentFrame, isInteractive);
@@ -58,10 +66,12 @@ public class RemoveNaNFromDistanceMatrixPlugin extends AbstractPlugin {
             }
         }
 
+        long maxNaNToKeep = (long) Math.floor((double) numTaxa * maxPercentNaN());
+
         List<Integer> taxaToRemove = new ArrayList<>();
-        long highestCount = -1;
-        while (highestCount != 0) {
-            highestCount = 0;
+        boolean notFinished = true;
+        while (notFinished) {
+            long highestCount = 0;
             int highestTaxon = -1;
             for (int t = 0; t < numTaxa; t++) {
                 long currentCount = whichNaN[t].cardinality();
@@ -70,12 +80,14 @@ public class RemoveNaNFromDistanceMatrixPlugin extends AbstractPlugin {
                     highestTaxon = t;
                 }
             }
-            if (highestCount != 0) {
+            if (highestCount > maxNaNToKeep) {
                 taxaToRemove.add(highestTaxon);
                 for (int t = 0; t < numTaxa; t++) {
                     whichNaN[t].fastClear(highestTaxon);
                     whichNaN[highestTaxon].fastClear(t);
                 }
+            } else {
+                notFinished = false;
             }
         }
 
@@ -110,7 +122,7 @@ public class RemoveNaNFromDistanceMatrixPlugin extends AbstractPlugin {
                 }
             }
 
-            return new DataSet(new Datum(origName + " with no NaN", result.build(), null), this);
+            return new DataSet(new Datum(origName + " with " + maxPercentNaN()+ " percent NaN", result.build(), null), this);
 
         } else {
             return input;
@@ -124,6 +136,27 @@ public class RemoveNaNFromDistanceMatrixPlugin extends AbstractPlugin {
 
     public static DataSet runPlugin(DataSet input) {
         return new RemoveNaNFromDistanceMatrixPlugin(null, false).processData(input);
+    }
+
+    /**
+     * Maximum percent of NaN allowed
+     *
+     * @return Maximum Percent NaN
+     */
+    public Double maxPercentNaN() {
+        return myMaxPercentNaN.value();
+    }
+
+    /**
+     * Set Maximum Percent NaN. Maximum percent of NaN allowed
+     *
+     * @param value Maximum Percent NaN
+     *
+     * @return this plugin
+     */
+    public RemoveNaNFromDistanceMatrixPlugin maxPercentNaN(Double value) {
+        myMaxPercentNaN = new PluginParameter<>(myMaxPercentNaN, value);
+        return this;
     }
 
     @Override
