@@ -34,7 +34,7 @@ public class ModelEffectUtils {
 	private ModelEffectUtils() {}
 	
 	public static DoubleMatrix getXtY(ModelEffect X, ModelEffect Y) {
-		if (X instanceof FactorModelEffect || X instanceof AddPlusDomModelEffect) {
+		if (X instanceof FactorModelEffect) {
 			FactorModelEffect fme = (FactorModelEffect) X;
 			if (Y instanceof FactorModelEffect) {
 				return fme.getXtX2((FactorModelEffect) Y);
@@ -42,6 +42,8 @@ public class ModelEffectUtils {
 				return fme.getXty(((CovariateModelEffect) Y).getCovariate());
 			} else if (Y instanceof NestedCovariateModelEffect) {
 				return fme.getX().mult(Y.getX(), true, false);
+			} else if (Y instanceof AddPlusDomModelEffect) {
+				return fme.getX().crossproduct(Y.getX());
 			}
 			
 		} else if (X instanceof CovariateModelEffect) {
@@ -52,6 +54,8 @@ public class ModelEffectUtils {
 				return Y.getXty(cov);
 			} else if (Y instanceof NestedCovariateModelEffect) {
 				return Y.getXty(cov).transpose();
+			} else if (Y instanceof AddPlusDomModelEffect) {
+				return Y.getXty(cov).transpose();
 			}
 			
 		} else if (X instanceof NestedCovariateModelEffect) {
@@ -61,8 +65,12 @@ public class ModelEffectUtils {
 				return X.getXty(((CovariateModelEffect) Y).getCovariate());
 			} else if (Y instanceof NestedCovariateModelEffect) {
 				return ((NestedCovariateModelEffect) X).getXtX2((NestedCovariateModelEffect) Y);
+			} else if (Y instanceof AddPlusDomModelEffect) {
+				return X.getX().crossproduct(Y.getX());
 			}
 			
+		} else if (X instanceof AddPlusDomModelEffect) {
+			return X.getX().crossproduct(Y.getX());
 		}
 
 		return null;

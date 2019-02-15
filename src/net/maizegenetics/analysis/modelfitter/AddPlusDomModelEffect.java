@@ -15,13 +15,14 @@ public class AddPlusDomModelEffect implements ModelEffect {
     private double[] domCovariate;
     private CovariateModelEffect addModelEffect;
     private CovariateModelEffect domModelEffect;
-    private double minHets = 5;
+    private double minHets = 20;
 
     public AddPlusDomModelEffect(Object id, AdditiveSite addSite) {
         this(id, addSite.getCovariate());
     }
 
     public AddPlusDomModelEffect(Object id, double[] additiveCovariate) {
+        this.id = id;
         addCovariate = additiveCovariate;
         domCovariate = Arrays.stream(addCovariate).map(add -> 1.0 - Math.abs(add - 1)).toArray();
         double domSum = Arrays.stream(domCovariate).sum();
@@ -66,7 +67,7 @@ public class AddPlusDomModelEffect implements ModelEffect {
 
     @Override
     public DoubleMatrix getXty(double[] y) {
-        return getX().crossproduct(DoubleMatrixFactory.DEFAULT.make(1, y.length, y));
+        return getX().crossproduct(DoubleMatrixFactory.DEFAULT.make(y.length, 1, y));
     }
 
     @Override

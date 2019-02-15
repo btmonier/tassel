@@ -202,7 +202,8 @@ public class StepwiseAdditiveModelFitter {
                     myModel.add(ncme);
                 } else {
                     AdditiveSite as = mySites.get(interval[0]);
-                    myModel.add(new CovariateModelEffect(as.getCovariate(), as));
+                    //changed for add-dom model
+                    myModel.add(new AddPlusDomModelEffect(as,as));
                 }
             }
             mySweepFast = new SweepFastLinearModel(myModel, y);
@@ -528,7 +529,9 @@ public class StepwiseAdditiveModelFitter {
                                 new NestedCovariateModelEffect(new CovariateModelEffect(bestSite.getCovariate(), bestSite), nestingFactor);
                         bestEffect.setID(bestSite);
                     } else {
-                        bestEffect = new CovariateModelEffect(bestSite.getCovariate(), bestSite);
+//                        bestEffect = new CovariateModelEffect(bestSite.getCovariate(), bestSite);
+                        //modify for add-dom model
+                        bestEffect = new AddPlusDomModelEffect(bestSite, bestSite);
                     }
                     baseModel.add(bestEffect);
                     support = findCI(bestEffect, baseModel);
@@ -581,8 +584,10 @@ public class StepwiseAdditiveModelFitter {
                     new NestedCovariateModelEffect(addedTerm.getCovariate(), nestingFactor);
             testingModel.add(ncme);
         } else {
-            CovariateModelEffect cme = new CovariateModelEffect(addedTerm.getCovariate());
-            testingModel.add(cme);
+//            CovariateModelEffect cme = new CovariateModelEffect(addedTerm.getCovariate());
+            //changed for add-dom model
+            AddPlusDomModelEffect apdme = new AddPlusDomModelEffect(addedTerm, addedTerm);
+            testingModel.add(apdme);
         }
 
         SweepFastLinearModel sflm = new SweepFastLinearModel(testingModel, y);
@@ -618,10 +623,14 @@ public class StepwiseAdditiveModelFitter {
         } else {
             return intervalList.stream()
                     .map(s -> {
-                        s.criterionValue(plm.testNewModelEffect(s.getCovariate()));
+//                        s.criterionValue(plm.testNewModelEffect(s.getCovariate()));
+                        //changed for add-dom model
+                        plm.testNewModelEffect(new AddPlusDomModelEffect(s,s));
+                        s.criterionValue(plm.getp());
                         return s;
                     })
-                    .reduce((a, b) -> a.criterionValue() >= b.criterionValue() ? a : b)
+                    //change from >= to <= for add-dom model
+                    .reduce((a, b) -> a.criterionValue() <= b.criterionValue() ? a : b)
                     .get();
         }
     }
