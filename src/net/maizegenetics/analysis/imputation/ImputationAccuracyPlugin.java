@@ -95,6 +95,10 @@ public class ImputationAccuracyPlugin extends AbstractPlugin {
         GenotypeTable impGenoTable = (GenotypeTable) input.getDataOfType(GenotypeTable.class).get(2).getData();
         myLogger.info("Imputed Genotype: " + input.getDataOfType(GenotypeTable.class).get(2).getName());
 
+        System.out.printf("major allele mask genotype site (0) = %d%n", maskGenoTable.majorAllele(0));
+        System.out.printf("major allele imputed genotype site (0) = %d%n", impGenoTable.majorAllele(0));
+        System.out.printf("major allele original genotype site (0) = %d%n", origGenoTable.majorAllele(0));
+        
         int[][] cnts = new int[5][5];
         for (int site = 0; site < origGenoTable.numberOfSites(); site++) {
         		int imputedSite = impGenoTable.positions().siteOfPhysicalPosition(origGenoTable.chromosomalPosition(site), origGenoTable.chromosome(site));

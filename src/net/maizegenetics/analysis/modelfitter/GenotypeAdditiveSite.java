@@ -32,7 +32,8 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
         byte unknown = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
         ntaxa = genotype.length;
         double mean = 2 * majorAlleleFrequency;
-        byteConversion = new double[] { -mean, 1 - mean, 2 - mean, 0 };
+//        byteConversion = new double[] { -mean, 1 - mean, 2 - mean, 0 };
+        byteConversion = new double[] { 0,1,2,mean };  //changed for AddPlusDom
 
         int numberOfInts = ntaxa / 16;
         int remainder = ntaxa % 16;
@@ -82,7 +83,8 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
         double denominator = numerator + (counts[1] + 2 * counts[0]);
         double majorAlleleFreq = numerator / denominator;
         double mean = 2 * majorAlleleFreq;
-        byteConversion = new double[] { -mean, 1 - mean, 2 - mean, 0 };
+//        byteConversion = new double[] { -mean, 1 - mean, 2 - mean, 0 };
+        byteConversion = new double[] { 0,1,2,mean };  //changed for AddPlusDom
     }
 
     private int genotypeIndex(int n) {
@@ -118,6 +120,7 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
             for (int i = 0; i < 32; i += 2) {
                 int genoIndex = (intStore >> i) & 3;
                 cov[genoCount++] = byteConversion[genoIndex];
+
                 if (genoCount == ntaxa)
                     break;
             }

@@ -337,7 +337,9 @@ public class StepwiseAdditiveModelFitter {
                     new NestedCovariateModelEffect(bestSite.get().getCovariate(), nestingFactor);
             nextEffect.setID(bestSite.get());
         } else {
-            nextEffect = new CovariateModelEffect(bestSite.get().getCovariate(), bestSite.get());
+            //modify to support AddPlusDomModel
+//            nextEffect = new CovariateModelEffect(bestSite.get().getCovariate(), bestSite.get());
+            nextEffect = new AddPlusDomModelEffect(bestSite.get(), bestSite.get());
         }
 
         myModel.add(nextEffect);

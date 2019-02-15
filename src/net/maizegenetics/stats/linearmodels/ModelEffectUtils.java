@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import net.maizegenetics.analysis.modelfitter.AddPlusDomModelEffect;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
@@ -33,7 +34,7 @@ public class ModelEffectUtils {
 	private ModelEffectUtils() {}
 	
 	public static DoubleMatrix getXtY(ModelEffect X, ModelEffect Y) {
-		if (X instanceof FactorModelEffect) {
+		if (X instanceof FactorModelEffect || X instanceof AddPlusDomModelEffect) {
 			FactorModelEffect fme = (FactorModelEffect) X;
 			if (Y instanceof FactorModelEffect) {
 				return fme.getXtX2((FactorModelEffect) Y);
@@ -63,6 +64,7 @@ public class ModelEffectUtils {
 			}
 			
 		}
+
 		return null;
 	}
 	
