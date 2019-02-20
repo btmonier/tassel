@@ -48,41 +48,41 @@ public class StepwiseAdditiveModelFitter {
     //model fitter for additive models
     //replacement for StepwiseOLSModelFitter that has many of the same features but is multi-threaded
     private static Logger myLogger = RootLogger.getLogger(StepwiseAdditiveModelFitter.class);
-    private final GenotypePhenotype myGenoPheno;
-    private final GenotypeTable myGenotype;
-    private final Phenotype myPhenotype;
-    private final List<PhenotypeAttribute> dataAttributeList;
-    private final List<PhenotypeAttribute> covariateAttributeList;
-    private final List<PhenotypeAttribute> factorAttributeList;
-    private final String dataname;
-    private double[] y;		//data for current phenotype, missing values removed
-    private String currentTraitName;
-    private List<ModelEffect> myModel;
-    private int numberOfBaseEffects;
-    private SweepFastLinearModel mySweepFast;
-    private BitSet missing;
-    private List<AdditiveSite> mySites;
-    private FactorModelEffect nestingFactor;
-    private List<String> nestingFactorLevelNames;
-    private final double rescanAlpha = 0.05;
-    private List<Phenotype> allOfTheResidualPhenotypes;
+    protected final GenotypePhenotype myGenoPheno;
+    protected final GenotypeTable myGenotype;
+    protected final Phenotype myPhenotype;
+    protected final List<PhenotypeAttribute> dataAttributeList;
+    protected final List<PhenotypeAttribute> covariateAttributeList;
+    protected final List<PhenotypeAttribute> factorAttributeList;
+    protected final String dataname;
+    protected double[] y;		//data for current phenotype, missing values removed
+    protected String currentTraitName;
+    protected List<ModelEffect> myModel;
+    protected int numberOfBaseEffects;
+    protected SweepFastLinearModel mySweepFast;
+    protected BitSet missing;
+    protected List<AdditiveSite> mySites;
+    protected FactorModelEffect nestingFactor;
+    protected List<String> nestingFactorLevelNames;
+    protected final double rescanAlpha = 0.05;
+    protected List<Phenotype> allOfTheResidualPhenotypes;
 
     //user defined parameters
     private int numberOfPermutations = 0;
     private double permutationAlpha = 0.05;
-    private double enterLimit = 1e-5;
-    private double exitLimit = 2e-5;
-    private boolean useReferenceProbability = true;
+    protected double enterLimit = 1e-5;
+    protected double exitLimit = 2e-5;
+    protected boolean useReferenceProbability = true;
     private boolean isNested = true;
     private String nestingEffectName = "family";
-    private AdditiveSite.CRITERION modelSelectionCriterion = AdditiveSite.CRITERION.pval;
-    private int maxSitesInModel = 10;
+    protected AdditiveSite.CRITERION modelSelectionCriterion = AdditiveSite.CRITERION.pval;
+    protected int maxSitesInModel = 10;
     private boolean useResiduals = false;
-    private boolean createAnovaReport = true;
-    private boolean createPostScanEffectsReport = true;
-    private boolean createPreScanEffectsReport = true;
-    private boolean createStepReport = true;
-    private boolean createResidualsByChr = false;
+    protected boolean createAnovaReport = true;
+    protected boolean createPostScanEffectsReport = true;
+    protected boolean createPreScanEffectsReport = true;
+    protected boolean createStepReport = true;
+    protected boolean createResidualsByChr = false;
 
     //TableReport builders
     private final TableReportBuilder anovaReportBuilder =
@@ -202,8 +202,8 @@ public class StepwiseAdditiveModelFitter {
                     myModel.add(ncme);
                 } else {
                     AdditiveSite as = mySites.get(interval[0]);
-                    //changed for add-dom model
-                    myModel.add(new AddPlusDomModelEffect(as,as));
+
+                    myModel.add(new CovariateModelEffect(as.getCovariate(), as));
                 }
             }
             mySweepFast = new SweepFastLinearModel(myModel, y);
@@ -221,7 +221,7 @@ public class StepwiseAdditiveModelFitter {
 
     }
 
-    private void fitModel() {
+    protected void fitModel() {
 
         //run the permutation test, if requested
         System.out.println("Running permutation test, if requested.");
@@ -276,7 +276,7 @@ public class StepwiseAdditiveModelFitter {
 
     }
 
-    private List<ModelEffect> baseModel(PhenotypeAttribute phenotypeBeingTested) {
+    protected List<ModelEffect> baseModel(PhenotypeAttribute phenotypeBeingTested) {
         //build the base model and y for this phenotype with missing values deleted
         List<ModelEffect> myBaseModel;
         missing = new OpenBitSet(phenotypeBeingTested.missing());
@@ -314,7 +314,7 @@ public class StepwiseAdditiveModelFitter {
         return myBaseModel;
     }
 
-    private double forwardStep(double prevCriterionValue) {
+    protected double forwardStep(double prevCriterionValue) {
         //do this in parallel
         //create a stream returning AdditiveSites that have an ordering; select the max
         //criteria can be one of SS, pvalue, aic, bic, mbic (handled by ForwardStepAdditiveSpliterator)
@@ -338,9 +338,8 @@ public class StepwiseAdditiveModelFitter {
                     new NestedCovariateModelEffect(bestSite.get().getCovariate(), nestingFactor);
             nextEffect.setID(bestSite.get());
         } else {
-            //modify to support AddPlusDomModel
-//            nextEffect = new CovariateModelEffect(bestSite.get().getCovariate(), bestSite.get());
-            nextEffect = new AddPlusDomModelEffect(bestSite.get(), bestSite.get());
+
+            nextEffect = new CovariateModelEffect(bestSite.get().getCovariate(), bestSite.get());
         }
 
         myModel.add(nextEffect);
@@ -389,7 +388,7 @@ public class StepwiseAdditiveModelFitter {
         return Double.NaN;
     }
 
-    private void addToStepsReport(int siteNumber, SweepFastLinearModel theModel, String action, double[] siteSSdf, double[] errorSSdf, double F, double p) {
+    protected void addToStepsReport(int siteNumber, SweepFastLinearModel theModel, String action, double[] siteSSdf, double[] errorSSdf, double F, double p) {
         //add this to the steps report builder which has columns
         //"Trait","SiteID","Chr","Position","action","df","MS","F","probF","AIC","BIC","mBIC","ModelRsq"
         Object[] row = new Object[13];
@@ -506,7 +505,7 @@ public class StepwiseAdditiveModelFitter {
         return Optional.empty();
     }
 
-    private List<int[]> scanToFindCI() {
+    protected List<int[]> scanToFindCI() {
         //define an IntFunction that finds interval endpoints
         //the interval is bounded by the first points that when added to the model result in the marginal p of the test site <= alpha
         Function<ModelEffect, int[]> intervalFinder = me -> {
@@ -529,9 +528,7 @@ public class StepwiseAdditiveModelFitter {
                                 new NestedCovariateModelEffect(new CovariateModelEffect(bestSite.getCovariate(), bestSite), nestingFactor);
                         bestEffect.setID(bestSite);
                     } else {
-//                        bestEffect = new CovariateModelEffect(bestSite.getCovariate(), bestSite);
-                        //modify for add-dom model
-                        bestEffect = new AddPlusDomModelEffect(bestSite, bestSite);
+                        bestEffect = new CovariateModelEffect(bestSite.getCovariate(), bestSite);
                     }
                     baseModel.add(bestEffect);
                     support = findCI(bestEffect, baseModel);
@@ -542,7 +539,7 @@ public class StepwiseAdditiveModelFitter {
         return myModel.stream().skip(numberOfBaseEffects).parallel().map(intervalFinder).collect(Collectors.toList());
     }
 
-    private int[] findCI(ModelEffect me, List<ModelEffect> theModel) {
+    protected int[] findCI(ModelEffect me, List<ModelEffect> theModel) {
         AdditiveSite site = (AdditiveSite) me.getID();
         int testedSiteNumber = site.siteNumber();
         int effectNumber = theModel.indexOf(me);
@@ -576,7 +573,7 @@ public class StepwiseAdditiveModelFitter {
         return new int[] { testedSiteNumber, leftndx, rightndx };
     }
 
-    private double testAddedTerm(int testedTerm, AdditiveSite addedTerm, List<ModelEffect> theModel) {
+    protected double testAddedTerm(int testedTerm, AdditiveSite addedTerm, List<ModelEffect> theModel) {
         List<ModelEffect> testingModel = new ArrayList<>(theModel);
 
         if (isNested) {
@@ -584,10 +581,8 @@ public class StepwiseAdditiveModelFitter {
                     new NestedCovariateModelEffect(addedTerm.getCovariate(), nestingFactor);
             testingModel.add(ncme);
         } else {
-//            CovariateModelEffect cme = new CovariateModelEffect(addedTerm.getCovariate());
-            //changed for add-dom model
-            AddPlusDomModelEffect apdme = new AddPlusDomModelEffect(addedTerm, addedTerm);
-            testingModel.add(apdme);
+            CovariateModelEffect cme = new CovariateModelEffect(addedTerm.getCovariate());
+            testingModel.add(cme);
         }
 
         SweepFastLinearModel sflm = new SweepFastLinearModel(testingModel, y);
@@ -606,7 +601,7 @@ public class StepwiseAdditiveModelFitter {
         return prob;
     }
 
-    private AdditiveSite bestTerm(List<ModelEffect> baseModel, int[] interval) {
+    protected AdditiveSite bestTerm(List<ModelEffect> baseModel, int[] interval) {
         List<AdditiveSite> intervalList = mySites.subList(interval[1], interval[2]);
         PartitionedLinearModel plm =
                 new PartitionedLinearModel(baseModel, new SweepFastLinearModel(baseModel, y));
@@ -623,14 +618,11 @@ public class StepwiseAdditiveModelFitter {
         } else {
             return intervalList.stream()
                     .map(s -> {
-//                        s.criterionValue(plm.testNewModelEffect(s.getCovariate()));
-                        //changed for add-dom model
-                        plm.testNewModelEffect(new AddPlusDomModelEffect(s,s));
-                        s.criterionValue(plm.getp());
+                        s.criterionValue(plm.testNewModelEffect(s.getCovariate()));
                         return s;
                     })
-                    //change from >= to <= for add-dom model
-                    .reduce((a, b) -> a.criterionValue() <= b.criterionValue() ? a : b)
+
+                    .reduce((a, b) -> a.criterionValue() >= b.criterionValue() ? a : b)
                     .get();
         }
     }
@@ -752,7 +744,7 @@ public class StepwiseAdditiveModelFitter {
         return chrResidualPhenotypeList;
     }
 
-    private void addToAnovaReport(Optional<List<int[]>> intervalList) {
+    protected void addToAnovaReport(Optional<List<int[]>> intervalList) {
         //which has header: "Trait","Name","Chr","Position","df","MS","F","probF","MarginalRsq"
         //CI header: "Trait","Name","Chr","Position","df","MS","F","probF","MarginalRsq","SuppLeft","SuppRight"
         double[] errorSSdf = mySweepFast.getResidualSSdf();
@@ -836,7 +828,7 @@ public class StepwiseAdditiveModelFitter {
         }
     }
 
-    private void addToMarkerEffectReport(boolean CI) {
+    protected void addToMarkerEffectReport(boolean CI) {
         //header: "Trait","SiteID","Chr","Position","Within","Estimate"
         double[] beta = mySweepFast.getBeta();
         int numberOfEffects = myModel.size();

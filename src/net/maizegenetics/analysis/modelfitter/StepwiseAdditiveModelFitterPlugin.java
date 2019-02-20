@@ -24,6 +24,7 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
+import net.maizegenetics.plugindef.GeneratePluginCode;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportUtils;
 
@@ -161,6 +162,19 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
                     .dependentOnParameter(writeFiles)
                     .build();
 
+    private PluginParameter<Boolean> fitAddDom =
+            new PluginParameter.Builder<>("addDom", false, Boolean.class)
+                    .description("Should the plugin fit an additive plus dominance model? If false, an additive only model will be fit. Note this option does not implement a nested model. The isNested parameter will be ignored.")
+                    .guiName("Fit AddDom Model")
+                    .build();
+
+    private PluginParameter<Integer> minHets =
+            new PluginParameter.Builder<>("minHets", 20, Integer.class)
+                    .dependentOnParameter(fitAddDom)
+                    .description("The minimum number of individuals that are heterozygous at a site for the dominance term to be included. If the number of hets is less than minHets at a site, an additive only model will be fit for that site.")
+                    .guiName("Minimum number of heterozygotes")
+                    .build();
+
     public StepwiseAdditiveModelFitterPlugin() {
         super(null, false);
     }
@@ -196,8 +210,14 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
 
     @Override
     public DataSet processData(DataSet input) {
-        StepwiseAdditiveModelFitter stamFitter =
-                new StepwiseAdditiveModelFitter(myGenoPheno, datasetName);
+        StepwiseAdditiveModelFitter stamFitter;
+        if (fitAddDom.value()) {
+            stamFitter = new StepwiseAddDomModelFitter(myGenoPheno, datasetName);
+            //initialize AddPlusDomModelEffect.MIN_HETS if necessary
+            AddPlusDomModelEffect.MIN_HETS = minHets.value();
+        } else {
+            stamFitter = new StepwiseAdditiveModelFitter(myGenoPheno, datasetName);
+        }
 
         //set parameters
         if (usePermutations.value()) {
@@ -355,12 +375,12 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
         return "Fit a model using stepwise forward-backward regression.";
     }
 
-     // The following getters and setters were auto-generated.
-     // Please use this method to re-generate.
-     //
-     // public static void main(String[] args) {
-     //     GeneratePluginCode.generate(StepwiseAdditiveModelFitterPlugin.class);
-     // }
+//      The following getters and setters were auto-generated.
+//      Please use this method to re-generate.
+
+      public static void main(String[] args) {
+          GeneratePluginCode.generate(StepwiseAdditiveModelFitterPlugin.class);
+      }
 
      /**
       * Convenience method to run plugin with one return object.
@@ -811,5 +831,59 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
          return this;
      }
 
+    /**
+     * Should the plugin fit an additive plus dominance model?
+     * If false, an additive only model will be fit. Note
+     * this option does not implement a nested model. The
+     * isNested parameter will be ignored.
+     *
+     * @return Fit AddDom Model
+     */
+    public Boolean fitAddDom() {
+        return fitAddDom.value();
+    }
+
+    /**
+     * Set Fit AddDom Model. Should the plugin fit an additive
+     * plus dominance model? If false, an additive only model
+     * will be fit. Note this option does not implement a
+     * nested model. The isNested parameter will be ignored.
+     *
+     * @param value Fit AddDom Model
+     *
+     * @return this plugin
+     */
+    public StepwiseAdditiveModelFitterPlugin fitAddDom(Boolean value) {
+        fitAddDom = new PluginParameter<>(fitAddDom, value);
+        return this;
+    }
+
+    /**
+     * The minimum number of individuals that are heterozygous
+     * at a site for the dominance term to be included. If
+     * the number of hets is less than minHets at a site,
+     * an additive only model will be fit for that site.
+     *
+     * @return Minimum number of heterozygotes
+     */
+    public Integer minHets() {
+        return minHets.value();
+    }
+
+    /**
+     * Set Minimum number of heterozygotes. The minimum number
+     * of individuals that are heterozygous at a site for
+     * the dominance term to be included. If the number of
+     * hets is less than minHets at a site, an additive only
+     * model will be fit for that site.
+     *
+     * @param value Minimum number of heterozygotes
+     *
+     * @return this plugin
+     */
+    public StepwiseAdditiveModelFitterPlugin minHets(Integer value) {
+        minHets = new PluginParameter<>(minHets, value);
+        return this;
+    }
 
 }

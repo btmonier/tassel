@@ -15,7 +15,7 @@ public class AddPlusDomModelEffect implements ModelEffect {
     private double[] domCovariate;
     private CovariateModelEffect addModelEffect;
     private CovariateModelEffect domModelEffect;
-    private double minHets = 20;
+    public static double MIN_HETS = 20;
 
     public AddPlusDomModelEffect(Object id, AdditiveSite addSite) {
         this(id, addSite.getCovariate());
@@ -28,7 +28,7 @@ public class AddPlusDomModelEffect implements ModelEffect {
         double domSum = Arrays.stream(domCovariate).sum();
 
         addModelEffect = new CovariateModelEffect(addCovariate, id);
-        if (domSum >= minHets) {
+        if (domSum >= MIN_HETS) {
             domModelEffect = new CovariateModelEffect(domCovariate, id);
         } else {
             domModelEffect = null;

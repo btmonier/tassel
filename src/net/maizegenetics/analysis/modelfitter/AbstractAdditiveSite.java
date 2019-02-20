@@ -14,7 +14,7 @@ public abstract class AbstractAdditiveSite implements AdditiveSite {
         siteIndex = site;
         this.selectionCriterion = selectionCriterion;
         if (selectionCriterion == CRITERION.pval)
-            direction = -1; //to use actual pval for add plus dom model
+            direction = 1;
         else
             direction = -1;
         chrName = chromosomeName;
