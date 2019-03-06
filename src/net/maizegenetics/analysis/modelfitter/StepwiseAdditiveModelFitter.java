@@ -68,8 +68,8 @@ public class StepwiseAdditiveModelFitter {
     protected List<Phenotype> allOfTheResidualPhenotypes;
 
     //user defined parameters
-    private int numberOfPermutations = 0;
-    private double permutationAlpha = 0.05;
+    protected int numberOfPermutations = 0;
+    protected double permutationAlpha = 0.05;
     protected double enterLimit = 1e-5;
     protected double exitLimit = 2e-5;
     protected boolean useReferenceProbability = true;
@@ -97,7 +97,7 @@ public class StepwiseAdditiveModelFitter {
     private final TableReportBuilder markerEffectCIReportBuilder =
             TableReportBuilder.getInstance("Marker Effects", new String[] { "Trait", "SiteID", "Chr", "Position",
                     "Within", "Estimate" });
-    private final TableReportBuilder permutationReportBuilder =
+    protected final TableReportBuilder permutationReportBuilder =
             TableReportBuilder.getInstance("Empirical Null", new String[] { "Trait", "p-value" });
     private final TableReportBuilder stepsReportBuilder =
             TableReportBuilder.getInstance("Steps", new String[] { "Trait", "SiteID", "Chr", "Position",

@@ -7,13 +7,11 @@ import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.RootLogger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
@@ -224,6 +222,55 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
                 //change from >= to <= for add-dom model
                 .reduce((a, b) -> a.criterionValue() <= b.criterionValue() ? a : b)
                 .get();
+
+    }
+
+    @Override
+    public void runPermutationTest() {
+        //parallel version of permutation test
+        int enterLimitIndex = (int) (permutationAlpha * numberOfPermutations);  //index of percentile to be used for the enter limit
+
+        //create the permutedData
+        SweepFastLinearModel sflm = new SweepFastLinearModel(myModel, y);
+        double[] yhat = sflm.getPredictedValues().to1DArray();
+        double[] residuals = sflm.getResiduals().to1DArray();
+
+        BasicShuffler.shuffle(residuals);
+        List<double[]> permutedData = Stream.iterate(residuals, BasicShuffler.shuffleDouble())
+                .limit(numberOfPermutations)
+                .map(a -> {
+                    double[] permutedValues = Arrays.copyOf(a, a.length);
+                    for (int i = 0; i < a.length; i++)
+                        permutedValues[i] += yhat[i];
+                    return permutedValues;
+                })
+                .collect(Collectors.toList());
+
+        //find the minimum p values for each site
+        double[] maxP = new double[numberOfPermutations];
+        Arrays.fill(maxP, 1.0);
+        double[] minP;
+        List<double[]> plist = new ArrayList<>();
+
+        minP =
+                StreamSupport.stream(new AddDomPermutationTestSpliterator(permutedData, mySites, myModel), true).reduce(maxP, (a, b) -> {
+                    int n = a.length;
+                    for (int i = 0; i < n; i++) {
+                        if (a[i] > b[i])
+                            a[i] = b[i];
+                    }
+                    return a;
+                });
+
+        Arrays.sort(minP);
+        enterLimit = minP[enterLimitIndex];
+        exitLimit = 2 * enterLimit;
+
+        myLogger.info(String.format("Permutation results for %s: enterLimit = %1.5e, exitLimit = %1.5e\n", currentTraitName, enterLimit, exitLimit));
+
+        //add values to permutation report : "Trait","p-value"
+        Arrays.stream(minP).forEach(d -> permutationReportBuilder.add(new Object[] {
+                currentTraitName, new Double(d) }));
 
     }
 }
