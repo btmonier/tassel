@@ -5,6 +5,7 @@ package net.maizegenetics.plugindef;
 
 import com.google.common.base.CaseFormat;
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
+import net.maizegenetics.analysis.association.MLMPlugin;
 import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
@@ -16,12 +17,14 @@ import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache;
 import net.maizegenetics.phenotype.CategoricalAttribute;
 import net.maizegenetics.phenotype.CorePhenotype;
+import net.maizegenetics.phenotype.GenotypePhenotype;
 import net.maizegenetics.phenotype.NumericAttribute;
 import net.maizegenetics.phenotype.Phenotype;
 import net.maizegenetics.phenotype.PhenotypeAttribute;
 import net.maizegenetics.phenotype.TaxaAttribute;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
+import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
@@ -461,5 +464,67 @@ public class GenerateRCode {
 
         return new CorePhenotype(attributes, types, "pheno1");
     }
+
+    //    traitName traitType       traitAttribute isReponse isPredictor   newType effect
+    // 1      Taxa      taxa        TaxaAttribute     FALSE       FALSE      <NA>   <NA>
+    // 2  location    factor CategoricalAttribute     FALSE        TRUE    factor  fixed
+    // 3     EarHT      data     NumericAttribute      TRUE       FALSE      data   <NA>
+    // 4     dpoll      data     NumericAttribute     FALSE       FALSE      <NA>   <NA>
+    // 5    EarDia      data     NumericAttribute      TRUE       FALSE      data   <NA>
+    // 6        Q1 covariate     NumericAttribute     FALSE        TRUE covariate  fixed
+    // 7        Q2 covariate     NumericAttribute     FALSE        TRUE covariate  fixed
+    // 8        Q3 covariate     NumericAttribute     FALSE        TRUE covariate  fixed
+    // 9         G  genotype             Genotype     FALSE        TRUE  genotype  fixed
+
+    public static TableReport association(String[] traitName, String[] traitTypes, String[] traitAttributes, boolean[] isResponses, boolean[] isPredictors, String[] newTypes, String[] effects, DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno) {
+
+        if (genotype == null && phenotype == null) {
+            myLogger.warn("association: genotype and phenotype are null.  Nothing calculated");
+        }
+
+        if (kinship == null) {
+
+            myLogger.info("association: running GLM");
+
+            FixedEffectLMPlugin plugin = new FixedEffectLMPlugin(null, false);
+
+            if (genotype == null) {
+                plugin.phenotypeOnly(true);
+            } else {
+                plugin.phenotypeOnly(false);
+            }
+
+            DataSet input = DataSet.getDataSet(genoPheno);
+
+            DataSet output = plugin.performFunction(input);
+
+            if (output != null) {
+                return (TableReport) output.getDataOfType(TableReport.class).get(0).getData();
+            }
+
+            return null;
+
+        } else {
+
+            myLogger.info("association: running MLM");
+
+            MLMPlugin plugin = new MLMPlugin(null, false);
+
+            Datum genoDatum = new Datum("GenotypePhenotype", genoPheno, null);
+            Datum kinshipDatum = new Datum("Kinship", kinship, null);
+            DataSet input = new DataSet(new Datum[]{genoDatum, kinshipDatum}, null);
+
+            DataSet output = plugin.performFunction(input);
+
+            if (output != null) {
+                return (TableReport) output.getDataOfType(TableReport.class).get(0).getData();
+            }
+
+            return null;
+
+        }
+
+    }
+
 
 }
