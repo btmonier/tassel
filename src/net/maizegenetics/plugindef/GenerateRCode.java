@@ -476,7 +476,7 @@ public class GenerateRCode {
     // 8        Q3 covariate     NumericAttribute     FALSE        TRUE covariate  fixed
     // 9         G  genotype             Genotype     FALSE        TRUE  genotype  fixed
 
-    public static TableReport association(String[] traitName, String[] traitTypes, String[] traitAttributes, boolean[] isResponses, boolean[] isPredictors, String[] newTypes, String[] effects, DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno) {
+    public static TableReport association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno) {
 
         if (genotype == null && phenotype == null) {
             myLogger.warn("association: genotype and phenotype are null.  Nothing calculated");
