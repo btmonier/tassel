@@ -175,6 +175,12 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
                     .guiName("Minimum number of heterozygotes")
                     .build();
 
+    private PluginParameter<Boolean> imputedDominance =
+            new PluginParameter.Builder<>("imputeDom", true, Boolean.class)
+                    .description("Should the plugin impute a value for dominance if data is missing. If false, the dominance score in the design matrix will be 0 for missing genotypes.")
+                    .guiName("Impute Dominance Score")
+                    .build();
+
     public StepwiseAdditiveModelFitterPlugin() {
         super(null, false);
     }
@@ -213,8 +219,10 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
         StepwiseAdditiveModelFitter stamFitter;
         if (fitAddDom.value()) {
             stamFitter = new StepwiseAddDomModelFitter(myGenoPheno, datasetName);
-            //initialize AddPlusDomModelEffect.MIN_HETS if necessary
+            //initialize constants
             AddPlusDomModelEffect.MIN_HETS = minHets.value();
+            AddPlusDomModelEffect.IMPUTE_DOM = imputedDominance.value();
+
         } else {
             stamFitter = new StepwiseAdditiveModelFitter(myGenoPheno, datasetName);
         }
@@ -883,6 +891,32 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
      */
     public StepwiseAdditiveModelFitterPlugin minHets(Integer value) {
         minHets = new PluginParameter<>(minHets, value);
+        return this;
+    }
+
+    /**
+     * Should the plugin impute a value for dominance if data
+     * is missing. If false, the dominance score in the design
+     * matrix will be 0 for missing genotypes.
+     *
+     * @return Impute Dominance Score
+     */
+    public Boolean imputedDominance() {
+        return imputedDominance.value();
+    }
+
+    /**
+     * Set Impute Dominance Score. Should the plugin impute
+     * a value for dominance if data is missing. If false,
+     * the dominance score in the design matrix will be 0
+     * for missing genotypes.
+     *
+     * @param value Impute Dominance Score
+     *
+     * @return this plugin
+     */
+    public StepwiseAdditiveModelFitterPlugin imputedDominance(Boolean value) {
+        imputedDominance = new PluginParameter<>(imputedDominance, value);
         return this;
     }
 

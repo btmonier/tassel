@@ -17,7 +17,6 @@ import java.util.stream.StreamSupport;
 public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
 
     private static Logger myLogger = RootLogger.getLogger(StepwiseAddDomModelFitter.class);
-    int minHets;
 
     public StepwiseAddDomModelFitter(GenotypePhenotype genopheno, String datasetName) {
         super(genopheno, datasetName);
@@ -266,7 +265,7 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
         enterLimit = minP[enterLimitIndex];
         exitLimit = 2 * enterLimit;
 
-        myLogger.info(String.format("Permutation results for %s: enterLimit = %1.5e, exitLimit = %1.5e\n", currentTraitName, enterLimit, exitLimit));
+        myLogger.info(String.format("Additive + Dominance Permutation results for %s: enterLimit = %1.5e, exitLimit = %1.5e\n", currentTraitName, enterLimit, exitLimit));
 
         //add values to permutation report : "Trait","p-value"
         Arrays.stream(minP).forEach(d -> permutationReportBuilder.add(new Object[] {
