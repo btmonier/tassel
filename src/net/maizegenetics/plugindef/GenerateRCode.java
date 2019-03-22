@@ -4,6 +4,7 @@
 package net.maizegenetics.plugindef;
 
 import com.google.common.base.CaseFormat;
+import net.maizegenetics.analysis.association.FastMultithreadedAssociationPlugin;
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
 import net.maizegenetics.analysis.association.MLMPlugin;
 import net.maizegenetics.analysis.distance.KinshipPlugin;
@@ -488,13 +489,15 @@ public class GenerateRCode {
 
             FixedEffectLMPlugin plugin = new FixedEffectLMPlugin(null, false);
 
+            DataSet input = null;
+
             if (genotype == null) {
                 plugin.phenotypeOnly(true);
+                input = DataSet.getDataSet(phenotype);
             } else {
                 plugin.phenotypeOnly(false);
+                input = DataSet.getDataSet(genoPheno);
             }
-
-            DataSet input = DataSet.getDataSet(genoPheno);
 
             DataSet output = plugin.performFunction(input);
 
@@ -523,6 +526,26 @@ public class GenerateRCode {
             return null;
 
         }
+
+    }
+
+    public static TableReport fastAssociation(GenotypePhenotype genoPheno) {
+
+        if (genoPheno == null) {
+            myLogger.warn("fastAssociation: GenotypePhenotype is null.  Nothing calculated");
+        }
+
+        FastMultithreadedAssociationPlugin plugin = new FastMultithreadedAssociationPlugin(null, false);
+
+        DataSet input = DataSet.getDataSet(genoPheno);
+
+        DataSet output = plugin.performFunction(input);
+
+        if (output != null) {
+            return (TableReport) output.getDataOfType(TableReport.class).get(0).getData();
+        }
+
+        return null;
 
     }
 
