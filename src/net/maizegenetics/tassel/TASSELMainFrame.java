@@ -19,7 +19,7 @@
 //Company:    NCSU
 package net.maizegenetics.tassel;
 
-import net.maizegenetics.analysis.association.EqtlAssociationPlugin;
+import net.maizegenetics.analysis.association.FastMultithreadedAssociationPlugin;
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
 import net.maizegenetics.analysis.association.GenomicSelectionPlugin;
 import net.maizegenetics.analysis.association.MLMPlugin;
@@ -591,7 +591,7 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         result.add(createMenuItem(new WeightedMLMPlugin(this, true)));
         result.add(createMenuItem(new GenomicSelectionPlugin(this, true)));
         result.add(createMenuItem(new StepwiseOLSModelFitterPlugin(this, true)));
-        result.add(createMenuItem(new EqtlAssociationPlugin(this, true)));
+        result.add(createMenuItem(new FastMultithreadedAssociationPlugin(this, true)));
         result.add(createMenuItem(new VCAPScanPlugin(this, true)));
         return result;
 

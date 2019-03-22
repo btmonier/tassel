@@ -15,6 +15,7 @@
 package net.maizegenetics.tassel;
 
 import net.maizegenetics.analysis.association.EqtlAssociationPlugin;
+import net.maizegenetics.analysis.association.FastMultithreadedAssociationPlugin;
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
 import net.maizegenetics.analysis.association.MLMPlugin;
 import net.maizegenetics.analysis.data.GenotypeSummaryPlugin;
@@ -573,6 +574,7 @@ public class DataTreePanel extends JPanel implements PluginListener {
             Datum d = theDataSet.getData(i);
             if ((theCreator instanceof MLMPlugin)
                     || (theCreator instanceof FixedEffectLMPlugin)
+                    || (theCreator instanceof FastMultithreadedAssociationPlugin)
                     || (theCreator instanceof EqtlAssociationPlugin)) {
                 addDatum(NODE_TYPE_ASSOCIATIONS, d);
                 continue;
