@@ -35,7 +35,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -477,7 +479,7 @@ public class GenerateRCode {
     // 8        Q3 covariate     NumericAttribute     FALSE        TRUE covariate  fixed
     // 9         G  genotype             Genotype     FALSE        TRUE  genotype  fixed
 
-    public static TableReport association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno) {
+    public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno) {
 
         if (genotype == null && phenotype == null) {
             myLogger.warn("association: genotype and phenotype are null.  Nothing calculated");
@@ -501,11 +503,7 @@ public class GenerateRCode {
 
             DataSet output = plugin.performFunction(input);
 
-            if (output != null) {
-                return (TableReport) output.getDataOfType(TableReport.class).get(0).getData();
-            }
-
-            return null;
+            return tableReportsMap(output);
 
         } else {
 
@@ -519,17 +517,13 @@ public class GenerateRCode {
 
             DataSet output = plugin.performFunction(input);
 
-            if (output != null) {
-                return (TableReport) output.getDataOfType(TableReport.class).get(0).getData();
-            }
-
-            return null;
+            return tableReportsMap(output);
 
         }
 
     }
 
-    public static TableReport fastAssociation(GenotypePhenotype genoPheno) {
+    public static Map<String, Object> fastAssociation(GenotypePhenotype genoPheno) {
 
         if (genoPheno == null) {
             myLogger.warn("fastAssociation: GenotypePhenotype is null.  Nothing calculated");
@@ -541,11 +535,25 @@ public class GenerateRCode {
 
         DataSet output = plugin.performFunction(input);
 
-        if (output != null) {
-            return (TableReport) output.getDataOfType(TableReport.class).get(0).getData();
+        return tableReportsMap(output);
+
+    }
+
+    private static Map<String, Object> tableReportsMap(DataSet output) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        for (Datum temp : output.getDataOfType(TableReport.class)) {
+            String name = temp.getName();
+
+            if (name.startsWith("GLM_Genotypes")) {
+                result.put("GLM_Genotypes", temp.getData());
+            } else if (name.startsWith("GLM_Stats")) {
+                result.put("GLM_Statss", temp.getData());
+            }
         }
 
-        return null;
+        return result;
 
     }
 
