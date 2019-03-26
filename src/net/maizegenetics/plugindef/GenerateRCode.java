@@ -549,7 +549,20 @@ public class GenerateRCode {
             if (name.startsWith("GLM_Genotypes")) {
                 result.put("GLM_Genotypes", temp.getData());
             } else if (name.startsWith("GLM_Stats")) {
-                result.put("GLM_Statss", temp.getData());
+                result.put("GLM_Stats", temp.getData());
+            } else if (name.startsWith("MLM_statistics")) {
+                result.put("MLM_Stats", temp.getData());
+            } else if (name.startsWith("MLM_effects")) {
+                result.put("MLM_Effects", temp.getData());
+            } else if (name.startsWith("Residuals for")) {
+                String[] tokens = name.split(" ");
+                result.put("MLM_Residuals_" + tokens[2], temp.getData());
+            } else if (name.startsWith("MLM_compression")) {
+                result.put("MLM_Compression", temp.getData());
+            } else if (name.startsWith("BLUEs")) {
+                result.put("BLUE", temp.getData());
+            } else if (name.startsWith("Phenotype_ANOVA")) {
+                result.put("BLUE_ANOVA", temp.getData());
             }
         }
 
