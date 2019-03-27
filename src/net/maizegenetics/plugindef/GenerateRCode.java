@@ -589,6 +589,8 @@ public class GenerateRCode {
                 result.put("BLUE", temp.getData());
             } else if (name.startsWith("Phenotype_ANOVA")) {
                 result.put("BLUE_ANOVA", temp.getData());
+            } else if (name.startsWith("Fast Association")) {
+                result.put("FastAssociation", temp.getData());
             }
         }
 
