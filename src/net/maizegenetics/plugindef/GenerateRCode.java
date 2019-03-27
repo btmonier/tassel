@@ -33,6 +33,8 @@ import org.apache.log4j.Logger;
 import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -481,61 +483,81 @@ public class GenerateRCode {
 
     public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno) {
 
-        if (genotype == null && phenotype == null) {
-            myLogger.warn("association: genotype and phenotype are null.  Nothing calculated");
-        }
+        String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
+        myLogger.info("Starting association: time: " + timeStr);
 
-        if (kinship == null) {
+        try {
 
-            myLogger.info("association: running GLM");
-
-            FixedEffectLMPlugin plugin = new FixedEffectLMPlugin(null, false);
-
-            DataSet input = null;
-
-            if (genotype == null) {
-                plugin.phenotypeOnly(true);
-                input = DataSet.getDataSet(phenotype);
-            } else {
-                plugin.phenotypeOnly(false);
-                input = DataSet.getDataSet(genoPheno);
+            if (genotype == null && phenotype == null) {
+                myLogger.warn("association: genotype and phenotype are null.  Nothing calculated");
             }
 
-            DataSet output = plugin.performFunction(input);
+            if (kinship == null) {
 
-            return tableReportsMap(output);
+                myLogger.info("association: running GLM");
 
-        } else {
+                FixedEffectLMPlugin plugin = new FixedEffectLMPlugin(null, false);
 
-            myLogger.info("association: running MLM");
+                DataSet input = null;
 
-            MLMPlugin plugin = new MLMPlugin(null, false);
+                if (genotype == null) {
+                    plugin.phenotypeOnly(true);
+                    input = DataSet.getDataSet(phenotype);
+                } else {
+                    plugin.phenotypeOnly(false);
+                    input = DataSet.getDataSet(genoPheno);
+                }
 
-            Datum genoDatum = new Datum("GenotypePhenotype", genoPheno, null);
-            Datum kinshipDatum = new Datum("Kinship", kinship, null);
-            DataSet input = new DataSet(new Datum[]{genoDatum, kinshipDatum}, null);
+                DataSet output = plugin.performFunction(input);
 
-            DataSet output = plugin.performFunction(input);
+                return tableReportsMap(output);
 
-            return tableReportsMap(output);
+            } else {
 
+                myLogger.info("association: running MLM");
+
+                MLMPlugin plugin = new MLMPlugin(null, false);
+
+                Datum genoDatum = new Datum("GenotypePhenotype", genoPheno, null);
+                Datum kinshipDatum = new Datum("Kinship", kinship, null);
+                DataSet input = new DataSet(new Datum[]{genoDatum, kinshipDatum}, null);
+
+                DataSet output = plugin.performFunction(input);
+
+                return tableReportsMap(output);
+
+            }
+
+        } finally {
+            timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
+            myLogger.info("Finished association: time: " + timeStr);
         }
 
     }
 
     public static Map<String, Object> fastAssociation(GenotypePhenotype genoPheno) {
 
-        if (genoPheno == null) {
-            myLogger.warn("fastAssociation: GenotypePhenotype is null.  Nothing calculated");
+        String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
+        myLogger.info("Starting fastAssociation: time: " + timeStr);
+
+        try {
+
+            if (genoPheno == null) {
+                myLogger.warn("fastAssociation: GenotypePhenotype is null.  Nothing calculated");
+            }
+
+            FastMultithreadedAssociationPlugin plugin = new FastMultithreadedAssociationPlugin(null, false);
+
+            DataSet input = DataSet.getDataSet(genoPheno);
+
+            DataSet output = plugin.performFunction(input);
+
+            return tableReportsMap(output);
+
+        } finally {
+            timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
+            myLogger.info("Finished fastAssociation: time: " + timeStr);
         }
-
-        FastMultithreadedAssociationPlugin plugin = new FastMultithreadedAssociationPlugin(null, false);
-
-        DataSet input = DataSet.getDataSet(genoPheno);
-
-        DataSet output = plugin.performFunction(input);
-
-        return tableReportsMap(output);
 
     }
 
