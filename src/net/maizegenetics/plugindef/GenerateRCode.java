@@ -578,7 +578,11 @@ public class GenerateRCode {
                 result.put("MLM_Effects", temp.getData());
             } else if (name.startsWith("Residuals for")) {
                 String[] tokens = name.split(" ");
-                result.put("MLM_Residuals_" + tokens[2], temp.getData());
+                if (tokens[2].endsWith(".")) {
+                    result.put("MLM_Residuals_" + tokens[2].substring(0, tokens[2].length() - 1), temp.getData());
+                } else {
+                    result.put("MLM_Residuals_" + tokens[2], temp.getData());
+                }
             } else if (name.startsWith("MLM_compression")) {
                 result.put("MLM_Compression", temp.getData());
             } else if (name.startsWith("BLUEs")) {
