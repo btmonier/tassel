@@ -481,7 +481,7 @@ public class GenerateRCode {
     // 8        Q3 covariate     NumericAttribute     FALSE        TRUE covariate  fixed
     // 9         G  genotype             Genotype     FALSE        TRUE  genotype  fixed
 
-    public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno) {
+    public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno, int minClassSize, boolean biallelicOnly, boolean appendAddDom) {
 
         String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
         myLogger.info("Starting association: time: " + timeStr);
@@ -497,6 +497,9 @@ public class GenerateRCode {
                 myLogger.info("association: running GLM");
 
                 FixedEffectLMPlugin plugin = new FixedEffectLMPlugin(null, false);
+                plugin.biallelicOnly(biallelicOnly);
+                plugin.minClassSize(minClassSize);
+                plugin.appendAddDom(appendAddDom);
 
                 DataSet input = null;
 
