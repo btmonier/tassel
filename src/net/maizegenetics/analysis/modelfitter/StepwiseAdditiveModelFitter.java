@@ -91,10 +91,10 @@ public class StepwiseAdditiveModelFitter {
     private final TableReportBuilder anovaCIReportBuilder =
             TableReportBuilder.getInstance("Anova", new String[] { "Trait", "Name", "Chr", "Position",
                     "df", "MS", "F", "probF", "MarginalRsq", "SuppLeft", "SuppRight" });
-    private final TableReportBuilder markerEffectReportBuilder =
+    protected TableReportBuilder markerEffectReportBuilder =
             TableReportBuilder.getInstance("Marker Effects", new String[] { "Trait", "SiteID", "Chr", "Position",
                     "Within", "Estimate" });
-    private final TableReportBuilder markerEffectCIReportBuilder =
+    protected TableReportBuilder markerEffectCIReportBuilder =
             TableReportBuilder.getInstance("Marker Effects", new String[] { "Trait", "SiteID", "Chr", "Position",
                     "Within", "Estimate" });
     protected final TableReportBuilder permutationReportBuilder =

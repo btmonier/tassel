@@ -3,6 +3,7 @@ package net.maizegenetics.analysis.modelfitter;
 import net.maizegenetics.phenotype.GenotypePhenotype;
 import net.maizegenetics.phenotype.PhenotypeAttribute;
 import net.maizegenetics.stats.linearmodels.*;
+import net.maizegenetics.util.TableReportBuilder;
 import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.RootLogger;
@@ -19,7 +20,14 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
     private static Logger myLogger = RootLogger.getLogger(StepwiseAddDomModelFitter.class);
 
     public StepwiseAddDomModelFitter(GenotypePhenotype genopheno, String datasetName) {
+
         super(genopheno, datasetName);
+        markerEffectReportBuilder =
+                TableReportBuilder.getInstance("Marker Effects", new String[] { "Trait", "SiteID", "Chr", "Position",
+                        "Additive", "Dominance" });
+        markerEffectCIReportBuilder =
+                TableReportBuilder.getInstance("Marker Effects", new String[] { "Trait", "SiteID", "Chr", "Position",
+                        "Additive", "Dominance" });
     }
 
     @Override
@@ -270,6 +278,36 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
         //add values to permutation report : "Trait","p-value"
         Arrays.stream(minP).forEach(d -> permutationReportBuilder.add(new Object[] {
                 currentTraitName, new Double(d) }));
+
+    }
+
+    @Override
+    protected void addToMarkerEffectReport(boolean CI) {
+        //header: "Trait", "SiteID", "Chr", "Position","Additive", "Dominance"
+        double[] beta = mySweepFast.getBeta();
+        int numberOfEffects = myModel.size();
+        int numberOfMarkerEffects = numberOfEffects - numberOfBaseEffects;
+        int baseDf = myModel.stream().limit(numberOfBaseEffects).mapToInt(me -> me.getEffectSize()).sum();
+
+        int betaCount = baseDf;
+        for (int me = 0; me <  numberOfMarkerEffects; me++) {
+            Object[] row = new Object[6];
+            int col = 0;
+            row[col++] = currentTraitName;
+            AddPlusDomModelEffect adModelEffect = (AddPlusDomModelEffect) myModel.get(numberOfBaseEffects + me);
+            AdditiveSite mySite = (AdditiveSite) adModelEffect.getID();
+
+            row[col++] = myGenotype.siteName(mySite.siteNumber());
+            row[col++] = myGenotype.positions().chromosomeName(mySite.siteNumber());
+            row[col++] = myGenotype.positions().get(mySite.siteNumber()).getPosition();
+            row[col++] = new Double(beta[betaCount++]);
+            if (adModelEffect.getEffectSize() == 2) row[col++] = new Double(beta[betaCount++]);
+            else row[col++] = "NA";
+            if (CI)
+                markerEffectCIReportBuilder.add(row);
+            else
+                markerEffectReportBuilder.add(row);
+        }
 
     }
 }
