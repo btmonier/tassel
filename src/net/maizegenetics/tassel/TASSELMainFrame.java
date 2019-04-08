@@ -19,7 +19,7 @@
 //Company:    NCSU
 package net.maizegenetics.tassel;
 
-import net.maizegenetics.analysis.association.EqtlAssociationPlugin;
+import net.maizegenetics.analysis.association.FastMultithreadedAssociationPlugin;
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
 import net.maizegenetics.analysis.association.GenomicSelectionPlugin;
 import net.maizegenetics.analysis.association.MLMPlugin;
@@ -110,8 +110,8 @@ import java.util.Map;
 public class TASSELMainFrame extends JFrame implements ActionListener {
 
     private static final Logger myLogger = Logger.getLogger(TASSELMainFrame.class);
-    public static final String version = "5.2.51";
-    public static final String versionDate = "December 20, 2018";
+    public static final String version = "5.2.52";
+    public static final String versionDate = "March 21, 2019";
     private DataTreePanel myDataTreePanel;
     //a variable to control when the progress bar was last updated
     private JFileChooser filerSave = new JFileChooser();
@@ -591,7 +591,7 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         result.add(createMenuItem(new WeightedMLMPlugin(this, true)));
         result.add(createMenuItem(new GenomicSelectionPlugin(this, true)));
         result.add(createMenuItem(new StepwiseOLSModelFitterPlugin(this, true)));
-        result.add(createMenuItem(new EqtlAssociationPlugin(this, true)));
+        result.add(createMenuItem(new FastMultithreadedAssociationPlugin(this, true)));
         result.add(createMenuItem(new VCAPScanPlugin(this, true)));
         return result;
 

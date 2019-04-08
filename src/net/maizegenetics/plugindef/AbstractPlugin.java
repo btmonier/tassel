@@ -128,7 +128,9 @@ abstract public class AbstractPlugin implements Plugin {
                 myLogger.debug(e.getMessage(), e);
                 printUsage();
                 myLogger.error(e.getMessage());
-                System.exit(1);
+                if (!getListeners().isEmpty()) {
+                    System.exit(1);
+                }
             }
             return null;
 
