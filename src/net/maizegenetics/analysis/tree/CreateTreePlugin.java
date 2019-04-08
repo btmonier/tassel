@@ -6,26 +6,23 @@
  */
 package net.maizegenetics.analysis.tree;
 
+import net.maizegenetics.analysis.distance.IBSDistanceMatrix;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
-import net.maizegenetics.analysis.distance.IBSDistanceMatrix;
 import net.maizegenetics.plugindef.PluginParameter;
-import net.maizegenetics.taxa.tree.Tree;
-import net.maizegenetics.taxa.tree.NeighborJoiningTree;
-import net.maizegenetics.taxa.tree.UPGMATree;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
+import net.maizegenetics.taxa.tree.NeighborJoiningTree;
+import net.maizegenetics.taxa.tree.Tree;
+import net.maizegenetics.taxa.tree.UPGMATree;
+import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
-
 import java.net.URL;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
 
 /**
  * @author Ed Buckler
@@ -38,7 +35,7 @@ public class CreateTreePlugin extends AbstractPlugin {
     public static enum CLUSTERING_METHOD {
 
         Neighbor_Joining, UPGMA
-    };
+    }
 
     private PluginParameter<CLUSTERING_METHOD> myClusteringMethod = new PluginParameter.Builder<>("clusteringMethod", CLUSTERING_METHOD.Neighbor_Joining, CLUSTERING_METHOD.class)
             .description("")
@@ -132,7 +129,7 @@ public class CreateTreePlugin extends AbstractPlugin {
      */
     @Override
     public String getButtonName() {
-        return "Cladogram";
+        return "Create Tree";
     }
 
     /**
@@ -142,15 +139,9 @@ public class CreateTreePlugin extends AbstractPlugin {
      */
     @Override
     public String getToolTipText() {
-        return "Create a cladogram";
+        return "Create a tree";
     }
 
-    // The following getters and setters were auto-generated.
-    // Please use this method to re-generate.
-    //
-    // public static void main(String[] args) {
-    //     GeneratePluginCode.generate(CreateTreePlugin.class);
-    // }
     /**
      * Convenience method to run plugin with one return object.
      */
