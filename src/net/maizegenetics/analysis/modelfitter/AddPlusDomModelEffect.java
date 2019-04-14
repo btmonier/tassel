@@ -10,23 +10,23 @@ import java.util.Arrays;
 
 public class AddPlusDomModelEffect implements ModelEffect {
 
-    private Object id;
-    private double[] addCovariate;
-    private double[] domCovariate;
-    private CovariateModelEffect addModelEffect;
-    private CovariateModelEffect domModelEffect;
+    private AdditiveSite id;
+    private final double[] addCovariate;
+    private final double[] domCovariate;
+    private final CovariateModelEffect addModelEffect;
+    private final CovariateModelEffect domModelEffect;
+    private final DoubleMatrix X;
     private final double delta = 1e-8;
     public static double MIN_HETS = 20;
     public static boolean IMPUTE_DOM = true;
 
-    public AddPlusDomModelEffect(Object id, AdditiveSite addSite) {
+    public AddPlusDomModelEffect(AdditiveSite id, AdditiveSite addSite) {
         this(id, addSite.getCovariate());
     }
 
-    public AddPlusDomModelEffect(Object id, double[] additiveCovariate) {
+    public AddPlusDomModelEffect(AdditiveSite id, double[] additiveCovariate) {
         this.id = id;
         addCovariate = additiveCovariate;
-        double[] domCovariate;
         double lower = 1 - delta;
         double upper = 1 + delta;
 
@@ -37,8 +37,10 @@ public class AddPlusDomModelEffect implements ModelEffect {
         addModelEffect = new CovariateModelEffect(addCovariate, id);
         if (domSum >= MIN_HETS) {
             domModelEffect = new CovariateModelEffect(domCovariate, id);
+            X = addModelEffect.getX().concatenate(domModelEffect.getX(), false);
         } else {
             domModelEffect = null;
+            X = addModelEffect.getX();
         }
     }
 
@@ -49,7 +51,7 @@ public class AddPlusDomModelEffect implements ModelEffect {
 
     @Override
     public void setID(Object id) {
-        this.id = id;
+        this.id = (AdditiveSite) id;
     }
 
     @Override
@@ -59,12 +61,7 @@ public class AddPlusDomModelEffect implements ModelEffect {
 
     @Override
     public DoubleMatrix getX() {
-        if (domModelEffect == null) {
-            return addModelEffect.getX();
-        } else {
-            return addModelEffect.getX().concatenate(domModelEffect.getX(), false);
-        }
-
+        return X;
     }
 
     @Override
@@ -109,7 +106,7 @@ public class AddPlusDomModelEffect implements ModelEffect {
 
     @Override
     public ModelEffect getCopy() {
-        return new AddPlusDomModelEffect(id, addCovariate);
+        return new AddPlusDomModelEffect(id.copy(), Arrays.copyOf(addCovariate, addCovariate.length));
     }
 
     @Override

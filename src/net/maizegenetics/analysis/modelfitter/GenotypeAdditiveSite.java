@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.List;
 
 import net.maizegenetics.dna.snp.GenotypeTable;
@@ -68,6 +69,15 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
 
             bitStore[intCount++] = intStore;
         }
+    }
+
+    //private constructor for making a copy
+    private GenotypeAdditiveSite(int site, String chr, int pos, String id,
+                                 CRITERION selectionCriterion, int[] bitStore, int ntaxa, double[] byteConversion) {
+        super(site, chr, pos, id, selectionCriterion);
+        this.bitStore = bitStore;
+        this.ntaxa = ntaxa;
+        this.byteConversion = byteConversion;
     }
 
     @Override
@@ -184,5 +194,12 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
         }
 
         System.out.printf("%d sites written to %s at %d ms.\n", geno.numberOfSites(), outFile, (System.nanoTime() - start) / 1000000);
+    }
+
+    @Override
+    public AdditiveSite copy() {
+        return new GenotypeAdditiveSite(siteIndex, chrName, position, name,
+                selectionCriterion, Arrays.copyOf(bitStore, bitStore.length), ntaxa,
+                Arrays.copyOf(byteConversion, byteConversion.length));
     }
 }

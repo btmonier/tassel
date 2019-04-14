@@ -12,6 +12,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import net.maizegenetics.stats.linearmodels.*;
 import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.RootLogger;
@@ -30,14 +31,6 @@ import net.maizegenetics.phenotype.PhenotypeAttribute;
 import net.maizegenetics.phenotype.PhenotypeBuilder;
 import net.maizegenetics.phenotype.TaxaAttribute;
 import net.maizegenetics.phenotype.Phenotype.ATTRIBUTE_TYPE;
-import net.maizegenetics.stats.linearmodels.BasicShuffler;
-import net.maizegenetics.stats.linearmodels.CovariateModelEffect;
-import net.maizegenetics.stats.linearmodels.FactorModelEffect;
-import net.maizegenetics.stats.linearmodels.ModelEffect;
-import net.maizegenetics.stats.linearmodels.ModelEffectUtils;
-import net.maizegenetics.stats.linearmodels.NestedCovariateModelEffect;
-import net.maizegenetics.stats.linearmodels.PartitionedLinearModel;
-import net.maizegenetics.stats.linearmodels.SweepFastLinearModel;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.BitSet;
 import net.maizegenetics.util.OpenBitSet;
@@ -348,7 +341,8 @@ public class StepwiseAdditiveModelFitter {
         double[] errorSSdf = mySweepFast.getResidualSSdf();
         double F, p;
         F = siteSSdf[0] / siteSSdf[1] / errorSSdf[0] * errorSSdf[1];
-        p = 1 - (new FDistribution(siteSSdf[1], errorSSdf[1]).cumulativeProbability(F));
+//        p = 1 - (new FDistribution(siteSSdf[1], errorSSdf[1]).cumulativeProbability(F));
+        p = LinearModelUtils.Ftest(F, siteSSdf[1], errorSSdf[1]);
 
         boolean addToModel = false;
         double criterionValue = Double.NaN;
@@ -776,7 +770,8 @@ public class StepwiseAdditiveModelFitter {
             double F = ssdf[0] / ssdf[1] / errorMS;
             double p;
             try {
-            	p = 1 - (new FDistribution(ssdf[1], errorSSdf[1]).cumulativeProbability(F));
+//            	p = 1 - (new FDistribution(ssdf[1], errorSSdf[1]).cumulativeProbability(F));
+            	p = LinearModelUtils.Ftest(F, ssdf[1], errorSSdf[1]);
             } catch (Exception e) {
             	p = Double.NaN;
             }

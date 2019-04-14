@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.spi.RootLogger;
 
 import java.util.*;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -99,9 +100,10 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
 
         Spliterator<AdditiveSite> siteEvaluator;
         siteEvaluator = new ForwardStepAddDomSpliterator(mySites, myModel, y);
+        LongAdder counter = new LongAdder();
         Optional<AdditiveSite> bestSite =
-                StreamSupport.stream(siteEvaluator, true).max((a, b) -> a.compareTo(b));
-
+                StreamSupport.stream(siteEvaluator, true).peek(s -> counter.increment()).max((a, b) -> a.compareTo(b));
+        System.out.println(counter.longValue() + " sites evaluated.");
         if (!bestSite.isPresent())
             return Double.NaN;
 
@@ -116,7 +118,8 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
         double[] errorSSdf = mySweepFast.getResidualSSdf();
         double F, p;
         F = siteSSdf[0] / siteSSdf[1] / errorSSdf[0] * errorSSdf[1];
-        p = 1 - (new FDistribution(siteSSdf[1], errorSSdf[1]).cumulativeProbability(F));
+//        p = 1 - (new FDistribution(siteSSdf[1], errorSSdf[1]).cumulativeProbability(F));
+        p = LinearModelUtils.Ftest(F, siteSSdf[1], errorSSdf[1]);
 
         boolean addToModel = false;
         double criterionValue = Double.NaN;

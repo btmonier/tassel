@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.swing.ImageIcon;
 
+import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory;
 import org.apache.log4j.Logger;
 
 
@@ -191,6 +192,7 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
 
     @Override
     protected void preProcessParameters(DataSet input) {
+        DoubleMatrixFactory.setDefault(DoubleMatrixFactory.FactoryType.ejml);
         //input data should be a single GenotypePhenotype
         List<Datum> datumList = input.getDataOfType(GenotypePhenotype.class);
         if (datumList.size() != 1)

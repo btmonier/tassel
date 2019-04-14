@@ -1,9 +1,13 @@
 package net.maizegenetics.analysis.modelfitter;
 
+import net.maizegenetics.stats.linearmodels.CovariateModelEffect;
 import net.maizegenetics.stats.linearmodels.ModelEffect;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Spliterator;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class ForwardStepAddDomSpliterator extends ForwardStepAdditiveSpliterator {
 
@@ -48,4 +52,17 @@ public class ForwardStepAddDomSpliterator extends ForwardStepAdditiveSpliterator
         return true;
     }
 
+    @Override
+    public Spliterator<AdditiveSite> trySplit() {
+        int numberRemaining = end - origin;
+        if (numberRemaining < 500)
+            return null;
+        int mid = origin + numberRemaining / 2;
+        List<AdditiveSite> splitSublist = mySites.subList(origin, mid);
+        origin = mid;
+        double[] yCopy = Arrays.copyOf(y, y.length);
+        List<ModelEffect> baseModelCopy =
+                baseModel.stream().map(me -> me.getCopy()).collect(Collectors.toList());
+        return new ForwardStepAddDomSpliterator(splitSublist, baseModelCopy, yCopy);
+    }
 }
