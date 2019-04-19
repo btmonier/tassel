@@ -43,4 +43,8 @@ public class RefProbAdditiveSite extends AbstractAdditiveSite {
         this.taxaIndex = taxaIndex;
     }
 
+    @Override
+    public AdditiveSite copy() {
+        return new RefProbAdditiveSite(siteIndex, chrName, position, name, selectionCriterion, Arrays.copyOf(cov, cov.length));
+    }
 }

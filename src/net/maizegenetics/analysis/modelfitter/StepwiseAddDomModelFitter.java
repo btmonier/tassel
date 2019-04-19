@@ -108,8 +108,6 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
             return Double.NaN;
 
         ModelEffect nextEffect;
-        //modify to support AddPlusDomModel
-//            nextEffect = new CovariateModelEffect(bestSite.get().getCovariate(), bestSite.get());
         nextEffect = new AddPlusDomModelEffect(bestSite.get(), bestSite.get());
 
         myModel.add(nextEffect);
@@ -118,7 +116,6 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
         double[] errorSSdf = mySweepFast.getResidualSSdf();
         double F, p;
         F = siteSSdf[0] / siteSSdf[1] / errorSSdf[0] * errorSSdf[1];
-//        p = 1 - (new FDistribution(siteSSdf[1], errorSSdf[1]).cumulativeProbability(F));
         p = LinearModelUtils.Ftest(F, siteSSdf[1], errorSSdf[1]);
 
         boolean addToModel = false;
@@ -179,8 +176,6 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
             AdditiveSite bestSite = bestTerm(baseModel, support);
             if (!bestSite.equals(scanSite)) {
                 ModelEffect bestEffect;
-//                        bestEffect = new CovariateModelEffect(bestSite.getCovariate(), bestSite);
-                //modify for add-dom model
                 bestEffect = new AddPlusDomModelEffect(bestSite, bestSite);
                 baseModel.add(bestEffect);
                 support = findCI(bestEffect, baseModel);
@@ -195,7 +190,6 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
     protected double testAddedTerm(int testedTerm, AdditiveSite addedTerm, List<ModelEffect> theModel) {
         List<ModelEffect> testingModel = new ArrayList<>(theModel);
 
-//            CovariateModelEffect cme = new CovariateModelEffect(addedTerm.getCovariate());
         //changed for add-dom model
         AddPlusDomModelEffect apdme = new AddPlusDomModelEffect(addedTerm, addedTerm);
         testingModel.add(apdme);
@@ -223,8 +217,6 @@ public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
                 new PartitionedLinearModel(baseModel, new SweepFastLinearModel(baseModel, y));
         return intervalList.stream()
                 .map(s -> {
-//                        s.criterionValue(plm.testNewModelEffect(s.getCovariate()));
-                    //changed for add-dom model
                     plm.testNewModelEffect(new AddPlusDomModelEffect(s,s));
                     s.criterionValue(plm.getp());
                     return s;

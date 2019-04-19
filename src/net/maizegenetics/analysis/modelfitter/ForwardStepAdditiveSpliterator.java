@@ -67,11 +67,6 @@ public class ForwardStepAdditiveSpliterator implements Spliterator<AdditiveSite>
                 as.criterionValue(nobs * Math.log(rss / nobs) + Math.log(nobs) * (baseModeldf + 1) + 2
                         * (baseModeldf + 1) * Math.log(nsites / 2.2 - 1));
                 break;
-            //        case pval:
-            //            double modelss = plm.testNewModelEffect(as.getCovariate());
-            //            plm.setModelSS(modelss);
-            //            as.criterionValue(plm.getp());
-            //            break;
         }
 
         action.accept(as);

@@ -770,7 +770,6 @@ public class StepwiseAdditiveModelFitter {
             double F = ssdf[0] / ssdf[1] / errorMS;
             double p;
             try {
-//            	p = 1 - (new FDistribution(ssdf[1], errorSSdf[1]).cumulativeProbability(F));
             	p = LinearModelUtils.Ftest(F, ssdf[1], errorSSdf[1]);
             } catch (Exception e) {
             	p = Double.NaN;
