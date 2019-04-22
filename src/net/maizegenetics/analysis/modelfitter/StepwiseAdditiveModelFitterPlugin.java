@@ -395,17 +395,9 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
 //      The following getters and setters were auto-generated.
 //      Please use this method to re-generate.
 
-      public static void main(String[] args) {
-          GeneratePluginCode.generate(StepwiseAdditiveModelFitterPlugin.class);
-      }
-
-     /**
-      * Convenience method to run plugin with one return object.
-      */
-    //not implemented because the plugin always returns more than one object
-//     public <Type> runPlugin(DataSet input) {
-//         return (<Type>) performFunction(input).getData(0).getData();
-//     }
+//      public static void main(String[] args) {
+//          GeneratePluginCode.generate(StepwiseAdditiveModelFitterPlugin.class);
+//      }
 
      /**
       * The model selection criterion used to determine which
