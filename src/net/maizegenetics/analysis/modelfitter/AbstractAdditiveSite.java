@@ -1,5 +1,9 @@
 package net.maizegenetics.analysis.modelfitter;
 
+/**
+ * This class holds data for a variant site to provide an object to hold data used and returned by a stepwise
+ * model fitter. That makes it convenient to use in a parallel stream for processing.
+ */
 public abstract class AbstractAdditiveSite implements AdditiveSite {
     private static final long serialVersionUID = 3032879930663240377L;
     protected final int siteIndex;
@@ -10,6 +14,14 @@ public abstract class AbstractAdditiveSite implements AdditiveSite {
     protected final CRITERION selectionCriterion;
     protected final int direction;
 
+    /**
+     *
+     * @param site                  a zero based index of sites
+     * @param chromosomeName        a chromosome name (String)
+     * @param pos                   the integer position in the chromosome
+     * @param id                    a name for this site
+     * @param selectionCriterion    the selection criterion to be use to pick a site
+     */
     public AbstractAdditiveSite(int site, String chromosomeName, int pos, String id, CRITERION selectionCriterion) {
         siteIndex = site;
         this.selectionCriterion = selectionCriterion;

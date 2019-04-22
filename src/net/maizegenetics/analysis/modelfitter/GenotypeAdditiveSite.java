@@ -12,6 +12,12 @@ import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 
+/**
+ * GenotypeAdditiveSite is an AdditiveSite that takes a byte[] array of genotypes as input and converts them
+ * to a double[] array. It codes the homozygous major as 2, homozygous minor as 0 and het as 1. It then subtracts the mean
+ * value from all elements of the array and sets missing to zero (now the mean). For efficient storage, the values of 0,1,2,3
+ * are stored in a byte array which indexes the double values.
+ */
 public class GenotypeAdditiveSite extends AbstractAdditiveSite {
 
     private static final long serialVersionUID = -7891486608129027827L;

@@ -12,6 +12,11 @@ import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
+/**
+ * This class calculates p-values for a test of a single SNP with a list of permuted data sets.
+ * myPermutedData is a list of double[] arrays, each of which is a data set to be tested.
+ * This class extends a parent class which tests an additive only model to test an additive + dominance model instead.
+ */
 public class AddDomPermutationTestSpliterator extends CovariatePermutationTestSpliterator {
 
     public AddDomPermutationTestSpliterator(List<double[]> permutedData,
@@ -25,7 +30,6 @@ public class AddDomPermutationTestSpliterator extends CovariatePermutationTestSp
             return false;
         AdditiveSite as = mySites.get(origin);
         List<ModelEffect> myModel = new ArrayList<ModelEffect>(myBaseModel);
-//        CovariateModelEffect cme = new CovariateModelEffect(as.getCovariate());
         ModelEffect effectToAdd = new AddPlusDomModelEffect(as,as);
         myModel.add(effectToAdd);
 

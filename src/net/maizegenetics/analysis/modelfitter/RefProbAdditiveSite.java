@@ -3,6 +3,11 @@ package net.maizegenetics.analysis.modelfitter;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * An AdditiveSite that takes a float[] valued covariate as an argument. The covariate should equal the probability that
+ * a given allele (major or minor, for example) would be selected at random from that site. It also stores the value of a
+ * statistic determined by selectionCriteria which results from fitting a linear model.
+ */
 public class RefProbAdditiveSite extends AbstractAdditiveSite {
 
     private static final long serialVersionUID = 2040665024409852166L;

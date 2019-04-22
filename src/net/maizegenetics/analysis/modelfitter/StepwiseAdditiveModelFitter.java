@@ -37,9 +37,19 @@ import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportBuilder;
 
+/**
+ * A multi-threaded stepwise model fitter for additive only models. To use it first construct an object then call
+ * runAnalysis(). After the analysis has run, any of several reports will be available using getters. If a permutation
+ * test is requested it is run first. The analysis then fits SNPs consecutively,
+ * then rescans the full model to determine if any of the SNPs has a better choice given all the other
+ * SNPs in the model. As part of the rescan it calculates a support interval for each of the SNPs. Reports available include
+ * the steps taken to fit the model with sequential p-values, an anova with marginal p-values, a report of marker effects,
+ * a post-scan anova, post-scan marker effects, and a permutation report. It will also output a list of model residuals by
+ * chromosome. For each chromosome, it reports the residuals from a model that includes all effects, except the markers
+ * on that chromosome.
+ */
 public class StepwiseAdditiveModelFitter {
-    //model fitter for additive models
-    //replacement for StepwiseOLSModelFitter that has many of the same features but is multi-threaded
+    //replacement for StepwiseOLSModelFitter that has many of the same features but is not multi-threaded
     private static Logger myLogger = RootLogger.getLogger(StepwiseAdditiveModelFitter.class);
     protected final GenotypePhenotype myGenoPheno;
     protected final GenotypeTable myGenotype;
@@ -96,7 +106,12 @@ public class StepwiseAdditiveModelFitter {
             TableReportBuilder.getInstance("Steps", new String[] { "Trait", "SiteID", "Chr", "Position",
                     "action", "df", "MS", "F", "probF", "AIC", "BIC", "mBIC", "ModelRsq" });
 
-    //constructor takes a GenotypePhenotype and a dataset name, which is needed to label output
+    /**
+     *
+     * @param genopheno     a GenotypePhenotype object
+     * @param datasetName   a name for the genopheno
+     * @throws IllegalArgumentException if any phenotype data is missing
+     */
     public StepwiseAdditiveModelFitter(GenotypePhenotype genopheno, String datasetName) {
         myGenoPheno = genopheno;
         dataname = datasetName;
@@ -106,7 +121,7 @@ public class StepwiseAdditiveModelFitter {
         //refuse to run if there is missing data for any trait, since that would require rebuilding the site list
         Optional<String> missingTest = testPhenotypeForMissingData(myPhenotype);
         if (missingTest.isPresent()) {
-            throw new RuntimeException("Missing data: " + missingTest.get());
+            throw new IllegalArgumentException("Missing data: " + missingTest.get());
         }
         
         dataAttributeList = myPhenotype.attributeListOfType(ATTRIBUTE_TYPE.data);

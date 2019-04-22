@@ -16,10 +16,20 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * Fits an additive plus dominance model in a stepwise fashion. See StepwiseAdditiveModelFitter for a desription of
+ * outputs available.
+ */
 public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
 
     private static Logger myLogger = RootLogger.getLogger(StepwiseAddDomModelFitter.class);
 
+    /**
+     *
+     * @param genopheno     a GenotypePhenotype object
+     * @param datasetName   a name for the genopheno
+     * @throws IllegalArgumentException if any phenotype data is missing
+     */
     public StepwiseAddDomModelFitter(GenotypePhenotype genopheno, String datasetName) {
 
         super(genopheno, datasetName);

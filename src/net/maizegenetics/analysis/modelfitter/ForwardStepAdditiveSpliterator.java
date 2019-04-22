@@ -10,6 +10,10 @@ import net.maizegenetics.stats.linearmodels.ModelEffect;
 import net.maizegenetics.stats.linearmodels.PartitionedLinearModel;
 import net.maizegenetics.stats.linearmodels.SweepFastLinearModel;
 
+/**
+ * This Spliterator is used to fit a baseModel plus an additive effect covariate to a data set y. It takes an AdditiveSite
+ * as input, calculates the test statistic specified by selectionCriterion, and sets its value in the AdditiveSite.
+ */
 public class ForwardStepAdditiveSpliterator implements Spliterator<AdditiveSite> {
     protected final PartitionedLinearModel plm;
     protected List<AdditiveSite> mySites;

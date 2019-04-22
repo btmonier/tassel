@@ -191,6 +191,13 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
     }
 
     @Override
+    public String pluginDescription() {
+        return "A stepwise model fitter designed to select variants tested for association with a large " +
+                "number of nucleotide variants. It can be multi-threaded to handle large number of variants efficiently. " +
+                "It can fit an additive only model or an additive + dominance model.";
+    }
+
+    @Override
     protected void preProcessParameters(DataSet input) {
         DoubleMatrixFactory.setDefault(DoubleMatrixFactory.FactoryType.ejml);
         //input data should be a single GenotypePhenotype

@@ -8,6 +8,13 @@ import org.apache.log4j.Logger;
 
 import java.util.Arrays;
 
+/**
+ * A ModelEffect that takes an AdditiveSite as an argument and uses the additiveCovariate
+ * from that object to compute a covariate representing dominance. In general, the AdditiveSite will be supplied as the id,
+ * although that is not a requirement. The dominance values are calculated as 1 - abs(x - 1) where x is the addivitive value.
+ * The values of x are expected to be 0, 1, 2, where 0 and 1 are homozygous genotypes and 1 is the het.
+ *
+ */
 public class AddPlusDomModelEffect implements ModelEffect {
 
     private AdditiveSite id;
