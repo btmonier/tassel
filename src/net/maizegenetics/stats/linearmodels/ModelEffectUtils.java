@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import net.maizegenetics.analysis.modelfitter.AddPlusDomModelEffect;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
@@ -41,6 +42,8 @@ public class ModelEffectUtils {
 				return fme.getXty(((CovariateModelEffect) Y).getCovariate());
 			} else if (Y instanceof NestedCovariateModelEffect) {
 				return fme.getX().mult(Y.getX(), true, false);
+			} else if (Y instanceof AddPlusDomModelEffect) {
+				return fme.getX().crossproduct(Y.getX());
 			}
 			
 		} else if (X instanceof CovariateModelEffect) {
@@ -51,6 +54,8 @@ public class ModelEffectUtils {
 				return Y.getXty(cov);
 			} else if (Y instanceof NestedCovariateModelEffect) {
 				return Y.getXty(cov).transpose();
+			} else if (Y instanceof AddPlusDomModelEffect) {
+				return Y.getXty(cov).transpose();
 			}
 			
 		} else if (X instanceof NestedCovariateModelEffect) {
@@ -60,9 +65,14 @@ public class ModelEffectUtils {
 				return X.getXty(((CovariateModelEffect) Y).getCovariate());
 			} else if (Y instanceof NestedCovariateModelEffect) {
 				return ((NestedCovariateModelEffect) X).getXtX2((NestedCovariateModelEffect) Y);
+			} else if (Y instanceof AddPlusDomModelEffect) {
+				return X.getX().crossproduct(Y.getX());
 			}
 			
+		} else if (X instanceof AddPlusDomModelEffect) {
+			return X.getX().crossproduct(Y.getX());
 		}
+
 		return null;
 	}
 	

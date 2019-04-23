@@ -10,6 +10,10 @@ import net.maizegenetics.stats.linearmodels.ModelEffect;
 import net.maizegenetics.stats.linearmodels.PartitionedLinearModel;
 import net.maizegenetics.stats.linearmodels.SweepFastLinearModel;
 
+/**
+ * This Spliterator is used to fit a baseModel plus an additive effect covariate to a data set y. It takes an AdditiveSite
+ * as input, calculates the test statistic specified by selectionCriterion, and sets its value in the AdditiveSite.
+ */
 public class ForwardStepAdditiveSpliterator implements Spliterator<AdditiveSite> {
     protected final PartitionedLinearModel plm;
     protected List<AdditiveSite> mySites;
@@ -48,30 +52,25 @@ public class ForwardStepAdditiveSpliterator implements Spliterator<AdditiveSite>
         AdditiveSite as = mySites.get(origin);
 
         switch (as.selectionCriterion()) {
-        case pval:
-            as.criterionValue(plm.testNewModelEffect(as.getCovariate()));
-            break;
-        case aic:
-            plm.testNewModelEffect(as.getCovariate());
-            double rss = plm.getErrorSS();
-            as.criterionValue(nobs * Math.log(rss / nobs) + 2 * (baseModeldf + 1));
-            break;
-        case bic:
-            plm.testNewModelEffect(as.getCovariate());
-            rss = plm.getErrorSS();
-            as.criterionValue(nobs * Math.log(rss / nobs) + Math.log(nobs) * (baseModeldf + 1));
-            break;
-        case mbic:
-            plm.testNewModelEffect(as.getCovariate());
-            rss = plm.getErrorSS();
-            as.criterionValue(nobs * Math.log(rss / nobs) + Math.log(nobs) * (baseModeldf + 1) + 2
-                    * (baseModeldf + 1) * Math.log(nsites / 2.2 - 1));
-            break;
-        //        case pval:
-        //            double modelss = plm.testNewModelEffect(as.getCovariate());
-        //            plm.setModelSS(modelss);
-        //            as.criterionValue(plm.getp());
-        //            break;
+            case pval:
+                as.criterionValue(plm.testNewModelEffect(as.getCovariate()));
+                break;
+            case aic:
+                plm.testNewModelEffect(as.getCovariate());
+                double rss = plm.getErrorSS();
+                as.criterionValue(nobs * Math.log(rss / nobs) + 2 * (baseModeldf + 1));
+                break;
+            case bic:
+                plm.testNewModelEffect(as.getCovariate());
+                rss = plm.getErrorSS();
+                as.criterionValue(nobs * Math.log(rss / nobs) + Math.log(nobs) * (baseModeldf + 1));
+                break;
+            case mbic:
+                plm.testNewModelEffect(as.getCovariate());
+                rss = plm.getErrorSS();
+                as.criterionValue(nobs * Math.log(rss / nobs) + Math.log(nobs) * (baseModeldf + 1) + 2
+                        * (baseModeldf + 1) * Math.log(nsites / 2.2 - 1));
+                break;
         }
 
         action.accept(as);

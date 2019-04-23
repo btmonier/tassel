@@ -15,12 +15,17 @@ import net.maizegenetics.stats.linearmodels.CovariateModelEffect;
 import net.maizegenetics.stats.linearmodels.ModelEffect;
 import net.maizegenetics.stats.linearmodels.SweepFastLinearModel;
 
+/**
+ * A Spliterator that uses the covariate from an AdditiveSite to test it against a baseModel and a list of permuted
+ * data sets using a fixed effect linear model. This class is used as part of stepwise model fitting to process
+ * a list of AdditiveSites. The permutation test is used to determine the entry and exit limits to be used for model fitting.
+ */
 public class CovariatePermutationTestSpliterator implements Spliterator<double[]> {
-    private List<double[]> myPermutedData;
-    private List<AdditiveSite> mySites;
-    private List<ModelEffect> myBaseModel;
-    private int origin;
-    private final int end;
+    protected List<double[]> myPermutedData;
+    protected List<AdditiveSite> mySites;
+    protected List<ModelEffect> myBaseModel;
+    protected int origin;
+    protected final int end;
 
     public CovariatePermutationTestSpliterator(List<double[]> permutedData,
             List<AdditiveSite> siteList, List<ModelEffect> baseModel) {

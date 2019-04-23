@@ -64,4 +64,10 @@ public interface AdditiveSite extends Comparable<AdditiveSite>, Serializable {
      * @param uniqueTaxa        a unique list of index values used to recalculate major allele frequency for the taxa indexed
      */
     void reindexTaxa(int[] taxaIndex, List<Integer> uniqueTaxa);
+
+    /**
+     *
+     * @return a copy of this AdditiveSite
+     */
+    AdditiveSite copy();
 }
