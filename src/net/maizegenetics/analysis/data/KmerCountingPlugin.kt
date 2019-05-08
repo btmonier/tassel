@@ -42,16 +42,12 @@ class KmerCountingPlugin(parentFrame: Frame?, isInteractive: Boolean) : Abstract
 
                 val record = reader.next()
                 val sequence = record.readString
-                for (i in 0 until sequence.length / kmerLength() * kmerLength() step kmerLength()) {
-                    countFunction.invoke(sequence.substring(i, i + kmerLength()))
-                }
+                sequence.windowed(size = kmerLength(), step = kmerLength(), partialWindows = false)
+                        .forEach { countFunction(it) }
 
             }
 
         }
-
-        println("countMap size: ${countMap.size}")
-        println("countTreeMap size: ${countTreeMap.size}")
 
         return null
 
