@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import javax.swing.ImageIcon;
 
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory;
+import net.maizegenetics.taxa.TaxaList;
+import net.maizegenetics.taxa.Taxon;
 import org.apache.log4j.Logger;
 
 
@@ -182,6 +184,24 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
                     .guiName("Impute Dominance Score")
                     .build();
 
+    private PluginParameter<Boolean> fitMoreSites =
+            new PluginParameter.Builder<>("fit", true, Boolean.class)
+                    .description("Should more sites be fit to the initial model. This would only be set to false if and initial marker list is supplied. Permutations will not be run if this is set to false.")
+                    .guiName("Fit More Sites")
+                    .build();
+
+    private PluginParameter<Double> rescanAlpha =
+            new PluginParameter.Builder<>("rescanAlpha", 0.01, Double.class)
+                    .description("The alpha value used in rescanning to determine support intervals.")
+                    .guiName("Rescan Alpha")
+                    .build();
+
+    private PluginParameter<List<String>> initialSiteNameList =
+            new PluginParameter.Builder("sites", new ArrayList<String>(), List.class)
+                    .description("A comma delimited list (no spaces) of sites to be included in the initial model. The list must not have any spaces.")
+                    .guiName("Site List")
+                    .build();
+
     public StepwiseAdditiveModelFitterPlugin() {
         super(null, false);
     }
@@ -214,6 +234,23 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
 
         if (myFactorNameList.isEmpty()) myFactorNameList.add("None");
         nestingFactor = new PluginParameter<>(nestingFactor, myFactorNameList);
+
+        //make sure that the taxaLists from genotype and phenotype are the same
+        TaxaList myGenotypeTaxa = myGenoPheno.genotypeTable().taxa();
+        Taxon[] myPhenotypeTaxa = myGenoPheno.phenotype().taxaAttribute().allTaxa();
+
+        if (myGenotypeTaxa.size() != myPhenotypeTaxa.length) {
+            throw new IllegalArgumentException("The number of genotype taxa does not equal the number phenotype" +
+                    " observations in the joined genotype-phenotype data set.");
+        }
+
+        for (int t = 0; t < myGenotypeTaxa.numberOfTaxa(); t++){
+            if (!myGenotypeTaxa.get(t).getName().equals(myPhenotypeTaxa[t].getName())) {
+                throw new IllegalArgumentException("The order of genotypes and phenotypes is different in the " +
+                        "joined genotype-phenotype data set");
+            }
+        }
+
     }
 
     @Override
@@ -294,6 +331,9 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
         stamFitter.createPreScanEffectsReport(createEffectsPrescan.value());
         stamFitter.createResidualsByChr(createResiduals.value());
         stamFitter.createStepReport(createStep.value());
+        stamFitter.rescanAlpha(rescanAlpha.value());
+        stamFitter.fitSites(fitMoreSites.value());
+        stamFitter.initialSitesInModel(initialSiteNameList.value());
 
         long start = System.nanoTime();
         stamFitter.runAnalysis();
@@ -921,4 +961,77 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
         return this;
     }
 
+    /**
+     * Should more sites be fit to the initial model. This
+     * would only be set to false if and initial marker list
+     * is supplied. Permutations will not be run if this is
+     * set to false.
+     *
+     * @return Fit More Sites
+     */
+    public Boolean fitMoreSites() {
+        return fitMoreSites.value();
+    }
+
+    /**
+     * Set Fit More Sites. Should more sites be fit to the
+     * initial model. This would only be set to false if and
+     * initial marker list is supplied. Permutations will
+     * not be run if this is set to false.
+     *
+     * @param value Fit More Sites
+     *
+     * @return this plugin
+     */
+    public StepwiseAdditiveModelFitterPlugin fitMoreSites(Boolean value) {
+        fitMoreSites = new PluginParameter<>(fitMoreSites, value);
+        return this;
+    }
+
+    /**
+     * The alpha value used in rescanning to determine support
+     * intervals.
+     *
+     * @return Rescan Alpha
+     */
+    public Double rescanAlpha() {
+        return rescanAlpha.value();
+    }
+
+    /**
+     * Set Rescan Alpha. The alpha value used in rescanning
+     * to determine support intervals.
+     *
+     * @param value Rescan Alpha
+     *
+     * @return this plugin
+     */
+    public StepwiseAdditiveModelFitterPlugin rescanAlpha(Double value) {
+        rescanAlpha = new PluginParameter<>(rescanAlpha, value);
+        return this;
+    }
+
+    /**
+     * A comma delimited list (no spaces) of sites to be included
+     * in the initial model. The list must not have any spaces.
+     *
+     * @return Site List
+     */
+    public List initialSiteNameList() {
+        return initialSiteNameList.value();
+    }
+
+    /**
+     * Set Site List. A comma delimited list (no spaces) of
+     * sites to be included in the initial model. The list
+     * must not have any spaces.
+     *
+     * @param value Site List
+     *
+     * @return this plugin
+     */
+    public StepwiseAdditiveModelFitterPlugin initialSiteNameList(List<String> value) {
+        initialSiteNameList = new PluginParameter<>(initialSiteNameList, value);
+        return this;
+    }
 }

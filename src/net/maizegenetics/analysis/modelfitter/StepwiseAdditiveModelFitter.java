@@ -1,10 +1,6 @@
 package net.maizegenetics.analysis.modelfitter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -67,12 +63,12 @@ public class StepwiseAdditiveModelFitter {
     protected List<AdditiveSite> mySites;
     protected FactorModelEffect nestingFactor;
     protected List<String> nestingFactorLevelNames;
-    protected final double rescanAlpha = 0.05;
     protected List<Phenotype> allOfTheResidualPhenotypes;
 
     //user defined parameters
     protected int numberOfPermutations = 0;
     protected double permutationAlpha = 0.05;
+    protected double rescanAlpha = 0.01;
     protected double enterLimit = 1e-5;
     protected double exitLimit = 2e-5;
     protected boolean useReferenceProbability = true;
@@ -80,6 +76,8 @@ public class StepwiseAdditiveModelFitter {
     private String nestingEffectName = "family";
     protected AdditiveSite.CRITERION modelSelectionCriterion = AdditiveSite.CRITERION.pval;
     protected int maxSitesInModel = 10;
+    protected List<String> initialSitesInModel = new ArrayList<>();
+    protected boolean fitSites = true;
     private boolean useResiduals = false;
     protected boolean createAnovaReport = true;
     protected boolean createPostScanEffectsReport = true;
@@ -185,8 +183,11 @@ public class StepwiseAdditiveModelFitter {
                 nestingFactor =
                         (FactorModelEffect) myModel.stream().filter(me -> me.getID().equals(nestingEffectName)).findFirst().get();
 
+            //add initial site list to model
+            addInitialSitesToModel();
+
             //call fitModel()
-            fitModel();
+            if (fitSites) fitModel();
 
             //add to reports
             if (createAnovaReport)
@@ -227,6 +228,31 @@ public class StepwiseAdditiveModelFitter {
                 allOfTheResidualPhenotypes.addAll(generateChromosomeResidualsFromCurrentModel());
         }
 
+    }
+
+    protected void addInitialSitesToModel() {
+        //if the list is null or empty do nothing, no need to create the site map
+        if (initialSitesInModel == null || initialSitesInModel.size() == 0) return;
+
+        //create a site name to AdditiveSite map
+        Map<String,AdditiveSite> siteNameMap = mySites.stream().collect(Collectors.toMap(add -> add.siteName(), add -> add));
+
+        for (String name : initialSitesInModel) {
+            AdditiveSite siteToAdd = siteNameMap.get(name);
+            ModelEffect nextEffect;
+            if (isNested) {
+                nextEffect =
+                        new NestedCovariateModelEffect(siteToAdd.getCovariate(), nestingFactor);
+                nextEffect.setID(siteToAdd);
+            } else {
+
+                nextEffect = new CovariateModelEffect(siteToAdd.getCovariate(), siteToAdd);
+            }
+
+            myModel.add(nextEffect);
+        }
+
+        mySweepFast = new SweepFastLinearModel(myModel, y);
     }
 
     protected void fitModel() {
@@ -929,6 +955,12 @@ public class StepwiseAdditiveModelFitter {
     public void useResiduals(boolean useResid) {
         useResiduals = useResid;
     }
+
+    public void fitSites(boolean fitMore) { fitSites = fitMore; }
+
+    public void initialSitesInModel(List<String> siteNames) { initialSitesInModel = siteNames; }
+
+    public void rescanAlpha(double alpha) { rescanAlpha = alpha; }
 
     public void createAnovaReport(boolean createIt) {
         createAnovaReport = createIt;
