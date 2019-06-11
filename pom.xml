@@ -293,6 +293,10 @@
 
     <repositories>
         <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+        <repository>
             <id>imagej.public</id>
             <url>http://maven.imagej.net/content/groups/public</url>
         </repository>
@@ -426,6 +430,11 @@
             <artifactId>kotlin-test</artifactId>
             <version>${kotlin.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.holgerbrandl</groupId>
+            <artifactId>krangl</artifactId>
+            <version>0.11</version>
         </dependency>
 
     </dependencies>
