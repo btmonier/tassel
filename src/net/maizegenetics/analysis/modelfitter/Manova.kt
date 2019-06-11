@@ -4,230 +4,124 @@ import krangl.*
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
 import net.maizegenetics.stats.linearmodels.LinearModelUtils
 import kotlin.math.pow
+import java.util.HashSet
+import java.util.ArrayList
+
+
 //import org.apache.commons.math3.stat.inference.OneWayAnova
 
-
-
 fun main() {
-    val data = DataFrame.readCSV("/Users/SAMUELFERNANDES/Documents/UIUC2/tassel-5-source/data_for_tests/multi.csv")
-    val design = DataFrame.readCSV("/Users/SAMUELFERNANDES/Documents/UIUC2/tassel-5-source/data_for_tests/design.csv")
-    //var X : Array<DoubleArray> = design.toDoubleMatrix()
+    var data = DataFrame.readCSV("/Users/pjbrown/Desktop/UIUC2/tassel-5-source/data_for_tests/fatorial_multi.csv")
+    val design = DataFrame.readCSV("/Users/pjbrown/Desktop/UIUC2/tassel-5-source/data_for_tests/design_fatorial.csv")
+
     val X = EJMLDoubleMatrix(design.toDoubleMatrix()).transpose()
-    //intercept only
-    val intercept = EJMLDoubleMatrix(design.select("intercept").toDoubleMatrix()).transpose()
-    val pheno = EJMLDoubleMatrix(data.remove("taxa").toDoubleMatrix()).transpose()
 
-    val YtY: DoubleMatrix = pheno.crossproduct()
-    val (B, R, E) = calcBeta(pheno, X)
-    val (B2, R2, E2) = calcBeta(pheno, intercept)
+    data = data.addColumn("interaction") { it["gender"] + "" + it["level"] }
 
-    val H : DoubleMatrix = R.minus(R2)
-    val Total : DoubleMatrix = YtY.minus(R2)
+    val Y = EJMLDoubleMatrix(data.select("k1", "k2", "k3").toDoubleMatrix()).transpose()
 
-    val eigen : EigenvalueDecomposition =  E.inverse().mult(H).eigenvalueDecomposition
+    val X2 = EJMLDoubleMatrix(design.remove("j1Y1", "j2Y1", "j1Y2", "j2Y2", "j1Y3", "j2Y3", "j1Y4", "j2Y4").toDoubleMatrix()).transpose()
+    val X3 = EJMLDoubleMatrix(design.select("intercept", "j1", "j2").toDoubleMatrix()).transpose()
+    val X4 = EJMLDoubleMatrix(design.select("intercept", "Y1", "Y2", "Y3", "Y4").toDoubleMatrix()).transpose()
+    val X5 = EJMLDoubleMatrix(design.select("intercept").toDoubleMatrix()).transpose()
 
-    var lambda  = 1.0
-    for(i in 0..(eigen.eigenvalues.size-1) ){
-        lambda *= 1 / (1 + eigen.eigenvalues[i])
+    //mu, alpha, betha, delta
+    val (B1, H1) = calcBeta(Y, X)
+    //mu, alpha, betha
+    val (B2, H2) = calcBeta(Y, X2)
+    //mu, alpha
+    val (B3, H3) = calcBeta(Y, X3)
+    //mu, betha
+    val (B4, H4) = calcBeta(Y, X4)
+    //mu
+    val (bInt, hInt) = calcBeta(Y, X5)
+
+    val YtY: DoubleMatrix = Y.crossproduct()
+
+    val hA : DoubleMatrix = H3.minus(hInt)
+    val hB : DoubleMatrix = H4.minus(hInt)
+    val hD : DoubleMatrix = H1.minus(H2)
+    val Total : DoubleMatrix = YtY.minus(hA).minus(hB).minus(hD)
+
+    val E : DoubleMatrix = YtY.minus(H1)
+
+    val eigenInt : EigenvalueDecomposition =  E.inverse().mult(hInt).eigenvalueDecomposition
+    var lambdaInt  = 1.0
+    for(i in 0..(eigenInt.eigenvalues.size-1) ){
+        lambdaInt *= 1 / (1 + eigenInt.eigenvalues[i])
     }
 
-    var p = pheno.numberOfColumns()
-    val vh = 3
-    val ve = pheno.numberOfRows() - (vh + 1)
-    val t : Double
-
-    if((p.toDouble().pow(2) + vh.toDouble().pow(2) - 5 ) > 0) {
-        t = Math.sqrt((p.toDouble().pow(2) * vh.toDouble().pow(2) - 4) / (p.toDouble().pow(2) + vh.toDouble().pow(2) - 5))
-    } else {
-        t = 1.0
+    val eigenA : EigenvalueDecomposition =  E.inverse().mult(hA).eigenvalueDecomposition
+    var lambdaA  = 1.0
+    for(i in 0..(eigenA.eigenvalues.size-1) ){
+        lambdaA *= 1 / (1 + eigenA.eigenvalues[i])
     }
 
-    val r : Int = ve - (p - vh + 1)
-    val f : Int = (p * vh - 2)/4
+    val eigenB : EigenvalueDecomposition =  E.inverse().mult(hB).eigenvalueDecomposition
+    var lambdaB  = 1.0
+    for(i in 0..(eigenB.eigenvalues.size-1) ){
+        lambdaB *= 1 / (1 + eigenB.eigenvalues[i])
+    }
 
-    val Fc : Double = ((1 - (lambda.pow(1/t)))/(lambda.pow(1/t))) * ((r*t - 2*f)/(p*vh))
+    val eigenD : EigenvalueDecomposition =  E.inverse().mult(hD).eigenvalueDecomposition
+    var lambdaD  = 1.0
+    for(i in 0..(eigenD.eigenvalues.size-1) ){
+        lambdaD *= 1 / (1 + eigenD.eigenvalues[i])
+    }
 
-    val pvalue : Double = LinearModelUtils.Ftest(Fc, p*vh.toDouble(), (r*t)-(2*f))
+    val lenA = data["gender"].asStrings().distinctBy {it.hashCode()}.size.toDouble()
+    val lenB = data["level"].asStrings().distinctBy {it.hashCode()}.size.toDouble()
+    val lenD = data["interaction"].asStrings().distinctBy {it.hashCode()}.size.toDouble()
 
-    println(pvalue)
+    var p = Y.numberOfColumns().toDouble()
 
- /*
-    val n: Int = eigen.eigenvalues.size
-    //fun f(x: Double) = (1..100).map { i -> 3 * x.pow(2) + (2*i) }.sum()
-    val list = arrayListOf<Int>(1,2,3,4)
-    println((1..n).fold(list, Long::times))
+    val vhA = (1 + lenA -1 + lenB - 1) - lenB
+    val tA:Double
+    if((p.pow(2) + vhA.pow(2) - 5) > 0){
+        tA = Math.sqrt((p.pow(2)*vhA.pow(2) - 4)/(p.pow(2) + vhA.pow(2) -5))
+    }else{tA = 1.0}
 
- //Ftest
- inline fun <T, R> Array<out T>.fold( initial: R, operation: (acc: R, T) -> R ): R
-*/
-     }
+    val vhB= (1 + lenA -1 + lenB - 1) - lenA
+    val tB:Double
+    if((p.pow(2) + vhB.pow(2) - 5) > 0){
+        tB = Math.sqrt((p.pow(2)*vhB.pow(2) - 4)/(p.pow(2) + vhB.pow(2) -5))
+    }else{tB = 1.0}
 
-data class BetaValue(val B: DoubleMatrix, val R: DoubleMatrix, val E: DoubleMatrix)
+    val vhD= (1 + lenD -1) - (lenA - 1) - lenB
+    val tD:Double
+    if((p.pow(2) + vhD.pow(2) - 5) > 0){
+        tD = Math.sqrt((p.pow(2)*vhD.pow(2) - 4)/(p.pow(2) + vhD.pow(2) -5))
+    }else{tD = 1.0}
+
+    val ve =Y.numberOfRows().toDouble() - vhA - vhB - vhD - 1
+
+    val rA = ve - (p-vhA+1)/2
+    val rB = ve - (p-vhB+1)/2
+    val rD = ve - (p-vhD+1)/2
+
+    val fA= (p*vhA-2)/4
+    val fB= (p*vhB-2)/4
+    val fD= (p*vhD-2)/4
+
+    val fCalcA = ((1-lambdaA.pow(1/tA))/(lambdaA.pow(1/tA)))*((rA*tA - 2*fA)/(p*vhA))
+    val fCalcB = ((1-lambdaB.pow(1/tB))/(lambdaB.pow(1/tB)))*((rB*tB - 2*fB)/(p*vhB))
+    val fCalcD = ((1-lambdaD.pow(1/tD))/(lambdaD.pow(1/tD)))*((rD*tD - 2*fD)/(p*vhD))
+
+    val pvalueA : Double = LinearModelUtils.Ftest(fCalcA, p*vhA, (rA*tA)-(2*fA))
+    val pvalueB : Double = LinearModelUtils.Ftest(fCalcB, p*vhB, (rB*tB)-(2*fB))
+    val pvalueD : Double = LinearModelUtils.Ftest(fCalcD, p*vhD, (rD*tD)-(2*fD))
+
+    println("$pvalueA, $pvalueB, $pvalueD")
+
+}
+
+data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
 
 fun calcBeta(Y: DoubleMatrix, X: DoubleMatrix): BetaValue {
-    val YtY: DoubleMatrix = Y.crossproduct()
     val XtX: DoubleMatrix = X.crossproduct()
     val XtY: DoubleMatrix = X.crossproduct(Y)
     val XtXinv: DoubleMatrix = XtX.generalizedInverse()
     val B: DoubleMatrix = XtXinv.mult(XtY)
-    val R: DoubleMatrix = B.transpose().mult(XtY)
-    val E: DoubleMatrix = YtY.minus(R)
-    return BetaValue(B, R, E)
+    val H: DoubleMatrix = B.transpose().mult(XtY)
+    return BetaValue(B, H)
 }
-
-
-
-/**
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
-import java.util.ArrayList
-
-import org.apache.commons.math3.exception.MathIllegalArgumentException
-import org.apache.commons.math3.stat.descriptive.SummaryStatistics
-import org.apache.commons.math3.stat.inference.OneWayAnova
-import org.junit.Assert
-import org.junit.Test
-
-
-
- * Test cases for the OneWayAnovaImpl class.
- *
-
-
-class OneWayAnovaTest {
-
-    protected var testStatistic = OneWayAnova()
-
-    private val emptyArray = doubleArrayOf()
-
-    private val classA = doubleArrayOf(93.0, 103.0, 95.0, 101.0, 91.0, 105.0, 96.0, 94.0, 101.0)
-    private val classB = doubleArrayOf(99.0, 92.0, 102.0, 100.0, 102.0, 89.0)
-    private val classC = doubleArrayOf(110.0, 115.0, 111.0, 117.0, 128.0, 117.0)
-
-    @Test
-    fun testAnovaFValue() {
-        // Target comparison values computed using R version 2.6.0 (Linux version)
-        val threeClasses: List<ArrayList> = ArrayList()
-        threeClasses.add(classA)
-        threeClasses.add(classB)
-        threeClasses.add(classC)
-
-        Assert.assertEquals("ANOVA F-value", 24.67361709460624,
-                testStatistic.anovaFValue(threeClasses), 1E-12)
-
-        val twoClasses = ArrayList()
-        twoClasses.add(classA)
-        twoClasses.add(classB)
-
-        Assert.assertEquals("ANOVA F-value", 0.0150579150579,
-                testStatistic.anovaFValue(twoClasses), 1E-12)
-
-        val emptyContents = ArrayList()
-        emptyContents.add(emptyArray)
-        emptyContents.add(classC)
-        try {
-            testStatistic.anovaFValue(emptyContents)
-            Assert.fail("empty array for key classX, MathIllegalArgumentException expected")
-        } catch (ex: MathIllegalArgumentException) {
-            // expected
-        }
-
-        val tooFew = ArrayList()
-        tooFew.add(classA)
-        try {
-            testStatistic.anovaFValue(tooFew)
-            Assert.fail("less than two classes, MathIllegalArgumentException expected")
-        } catch (ex: MathIllegalArgumentException) {
-            // expected
-        }
-
-    }
-
-
-    @Test
-    fun testAnovaPValue() {
-        // Target comparison values computed using R version 2.6.0 (Linux version)
-        val threeClasses = ArrayList()
-        threeClasses.add(classA)
-        threeClasses.add(classB)
-        threeClasses.add(classC)
-
-        Assert.assertEquals("ANOVA P-value", 6.959446E-06,
-                testStatistic.anovaPValue(threeClasses), 1E-12)
-
-        val twoClasses = ArrayList()
-        twoClasses.add(classA)
-        twoClasses.add(classB)
-
-        Assert.assertEquals("ANOVA P-value", 0.904212960464,
-                testStatistic.anovaPValue(twoClasses), 1E-12)
-
-    }
-
-    @Test
-    fun testAnovaPValueSummaryStatistics() {
-        // Target comparison values computed using R version 2.6.0 (Linux version)
-        val threeClasses = ArrayList()
-        val statsA = SummaryStatistics()
-        for (a in classA) {
-            statsA.addValue(a)
-        }
-        threeClasses.add(statsA)
-        val statsB = SummaryStatistics()
-        for (b in classB) {
-            statsB.addValue(b)
-        }
-        threeClasses.add(statsB)
-        val statsC = SummaryStatistics()
-        for (c in classC) {
-            statsC.addValue(c)
-        }
-        threeClasses.add(statsC)
-
-        Assert.assertEquals("ANOVA P-value", 6.959446E-06,
-                testStatistic.anovaPValue(threeClasses, true), 1E-12)
-
-        val twoClasses = ArrayList()
-        twoClasses.add(statsA)
-        twoClasses.add(statsB)
-
-        Assert.assertEquals("ANOVA P-value", 0.904212960464,
-                testStatistic.anovaPValue(twoClasses, false), 1E-12)
-
-    }
-
-    @Test
-    fun testAnovaTest() {
-        // Target comparison values computed using R version 2.3.1 (Linux version)
-        val threeClasses = ArrayList()
-        threeClasses.add(classA)
-        threeClasses.add(classB)
-        threeClasses.add(classC)
-
-        Assert.assertTrue("ANOVA Test P<0.01", testStatistic.anovaTest(threeClasses, 0.01))
-
-        val twoClasses = ArrayList()
-        twoClasses.add(classA)
-        twoClasses.add(classB)
-
-        Assert.assertFalse("ANOVA Test P>0.01", testStatistic.anovaTest(twoClasses, 0.01))
-    }
-
-}
- */
