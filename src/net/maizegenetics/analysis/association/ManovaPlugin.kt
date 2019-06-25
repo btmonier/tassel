@@ -1,15 +1,28 @@
 package net.maizegenetics.analysis.association
 
+import krangl.DataFrame
+import krangl.readCSV
+import krangl.readTSV
+import krangl.toDoubleMatrix
 import net.maizegenetics.dna.snp.GenotypeTable
+import net.maizegenetics.dna.snp.ImportUtils
+import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix
+import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
+import net.maizegenetics.matrixalgebra.Matrix.EJMLDoubleMatrix
+import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
+import net.maizegenetics.phenotype.PhenotypeBuilder
 import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.plugindef.DataSet
 import net.maizegenetics.plugindef.PluginParameter
+import net.maizegenetics.stats.linearmodels.LinearModelUtils
+import net.maizegenetics.util.LoggingUtils
 import org.apache.log4j.Logger
 import java.awt.Frame
 import javax.swing.ImageIcon
+import kotlin.math.pow
 
 /**
- * @author Terry Casstevens
+ * @author Samuel Fernandes and Terry Casstevens
  * Created June 24, 2019
  */
 
@@ -90,9 +103,107 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .dependentOnParameter(writeFiles)
             .build()
 
-    override fun processData(input: DataSet?): DataSet {
-        val temp = numberOfPermutations()
+
+    override fun processData(input: DataSet): DataSet {
+
         return super.processData(input)
+    }
+
+    fun calcBeta(Y: DoubleMatrix, X: DoubleMatrix): BetaValue {
+        val XtX: DoubleMatrix = X.crossproduct()
+        val XtY: DoubleMatrix = X.crossproduct(Y)
+        val XtXinv: DoubleMatrix = XtX.generalizedInverse()
+        val B: DoubleMatrix = XtXinv.mult(XtY)
+        val H: DoubleMatrix = B.transpose().mult(XtY)
+        return BetaValue(B, H)
+    }
+
+    /**
+     * Y = Phenotypic data
+     * xF = Full model
+     * xR = Reduced model
+     * returns Wilk's lambda pvalue
+     */
+    private fun manovaPvalue(Y: DoubleMatrix, xF: DoubleMatrix, xR: DoubleMatrix): Double {
+        //total SQ
+        val YtY: DoubleMatrix = Y.crossproduct()
+        //number of variables
+        val p = Y.numberOfColumns().toDouble()
+        //full model
+        val hF = calcBeta(Y, xF).H
+        //Residual (Error) matrix
+        val E: DoubleMatrix = YtY.minus(hF)
+        //reduced model
+        val hR = calcBeta(Y, xR).H
+        //adjusted hypothesis matrix
+        val hA: DoubleMatrix = hF.minus(hR)
+        //Wilks lambda
+        val eigen: EigenvalueDecomposition = E.inverse().mult(hA).eigenvalueDecomposition
+        var lambda = 1.0
+        for (i in 0..(eigen.eigenvalues.size - 1)) {
+            lambda *= 1 / (1 + eigen.eigenvalues[i])
+        }
+        //Degree of Freedom
+        val df = xF.columnRank().toDouble() - xR.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
+        val t: Double
+        if ((p.pow(2) + df.pow(2) - 5) > 0) {
+            t = Math.sqrt((p.pow(2) * df.pow(2) - 4) / (p.pow(2) + df.pow(2) - 5))
+        } else {
+            t = 1.0
+        }
+
+        val ve = Y.numberOfRows().toDouble() - xF.columnRank().toDouble()
+
+        val r = ve - (p - df + 1) / 2
+        val f = (p * df - 2) / 4
+        val fCalc = ((1 - lambda.pow(1 / t)) / (lambda.pow(1 / t))) * ((r * t - 2 * f) / (p * df))
+        val num: Double = p * df
+        val den: Double = (r * t) - (2 * f)
+        val pvalue: Double = LinearModelUtils.Ftest(fCalc, num, den)
+        return pvalue
+        //return listOf(ve, den, pvalue, lambda)
+    }
+
+    /**
+     * Y = Phenotypic data
+     * xI = intercept
+     * returns Wilk's lambda pvalue
+     */
+    private fun manovaPvalue(Y: DoubleMatrix, xI: DoubleMatrix): Double {
+        //total SQ
+        val YtY: DoubleMatrix = Y.crossproduct()
+        //number of variables
+        val p = Y.numberOfColumns().toDouble()
+        //full model
+        val hI = calcBeta(Y, xI).H
+        //Residual (Error) matrix
+        val E: DoubleMatrix = YtY.minus(hI)
+        //Wilks lambda
+        val eigen: EigenvalueDecomposition = E.inverse().mult(hI).eigenvalueDecomposition
+        var lambda = 1.0
+        for (i in 0..(eigen.eigenvalues.size - 1)) {
+            lambda *= 1 / (1 + eigen.eigenvalues[i])
+        }
+        //Degree of Freedom
+        val df = xI.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
+        val t: Double
+        if ((p.pow(2) + df.pow(2) - 5) > 0) {
+            t = Math.sqrt((p.pow(2) * df.pow(2) - 4) / (p.pow(2) + df.pow(2) - 5))
+        } else {
+            t = 1.0
+        }
+
+        val ve = Y.numberOfRows().toDouble() - xI.columnRank().toDouble()
+
+        val r = ve - (p - df + 1) / 2
+        val f = (p * df - 2) / 4
+        val fCalc = ((1 - lambda.pow(1 / t)) / (lambda.pow(1 / t))) * ((r * t - 2 * f) / (p * df))
+        val num: Double = p * df
+        val den: Double = (r * t) - (2 * f)
+        val pvalue: Double = LinearModelUtils.Ftest(fCalc, num, den)
+
+        return pvalue
+        //return listOf(ve, den, pvalue, lambda)
     }
 
     override fun getIcon(): ImageIcon? {
@@ -107,6 +218,14 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         return "Multi-trait Stepwise"
     }
 
+    override fun getCitation(): String {
+        return "reference..."
+    }
+
+    override fun pluginUserManualURL(): String {
+        return "https://bitbucket.org/tasseladmin/tassel­5­source/wiki/UserManual/..."
+    }
+
     /**
      * Should permutations be used to set the enter and exit
      * limits for stepwise regression? A permutation test
@@ -115,7 +234,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Use permutations
      */
-    fun usePermutations(): Boolean? {
+    fun usePermutations(): Boolean {
         return usePermutations.value()
     }
 
@@ -130,7 +249,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun usePermutations(value: Boolean?): ManovaPlugin {
+    fun usePermutations(value: Boolean): ManovaPlugin {
         usePermutations = PluginParameter(usePermutations, value)
         return this
     }
@@ -166,7 +285,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return enterLimit
      */
-    fun enterLimit(): Double? {
+    fun enterLimit(): Double {
         return enterLimit.value()
     }
 
@@ -181,7 +300,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun enterLimit(value: Double?): ManovaPlugin {
+    fun enterLimit(value: Double): ManovaPlugin {
         enterLimit = PluginParameter(enterLimit, value)
         return this
     }
@@ -194,7 +313,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return exitLimit
      */
-    fun exitLimit(): Double? {
+    fun exitLimit(): Double {
         return exitLimit.value()
     }
 
@@ -208,7 +327,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun exitLimit(value: Double?): ManovaPlugin {
+    fun exitLimit(value: Double): ManovaPlugin {
         exitLimit = PluginParameter(exitLimit, value)
         return this
     }
@@ -219,7 +338,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Is Nested
      */
-    fun isNested(): Boolean? {
+    fun isNested(): Boolean {
         return isNested.value()
     }
 
@@ -231,7 +350,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun isNested(value: Boolean?): ManovaPlugin {
+    fun isNested(value: Boolean): ManovaPlugin {
         isNested = PluginParameter(isNested, value)
         return this
     }
@@ -290,7 +409,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Create anova reports
      */
-    fun createAnova(): Boolean? {
+    fun createAnova(): Boolean {
         return createAnova.value()
     }
 
@@ -302,7 +421,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun createAnova(value: Boolean?): ManovaPlugin {
+    fun createAnova(value: Boolean): ManovaPlugin {
         createAnova = PluginParameter(createAnova, value)
         return this
     }
@@ -313,7 +432,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Create effects report
      */
-    fun createEffects(): Boolean? {
+    fun createEffects(): Boolean {
         return createEffects.value()
     }
 
@@ -325,7 +444,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun createEffects(value: Boolean?): ManovaPlugin {
+    fun createEffects(value: Boolean): ManovaPlugin {
         createEffects = PluginParameter(createEffects, value)
         return this
     }
@@ -336,7 +455,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Create step report
      */
-    fun createStep(): Boolean? {
+    fun createStep(): Boolean {
         return createStep.value()
     }
 
@@ -348,7 +467,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun createStep(value: Boolean?): ManovaPlugin {
+    fun createStep(value: Boolean): ManovaPlugin {
         createStep = PluginParameter(createStep, value)
         return this
     }
@@ -361,7 +480,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Create residuals
      */
-    fun createResiduals(): Boolean? {
+    fun createResiduals(): Boolean {
         return createResiduals.value()
     }
 
@@ -375,7 +494,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun createResiduals(value: Boolean?): ManovaPlugin {
+    fun createResiduals(value: Boolean): ManovaPlugin {
         createResiduals = PluginParameter(createResiduals, value)
         return this
     }
@@ -385,7 +504,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Write to files
      */
-    fun writeFiles(): Boolean? {
+    fun writeFiles(): Boolean {
         return writeFiles.value()
     }
 
@@ -397,7 +516,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun writeFiles(value: Boolean?): ManovaPlugin {
+    fun writeFiles(value: Boolean): ManovaPlugin {
         writeFiles = PluginParameter(writeFiles, value)
         return this
     }
@@ -425,5 +544,6 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         outputName = PluginParameter(outputName, value)
         return this
     }
-
 }
+
+data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
