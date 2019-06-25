@@ -23,6 +23,7 @@ import net.maizegenetics.analysis.association.FastMultithreadedAssociationPlugin
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
 import net.maizegenetics.analysis.association.GenomicSelectionPlugin;
 import net.maizegenetics.analysis.association.MLMPlugin;
+import net.maizegenetics.analysis.association.ManovaPlugin;
 import net.maizegenetics.analysis.association.WeightedMLMPlugin;
 import net.maizegenetics.analysis.chart.ChartDisplayPlugin;
 import net.maizegenetics.analysis.chart.ManhattanDisplayPlugin;
@@ -592,6 +593,7 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         result.add(createMenuItem(new GenomicSelectionPlugin(this, true)));
         result.add(createMenuItem(new StepwiseOLSModelFitterPlugin(this, true)));
         result.add(createMenuItem(new FastMultithreadedAssociationPlugin(this, true)));
+        result.add(createMenuItem(new ManovaPlugin(this, true)));
         result.add(createMenuItem(new VCAPScanPlugin(this, true)));
         return result;
 

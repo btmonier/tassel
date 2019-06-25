@@ -1,21 +1,14 @@
 package net.maizegenetics.analysis.association
 
-import krangl.DataFrame
-import krangl.readCSV
-import krangl.readTSV
-import krangl.toDoubleMatrix
 import net.maizegenetics.dna.snp.GenotypeTable
-import net.maizegenetics.dna.snp.ImportUtils
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
-import net.maizegenetics.matrixalgebra.Matrix.EJMLDoubleMatrix
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
-import net.maizegenetics.phenotype.PhenotypeBuilder
+import net.maizegenetics.phenotype.GenotypePhenotype
 import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.plugindef.DataSet
 import net.maizegenetics.plugindef.PluginParameter
 import net.maizegenetics.stats.linearmodels.LinearModelUtils
-import net.maizegenetics.util.LoggingUtils
 import org.apache.log4j.Logger
 import java.awt.Frame
 import javax.swing.ImageIcon
@@ -58,12 +51,12 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .guiName("")
             .build()
 
-    private var nestingFactor = PluginParameter.Builder("nestFactor", null, String::class.java)
-            .guiName("Nesting factor")
-            .description("Nest markers within this factor. This parameter cannot be set from the command line. Instead, the first factor in the data set will be used.")
-            .dependentOnParameter(isNested)
-            .objectListSingleSelect()
-            .build()
+//    private var nestingFactor = PluginParameter.Builder("nestFactor", null, String::class.java)
+//            .guiName("Nesting factor")
+//            .description("Nest markers within this factor. This parameter cannot be set from the command line. Instead, the first factor in the data set will be used.")
+//            .dependentOnParameter(isNested)
+//            .objectListSingleSelect()
+//            .build()
 
     private var myGenotypeTable: PluginParameter<GenotypeTable.GENOTYPE_TABLE_COMPONENT> = PluginParameter.Builder("genotypeComponent", GenotypeTable.GENOTYPE_TABLE_COMPONENT.Genotype, GenotypeTable.GENOTYPE_TABLE_COMPONENT::class.java)
             .genotypeTable()
@@ -103,9 +96,23 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .dependentOnParameter(writeFiles)
             .build()
 
+    var myGenoPheno: GenotypePhenotype? = null
+
+
+    override fun preProcessParameters(input: DataSet?) {
+
+
+        DoubleMatrixFactory.setDefault(DoubleMatrixFactory.FactoryType.ejml)
+
+        //input data should be a single GenotypePhenotype
+        val datumList = input?.getDataOfType(GenotypePhenotype::class.java)
+        if (datumList!!.size != 1)
+            throw IllegalArgumentException("Choose exactly one dataset that has combined genotype and phenotype data.")
+        myGenoPheno = datumList[0].data as GenotypePhenotype
+
+    }
 
     override fun processData(input: DataSet): DataSet {
-
         return super.processData(input)
     }
 
@@ -362,9 +369,9 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Nesting factor
      */
-    fun nestingFactor(): String {
-        return nestingFactor.value()
-    }
+//    fun nestingFactor(): String {
+//        return nestingFactor.value()
+//    }
 
     /**
      * Set Nesting factor. Nest markers within this factor.
@@ -375,10 +382,10 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun nestingFactor(value: String): ManovaPlugin {
-        nestingFactor = PluginParameter(nestingFactor, value)
-        return this
-    }
+//    fun nestingFactor(value: String): ManovaPlugin {
+//        nestingFactor = PluginParameter(nestingFactor, value)
+//        return this
+//    }
 
     /**
      * If the genotype table contains more than one type of
