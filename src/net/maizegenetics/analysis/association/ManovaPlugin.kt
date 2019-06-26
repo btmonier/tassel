@@ -9,7 +9,10 @@ import net.maizegenetics.phenotype.Phenotype
 import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.plugindef.DataSet
 import net.maizegenetics.plugindef.PluginParameter
+import net.maizegenetics.stats.linearmodels.FactorModelEffect
 import net.maizegenetics.stats.linearmodels.LinearModelUtils
+import net.maizegenetics.stats.linearmodels.ModelEffect
+import net.maizegenetics.stats.linearmodels.ModelEffectUtils
 import org.apache.log4j.Logger
 import java.awt.Frame
 import javax.swing.ImageIcon
@@ -116,13 +119,36 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         var xR = DoubleMatrixFactory.DEFAULT.make(myGenoPheno.numberOfObservations(), 1, 1.0)
         val Y = createY()
 
-        //val pvalueInt = manovaPvalue(pheno, intercept)
-        //val pvalueSnp = manovaPvalue(pheno, fullMatrix, reducedMatrix)
+        val modelEffectList = ArrayList<ModelEffect>()
+        while (forwardStep(Y, xR, modelEffectList) != null) {
+            //do nothing for now
+        }
+
+
         return super.processData(input)
     }
 
-    fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix) {
-        //myGenoPheno.genotype()
+    fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix, modelEffectList : MutableList<ModelEffect>) : DoubleMatrix? {
+        val nSites = myGenoPheno.genotypeTable().numberOfSites()
+        var minPval = 1.0
+        var bestModelEffect : ModelEffect? = null
+        for (sitenum in 0 until nSites) {
+            val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(myGenoPheno.getStringGenotype(sitenum)),
+                    true, myGenoPheno.genotypeTable().siteName(sitenum))
+            val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
+            val pval = manovaPvalue(Y, siteDesignMatrix, xR)
+            if (pval < minPval) {
+                minPval = pval
+                bestModelEffect = modelEffect
+            }
+        }
+
+        if (minPval <= enterLimit() && bestModelEffect != null) {
+            modelEffectList.add(bestModelEffect)
+            println("${bestModelEffect.id}, pval = $minPval")
+            return xR.concatenate(bestModelEffect.x, false)
+        }
+        return null;
     }
 
     fun createY(): DoubleMatrix {
@@ -132,7 +158,11 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val Y = DoubleMatrixFactory.DEFAULT.make(nObs, nTraits)
         for (t in 0 until nTraits) {
             val traitvals = dataAttributeList[t].allValues() as FloatArray
-            traitvals.forEachIndexed { index, fl -> Y.set(index, t, fl.toDouble()) }
+            traitvals.forEachIndexed { index, fl ->
+                val traitvalue = fl.toDouble()
+                if (traitvalue.isNaN()) throw java.lang.IllegalArgumentException("A trait value is missing. No missing trait values are allowed.")
+                Y.set(index, t, traitvalue)
+            }
         }
         return Y
     }
