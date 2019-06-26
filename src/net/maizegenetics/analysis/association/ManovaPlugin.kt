@@ -11,6 +11,7 @@ import net.maizegenetics.phenotype.GenotypePhenotype
 import net.maizegenetics.phenotype.Phenotype
 import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.plugindef.DataSet
+import net.maizegenetics.plugindef.GeneratePluginCode
 import net.maizegenetics.plugindef.PluginParameter
 import net.maizegenetics.stats.linearmodels.FactorModelEffect
 import net.maizegenetics.stats.linearmodels.LinearModelUtils
@@ -107,15 +108,22 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .dependentOnParameter(writeFiles)
             .build()
 
+    private var maximumNumberOfVariantsInModel = PluginParameter.Builder("maxQTN", 100, Int::class.java)
+            .description("maximum number of QTN to be fit in the model")
+            .guiName("Maximum QTN Number")
+            .build()
+
     private lateinit var myGenoPheno: GenotypePhenotype
     private lateinit var myDatasetName: String
     private val myFactorNameList: MutableList<String> = ArrayList()
 
     //TableReport builders
-    private val manovaReportBuilder = TableReportBuilder.getInstance("Anova", arrayOf("Trait", "Name", "Chr", "Position", "df", "MS", "F", "probF", "MarginalRsq"))
-    private val permutationReportBuilder = TableReportBuilder.getInstance("Empirical Null", arrayOf("Trait", "p-value"))
-    private val stepsReportBuilder = TableReportBuilder.getInstance("Steps", arrayOf("Trait", "SiteID", "Chr", "Position", "action", "df", "MS", "F", "probF", "AIC", "BIC", "mBIC", "ModelRsq"))
-
+    private val manovaReportBuilder =
+            TableReportBuilder.getInstance("Manova", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
+    private val permutationReportBuilder =
+            TableReportBuilder.getInstance("Empirical Null", arrayOf("Trait", "p-value"))
+    private val stepsReportBuilder =
+            TableReportBuilder.getInstance("Steps", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
 
     override fun preProcessParameters(input: DataSet?) {
 
@@ -146,7 +154,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         val modelEffectList = ArrayList<ModelEffect>()
         xR = forwardStep(Y, xR, modelEffectList)
-        while (xR != null) {
+        while (xR != null && modelEffectList.size <= maximumNumberOfVariantsInModel()) {
             xR = forwardStep(Y, xR, modelEffectList)
         }
 
@@ -339,6 +347,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     override fun pluginUserManualURL(): String {
         return "https://bitbucket.org/tasseladmin/tassel­5­source/wiki/UserManual/..."
     }
+
 
     /**
      * Should permutations be used to set the enter and exit
@@ -658,6 +667,33 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         outputName = PluginParameter(outputName, value)
         return this
     }
+
+    /**
+     * maximum number of QTN to be fit in the model
+     *
+     * @return Maximum QTN Number
+     */
+    fun maximumNumberOfVariantsInModel(): Int {
+        return maximumNumberOfVariantsInModel.value()
+    }
+
+    /**
+     * Set Maximum QTN Number. maximum number of QTN to be
+     * fit in the model
+     *
+     * @param value Maximum QTN Number
+     *
+     * @return this plugin
+     */
+    fun maximumNumberOfVariantsInModel(value: Int): ManovaPlugin {
+        maximumNumberOfVariantsInModel = PluginParameter(maximumNumberOfVariantsInModel, value)
+        return this
+    }
+
 }
+
+//fun main(args : Array<String>) {
+//    GeneratePluginCode.generate(ManovaPlugin::class.java)
+//}
 
 data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
