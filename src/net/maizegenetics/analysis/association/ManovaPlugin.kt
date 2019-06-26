@@ -1,6 +1,9 @@
 package net.maizegenetics.analysis.association
 
+import com.google.common.collect.HashMultiset
+import com.google.common.collect.Multiset
 import net.maizegenetics.dna.snp.GenotypeTable
+import net.maizegenetics.dna.snp.NucleotideAlignmentConstants
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
@@ -13,11 +16,14 @@ import net.maizegenetics.stats.linearmodels.FactorModelEffect
 import net.maizegenetics.stats.linearmodels.LinearModelUtils
 import net.maizegenetics.stats.linearmodels.ModelEffect
 import net.maizegenetics.stats.linearmodels.ModelEffectUtils
+import net.maizegenetics.util.TableReportBuilder
 import org.apache.log4j.Logger
 import java.awt.Frame
 import java.util.*
 import javax.swing.ImageIcon
+import kotlin.collections.HashMap
 import kotlin.math.pow
+import kotlin.random.Random
 
 /**
  * @author Samuel Fernandes and Terry Casstevens
@@ -105,6 +111,12 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     private lateinit var myDatasetName: String
     private val myFactorNameList: MutableList<String> = ArrayList()
 
+    //TableReport builders
+    private val manovaReportBuilder = TableReportBuilder.getInstance("Anova", arrayOf("Trait", "Name", "Chr", "Position", "df", "MS", "F", "probF", "MarginalRsq"))
+    private val permutationReportBuilder = TableReportBuilder.getInstance("Empirical Null", arrayOf("Trait", "p-value"))
+    private val stepsReportBuilder = TableReportBuilder.getInstance("Steps", arrayOf("Trait", "SiteID", "Chr", "Position", "action", "df", "MS", "F", "probF", "AIC", "BIC", "mBIC", "ModelRsq"))
+
+
     override fun preProcessParameters(input: DataSet?) {
 
         DoubleMatrixFactory.setDefault(DoubleMatrixFactory.FactoryType.ejml)
@@ -133,8 +145,9 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val Y = createY()
 
         val modelEffectList = ArrayList<ModelEffect>()
-        while (forwardStep(Y, xR, modelEffectList) != null) {
-            //do nothing for now
+        xR = forwardStep(Y, xR, modelEffectList)
+        while (xR != null) {
+            xR = forwardStep(Y, xR, modelEffectList)
         }
 
 
@@ -145,8 +158,11 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val nSites = myGenoPheno.genotypeTable().numberOfSites()
         var minPval = 1.0
         var bestModelEffect : ModelEffect? = null
+
+        //TODO do not test sites already in modelEffectList
         for (sitenum in 0 until nSites) {
-            val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(myGenoPheno.getStringGenotype(sitenum)),
+            val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum))
+            val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
                     true, myGenoPheno.genotypeTable().siteName(sitenum))
             val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
             val pval = manovaPvalue(Y, siteDesignMatrix, xR)
@@ -162,6 +178,29 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             return xR.concatenate(bestModelEffect.x, false)
         }
         return null;
+    }
+
+    fun imputeNsInGenotype(genotypes : Array<String>) : Array<String> {
+        //TODO write test to make sure this works
+        val alleleCounter = HashMultiset.create<String>()
+        for (allele in genotypes) if (!allele.equals("N")) alleleCounter.add(allele)
+        val totalCount = alleleCounter.count().toDouble()
+        val alleleProportionList = ArrayList<Pair<Double,String>>()
+        var cumulativeSum = 0
+        for (entry in alleleCounter.entrySet()) {
+            cumulativeSum += entry.count
+            alleleProportionList.add(Pair(cumulativeSum/totalCount, entry.element))
+        }
+
+        return genotypes.map {
+            if (it.equals(GenotypeTable.UNKNOWN_DIPLOID_ALLELE_STR)) {
+                val ran = Random.nextDouble()
+                var ndx = 0
+                while (ran >= alleleProportionList[ndx].first) ndx++
+                alleleProportionList[ndx].second
+            } else it
+        }.toTypedArray()
+
     }
 
     fun createY(): DoubleMatrix {
