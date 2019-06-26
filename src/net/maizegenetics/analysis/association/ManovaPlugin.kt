@@ -5,6 +5,7 @@ import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
 import net.maizegenetics.phenotype.GenotypePhenotype
+import net.maizegenetics.phenotype.Phenotype
 import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.plugindef.DataSet
 import net.maizegenetics.plugindef.PluginParameter
@@ -51,12 +52,12 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .guiName("")
             .build()
 
-//    private var nestingFactor = PluginParameter.Builder("nestFactor", null, String::class.java)
-//            .guiName("Nesting factor")
-//            .description("Nest markers within this factor. This parameter cannot be set from the command line. Instead, the first factor in the data set will be used.")
-//            .dependentOnParameter(isNested)
-//            .objectListSingleSelect()
-//            .build()
+    private var nestingFactor = PluginParameter.Builder("nestFactor", null, String::class.java)
+            .guiName("Nesting factor")
+            .description("Nest markers within this factor. This parameter cannot be set from the command line. Instead, the first factor in the data set will be used.")
+            .dependentOnParameter(isNested)
+            .objectListSingleSelect()
+            .build()
 
     private var myGenotypeTable: PluginParameter<GenotypeTable.GENOTYPE_TABLE_COMPONENT> = PluginParameter.Builder("genotypeComponent", GenotypeTable.GENOTYPE_TABLE_COMPONENT.Genotype, GenotypeTable.GENOTYPE_TABLE_COMPONENT::class.java)
             .genotypeTable()
@@ -96,11 +97,10 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .dependentOnParameter(writeFiles)
             .build()
 
-    var myGenoPheno: GenotypePhenotype? = null
-
+    lateinit var myGenoPheno: GenotypePhenotype
+    private var datasetName: String? = null
 
     override fun preProcessParameters(input: DataSet?) {
-
 
         DoubleMatrixFactory.setDefault(DoubleMatrixFactory.FactoryType.ejml)
 
@@ -108,13 +108,35 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val datumList = input?.getDataOfType(GenotypePhenotype::class.java)
         if (datumList!!.size != 1)
             throw IllegalArgumentException("Choose exactly one dataset that has combined genotype and phenotype data.")
-        myGenoPheno = datumList[0].data as GenotypePhenotype
-
+        datasetName = datumList[0].name
     }
 
     override fun processData(input: DataSet): DataSet {
+
+        var xR = DoubleMatrixFactory.DEFAULT.make(myGenoPheno.numberOfObservations(), 1, 1.0)
+        val Y = createY()
+
+        //val pvalueInt = manovaPvalue(pheno, intercept)
+        //val pvalueSnp = manovaPvalue(pheno, fullMatrix, reducedMatrix)
         return super.processData(input)
     }
+
+    fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix) {
+        //myGenoPheno.genotype()
+    }
+
+    fun createY(): DoubleMatrix {
+        val dataAttributeList = myGenoPheno.phenotype().attributeListOfType(Phenotype.ATTRIBUTE_TYPE.data)
+        val nTraits = dataAttributeList.size
+        val nObs = myGenoPheno.phenotype().numberOfObservations()
+        val Y = DoubleMatrixFactory.DEFAULT.make(nObs, nTraits)
+        for (t in 0 until nTraits) {
+            val traitvals = dataAttributeList[t].allValues() as FloatArray
+            traitvals.forEachIndexed { index, fl -> Y.set(index, t, fl.toDouble()) }
+        }
+        return Y
+    }
+
 
     fun calcBeta(Y: DoubleMatrix, X: DoubleMatrix): BetaValue {
         val XtX: DoubleMatrix = X.crossproduct()
