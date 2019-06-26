@@ -12,6 +12,7 @@ import net.maizegenetics.plugindef.PluginParameter
 import net.maizegenetics.stats.linearmodels.LinearModelUtils
 import org.apache.log4j.Logger
 import java.awt.Frame
+import java.util.*
 import javax.swing.ImageIcon
 import kotlin.math.pow
 
@@ -97,8 +98,9 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .dependentOnParameter(writeFiles)
             .build()
 
-    lateinit var myGenoPheno: GenotypePhenotype
-    private var datasetName: String? = null
+    private lateinit var myGenoPheno: GenotypePhenotype
+    private lateinit var myDatasetName: String
+    private val myFactorNameList: MutableList<String> = ArrayList()
 
     override fun preProcessParameters(input: DataSet?) {
 
@@ -108,17 +110,30 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val datumList = input?.getDataOfType(GenotypePhenotype::class.java)
         if (datumList!!.size != 1)
             throw IllegalArgumentException("Choose exactly one dataset that has combined genotype and phenotype data.")
-        datasetName = datumList[0].name
+        myGenoPheno = datumList[0].data as GenotypePhenotype
+        myDatasetName = datumList[0].name
+
+        myGenoPheno.phenotype().attributeListOfType(Phenotype.ATTRIBUTE_TYPE.factor).stream()
+                .map { pa -> pa.name() }
+                .forEach { myFactorNameList.add(it) }
+
+        myFactorNameList.add("None")
+
+        if (myFactorNameList.isEmpty()) myFactorNameList.add("None")
+        nestingFactor = PluginParameter<String>(nestingFactor, myFactorNameList)
+
     }
 
-    override fun processData(input: DataSet): DataSet {
+    override fun processData(input: DataSet): DataSet? {
 
         var xR = DoubleMatrixFactory.DEFAULT.make(myGenoPheno.numberOfObservations(), 1, 1.0)
         val Y = createY()
 
         //val pvalueInt = manovaPvalue(pheno, intercept)
         //val pvalueSnp = manovaPvalue(pheno, fullMatrix, reducedMatrix)
-        return super.processData(input)
+
+        return null
+
     }
 
     fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix) {
@@ -391,9 +406,9 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Nesting factor
      */
-//    fun nestingFactor(): String {
-//        return nestingFactor.value()
-//    }
+    fun nestingFactor(): String {
+        return nestingFactor.value()
+    }
 
     /**
      * Set Nesting factor. Nest markers within this factor.
@@ -404,10 +419,10 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-//    fun nestingFactor(value: String): ManovaPlugin {
-//        nestingFactor = PluginParameter(nestingFactor, value)
-//        return this
-//    }
+    fun nestingFactor(value: String): ManovaPlugin {
+        nestingFactor = PluginParameter(nestingFactor, value)
+        return this
+    }
 
     /**
      * If the genotype table contains more than one type of
