@@ -193,7 +193,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         }
 
         return genotypes.map {
-            if (it.equals(GenotypeTable.UNKNOWN_DIPLOID_ALLELE_STR)) {
+            if (it.equals("N")) {
                 val ran = Random.nextDouble()
                 var ndx = 0
                 while (ran >= alleleProportionList[ndx].first) ndx++
@@ -256,6 +256,9 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         }
         //Degree of Freedom
         val df = xF.columnRank().toDouble() - xR.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
+        if (df == 0.0 ){
+            return 1.0
+        }
         val t: Double
         if ((p.pow(2) + df.pow(2) - 5) > 0) {
             t = Math.sqrt((p.pow(2) * df.pow(2) - 4) / (p.pow(2) + df.pow(2) - 5))

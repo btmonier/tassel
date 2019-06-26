@@ -1,38 +1,30 @@
 package net.maizegenetics.analysis.modelfitter
 
-import krangl.*
-import krangl.experimental.oneHot
-import net.maizegenetics.analysis.data.ExportPlugin
-import net.maizegenetics.dna.snp.GenotypeTableUtils
+import krangl.DataFrame
+import krangl.readCSV
+import krangl.readTSV
+import krangl.toDoubleMatrix
 import net.maizegenetics.dna.snp.ImportUtils
+import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix
+import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
+import net.maizegenetics.matrixalgebra.Matrix.EJMLDoubleMatrix
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
-import net.maizegenetics.stats.linearmodels.LinearModelUtils
-import net.maizegenetics.matrixalgebra.Matrix.*
 import net.maizegenetics.phenotype.PhenotypeBuilder
-import net.maizegenetics.phenotype.PhenotypeUtils
-import net.maizegenetics.tassel.TasselLogging
+import net.maizegenetics.stats.linearmodels.LinearModelUtils
 import net.maizegenetics.util.LoggingUtils
 import kotlin.math.pow
 
 fun main() {
     LoggingUtils.setupDebugLogging()
-    /*
-    val geno = ImportUtils.readFromHapmap("/Users/SAMUELFERNANDES/Documents/UIUC2/tassel-5-source/data_for_tests/genotype.hmp.txt", null, true)
+   /* val geno = ImportUtils.readFromHapmap("/Users/SAMUELFERNANDES/Documents/UIUC2/tassel-5-source/data_for_tests/genotype.hmp.txt", null, true)
     val pheno = PhenotypeBuilder().fromFile("/Users/SAMUELFERNANDES/Documents/UIUC2/tassel-5-source/data_for_tests/pheno.txt").build()[0]
-    val Y = DoubleMatrixFactory.DEFAULT.make(pheno.numberOfObservations())
+    //val Y = DoubleMatrixFactory.DEFAULT.make(pheno.numberOfObservations())
     val X = geno.genotypeMatrix()
-    */
-
+*/
     val data = DataFrame.readTSV("/Users/SAMUELFERNANDES/Documents/UIUC2/tassel-5-source/data_for_tests/pheno.txt")
     val design = DataFrame.readCSV("/Users/SAMUELFERNANDES/Documents/UIUC2/tassel-5-source/data_for_tests/Design.hmp.csv")
 
     val Y = EJMLDoubleMatrix(data.remove("<Trait>").toDoubleMatrix()).transpose()
-
-    //var test = design.names.groupingBy {
-    //    it.substring(0, it.indexOf('_'))
-    //}
-
-    println(design.names)
 
     val xMu = EJMLDoubleMatrix(design.select("intercept").toDoubleMatrix()).transpose()
     val xMuSnp1 = EJMLDoubleMatrix(design.select("intercept", "snp1_GG", "snp1_AA").toDoubleMatrix()).transpose()
