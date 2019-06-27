@@ -149,26 +149,25 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val Y = createY()
 
         val modelEffectList = ArrayList<ModelEffect>()
-        val step1 = forwardStep(Y, xR, modelEffectList, null)
-        xR = step1.first
-        var snpInModel = step1.second
+        val snpInModel = ArrayList<String>()
+        val step1 = forwardStep(Y, xR, modelEffectList, snpInModel)
+        xR = step1
         while (xR != null && modelEffectList.size <= maximumNumberOfVariantsInModel()) {
             var step2 = forwardStep(Y, xR, modelEffectList, snpInModel)
-            xR = step2.first
-            snpInModel = step2.second
+            xR = step2
         }
 
         return null
     }
 
-    fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, snpInModel: MutableList<String>?): Pair<DoubleMatrix?, MutableList<String>?> {
+    fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, snpInModel: MutableList<String>): DoubleMatrix? {
         val nSites = myGenoPheno.genotypeTable().numberOfSites()
         var minPval = 1.0
         var bestModelEffect: ModelEffect? = null
 
         //TODO do not test sites already in modelEffectList
         for (sitenum in 0 until nSites) {
-            if (snpInModel == null || !snpInModel.contains(myGenoPheno.genotypeTable().siteName(sitenum))) {
+            if (!snpInModel.contains(myGenoPheno.genotypeTable().siteName(sitenum))) {
                 val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum))
                 val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
                         true, myGenoPheno.genotypeTable().siteName(sitenum))
@@ -185,10 +184,10 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         if (minPval <= enterLimit() && bestModelEffect != null) {
             modelEffectList.add(bestModelEffect)
             println("${bestModelEffect.id}, pval = $minPval")
-            snpInModel?.add(bestModelEffect.id.toString())
-            return Pair(xR.concatenate(bestModelEffect.x, false), snpInModel)
+            snpInModel.add(bestModelEffect.id.toString())
+            return xR.concatenate(bestModelEffect.x, false)
         }
-        return Pair(null, null)
+        return null
     }
 
     fun imputeNsInGenotype(genotypes: Array<String>): Array<String> {
