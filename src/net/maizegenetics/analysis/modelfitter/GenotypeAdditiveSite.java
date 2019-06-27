@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.List;
 
 import net.maizegenetics.dna.snp.GenotypeTable;
@@ -11,13 +12,19 @@ import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 
+/**
+ * GenotypeAdditiveSite is an AdditiveSite that takes a byte[] array of genotypes as input and converts them
+ * to a double[] array. It codes the homozygous major as 2, homozygous minor as 0 and het as 1. It then subtracts the mean
+ * value from all elements of the array and sets missing to zero (now the mean). For efficient storage, the values of 0,1,2,3
+ * are stored in a byte array which indexes the double values.
+ */
 public class GenotypeAdditiveSite extends AbstractAdditiveSite {
 
     private static final long serialVersionUID = -7891486608129027827L;
     private int[] bitStore;
     private double[] byteConversion;
-    private int ntaxa;
-    private int[] taxaIndex = null;
+    protected int ntaxa;
+    protected int[] taxaIndex = null;
 
     /**
      * @param site						the site index from the originating GenotypeTable
@@ -32,7 +39,8 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
         byte unknown = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
         ntaxa = genotype.length;
         double mean = 2 * majorAlleleFrequency;
-        byteConversion = new double[] { -mean, 1 - mean, 2 - mean, 0 };
+//        byteConversion = new double[] { -mean, 1 - mean, 2 - mean, 0 };
+        byteConversion = new double[] { 0,1,2,mean };  //changed for AddPlusDom
 
         int numberOfInts = ntaxa / 16;
         int remainder = ntaxa % 16;
@@ -69,6 +77,15 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
         }
     }
 
+    //private constructor for making a copy
+    private GenotypeAdditiveSite(int site, String chr, int pos, String id,
+                                 CRITERION selectionCriterion, int[] bitStore, int ntaxa, double[] byteConversion) {
+        super(site, chr, pos, id, selectionCriterion);
+        this.bitStore = bitStore;
+        this.ntaxa = ntaxa;
+        this.byteConversion = byteConversion;
+    }
+
     @Override
     public void reindexTaxa(int[] taxaIndex, List<Integer> uniqueTaxa) {
         this.taxaIndex = taxaIndex;
@@ -82,7 +99,8 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
         double denominator = numerator + (counts[1] + 2 * counts[0]);
         double majorAlleleFreq = numerator / denominator;
         double mean = 2 * majorAlleleFreq;
-        byteConversion = new double[] { -mean, 1 - mean, 2 - mean, 0 };
+//        byteConversion = new double[] { -mean, 1 - mean, 2 - mean, 0 };
+        byteConversion = new double[] { 0,1,2,mean };  //changed for AddPlusDom
     }
 
     private int genotypeIndex(int n) {
@@ -118,6 +136,7 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
             for (int i = 0; i < 32; i += 2) {
                 int genoIndex = (intStore >> i) & 3;
                 cov[genoCount++] = byteConversion[genoIndex];
+
                 if (genoCount == ntaxa)
                     break;
             }
@@ -181,5 +200,12 @@ public class GenotypeAdditiveSite extends AbstractAdditiveSite {
         }
 
         System.out.printf("%d sites written to %s at %d ms.\n", geno.numberOfSites(), outFile, (System.nanoTime() - start) / 1000000);
+    }
+
+    @Override
+    public AdditiveSite copy() {
+        return new GenotypeAdditiveSite(siteIndex, chrName, position, name,
+                selectionCriterion, Arrays.copyOf(bitStore, bitStore.length), ntaxa,
+                Arrays.copyOf(byteConversion, byteConversion.length));
     }
 }
