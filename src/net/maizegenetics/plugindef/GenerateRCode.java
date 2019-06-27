@@ -10,6 +10,7 @@ import net.maizegenetics.analysis.association.MLMPlugin;
 import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
+import net.maizegenetics.analysis.popgen.LinkageDisequilibrium;
 import net.maizegenetics.dna.WHICH_ALLELE;
 import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.map.PositionList;
@@ -29,6 +30,7 @@ import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
+import sun.awt.image.ImageWatched;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -356,7 +358,7 @@ public class GenerateRCode {
     /**
      * Temporary place for this experimental method.
      *
-     * @param positions
+     * @param tableReport
      *
      * @return int[] in column order with NA set to R approach
      */
@@ -596,6 +598,36 @@ public class GenerateRCode {
                 result.put("FastAssociation", temp.getData());
             }
         }
+
+        return result;
+
+    }
+
+    public static TableReport linkageDiseq(GenotypeTable genotype, String ldType, int windowSize, String hetTreatment) {
+
+        LinkageDisequilibrium.testDesign testDesign = null;
+        try {
+            testDesign = LinkageDisequilibrium.testDesign.valueOf(ldType);
+        } catch (Exception e) {
+            myLogger.debug(e.getMessage(), e);
+            myLogger.error("linkageDiseq: ldType: " + ldType + " is unknown");
+            throw new IllegalArgumentException("GenerateRCode: linkageDiseq: ldType: " + ldType + " is unknown");
+        }
+
+        LinkageDisequilibrium.HetTreatment treatment = null;
+        if (hetTreatment.equalsIgnoreCase("ignore")) {
+            treatment = LinkageDisequilibrium.HetTreatment.Haplotype;
+        } else if (hetTreatment.equalsIgnoreCase("missing")) {
+            treatment = LinkageDisequilibrium.HetTreatment.Homozygous;
+        } else if (hetTreatment.equalsIgnoreCase("third")) {
+            treatment = LinkageDisequilibrium.HetTreatment.Genotype;
+        } else {
+            myLogger.error("linkageDiseq: unknown LD Type: " + hetTreatment);
+            throw new IllegalArgumentException("GenerateRCode: linkageDiseq: unknown LD Type: " + hetTreatment);
+        }
+
+        LinkageDisequilibrium result = new LinkageDisequilibrium(genotype, windowSize, testDesign, -1, null, false, 100, null, treatment);
+        result.run();
 
         return result;
 
