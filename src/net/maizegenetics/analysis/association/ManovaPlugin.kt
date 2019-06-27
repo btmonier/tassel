@@ -9,6 +9,7 @@ import net.maizegenetics.phenotype.GenotypePhenotype
 import net.maizegenetics.phenotype.Phenotype
 import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.plugindef.DataSet
+import net.maizegenetics.plugindef.Datum
 import net.maizegenetics.plugindef.PluginParameter
 import net.maizegenetics.stats.linearmodels.FactorModelEffect
 import net.maizegenetics.stats.linearmodels.LinearModelUtils
@@ -112,6 +113,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     private lateinit var myGenoPheno: GenotypePhenotype
     private lateinit var myDatasetName: String
     private val myFactorNameList: MutableList<String> = ArrayList()
+    private val randomGenerator = Random(100)
 
     //TableReport builders
     private val manovaReportBuilder =
@@ -149,45 +151,128 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val Y = createY()
 
         val modelEffectList = ArrayList<ModelEffect>()
-        val snpInModel = ArrayList<String>()
-        val step1 = forwardStep(Y, xR, modelEffectList, snpInModel)
+        val snpsAddedToModel = ArrayList<Int>()
+        val step1 = forwardStep(Y, xR, modelEffectList, snpsAddedToModel)
         xR = step1
         while (xR != null && modelEffectList.size <= maximumNumberOfVariantsInModel()) {
-            var step2 = forwardStep(Y, xR, modelEffectList, snpInModel)
+            var step2 = forwardStep(Y, xR, modelEffectList, snpsAddedToModel)
             xR = step2
+            if (xR != null && modelEffectList.size > 1) {
+                var result = backwardStep(Y, modelEffectList, xR)
+                while (result.first) result = backwardStep(Y, modelEffectList, result.second)
+                xR = result.second
+            }
         }
 
-        return null
+        val datumList = ArrayList<Datum>()
+
+        //TODO make comments more informative
+        datumList.add(Datum("Manova", manovaReportBuilder.build(), "manova report"))
+        datumList.add(Datum("Steps", stepsReportBuilder.build(), "step report"))
+        if (usePermutations()) datumList.add(Datum("Permutation", permutationReportBuilder.build(), "permutation report"))
+        return DataSet(datumList, this)
     }
 
-    fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, snpInModel: MutableList<String>): DoubleMatrix? {
+    fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, snpsAdded: MutableList<Int>): DoubleMatrix? {
         val nSites = myGenoPheno.genotypeTable().numberOfSites()
         var minPval = 1.0
         var bestModelEffect: ModelEffect? = null
+        lateinit var bestResult : List<Double>
 
-        //TODO do not test sites already in modelEffectList
+        val siteIndices = modelEffectList.map { (it.id as SnpData).index}.toList()
         for (sitenum in 0 until nSites) {
-            if (!snpInModel.contains(myGenoPheno.genotypeTable().siteName(sitenum))) {
+            if (!siteIndices.contains(sitenum)) {
                 val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum))
                 val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
-                        true, myGenoPheno.genotypeTable().siteName(sitenum))
+                        true, SnpData(myGenoPheno.genotypeTable().siteName(sitenum), sitenum))
                 val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
                 println(xR)
-                val pval = manovaPvalue(Y, siteDesignMatrix, xR)
+                val result = manovaPvalue(Y, siteDesignMatrix, xR)
+                val pval = result[3]
                 if (pval < minPval) {
                     minPval = pval
                     bestModelEffect = modelEffect
+                    bestResult = result
                 }
             }
         }
 
         if (minPval <= enterLimit() && bestModelEffect != null) {
             modelEffectList.add(bestModelEffect)
-            println("${bestModelEffect.id}, pval = $minPval")
-            snpInModel.add(bestModelEffect.id.toString())
+            snpsAdded.add((bestModelEffect.id as SnpData).index)
+            println("${myGenoPheno.genotypeTable().siteName(bestModelEffect.id as Int)}, pval = $minPval")
+
+            //add a row to the step report
+            //"SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"
+            val snpdataForSite = bestModelEffect.id as SnpData
+
+
+            stepsReportBuilder.add(arrayOf(snpdataForSite.name, snpdataForSite.chromosome, snpdataForSite.position,
+                    "add", bestResult[0], bestResult[1], bestResult[2], bestResult[3]))
             return xR.concatenate(bestModelEffect.x, false)
         }
+
+        calculateModelForManovaReport(Y, modelEffectList)
+
         return null
+    }
+
+    fun backwardStep(Y:DoubleMatrix, modelEffectList: MutableList<ModelEffect>, originalXR : DoubleMatrix) : Pair<Boolean, DoubleMatrix> {
+        //test each snp one at a time, except for the last snp added
+        //record the maximum pvalue
+        //if max pvalue > exit limit remove the snp and return true
+        //if max pvalue <= exit limit return false
+
+        var maxPValue = 0.0
+        var maxSnpIndex = 0
+        var bestResult : List<Double>? = null
+
+        val nSnpsInModel = modelEffectList.size
+        val nObs = myGenoPheno.numberOfObservations()
+
+        val intercept = DoubleMatrixFactory.DEFAULT.make(nObs,1,1.0)
+        lateinit var maxXR : DoubleMatrix
+
+        //do not reanalyze the last snp added
+        for (snp in 0 until nSnpsInModel - 1)  {
+            //xR includes all effects except snp
+            var xR = intercept
+            for (ndx in 0 until nSnpsInModel) {
+                if (ndx != snp) xR = xR.concatenate(modelEffectList[ndx].x, false)
+            }
+            val siteDesignMatrix = xR.concatenate(modelEffectList[snp].x, false)
+            val result = manovaPvalue(Y, siteDesignMatrix, xR)
+            val pval = result[3]
+            if (pval > maxPValue) {
+                maxPValue = pval
+                maxSnpIndex = snp
+                maxXR = xR
+                bestResult = result
+            }
+        }
+
+        if (maxPValue > exitLimit()) {
+            //remove the effect and return the new xR and true
+            val removedEffect = modelEffectList.removeAt(maxSnpIndex)
+
+            if (bestResult != null) {
+                //add a row to the step report
+                //"SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"
+                val snpdataForSite = removedEffect.id as SnpData
+
+                stepsReportBuilder.add(arrayOf(snpdataForSite.name, snpdataForSite.chromosome, snpdataForSite.position,
+                        "remove", bestResult[0], bestResult[1], bestResult[2], bestResult[3]))
+
+            }
+            return Pair(true, maxXR)
+        } else {
+            return Pair(false, originalXR)
+        }
+
+    }
+
+    fun calculateModelForManovaReport(Y:DoubleMatrix, modelEffectList: MutableList<ModelEffect>) {
+
     }
 
     fun imputeNsInGenotype(genotypes: Array<String>): Array<String> {
@@ -204,7 +289,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         return genotypes.map {
             if (it.equals("N")) {
-                val ran = Random.nextDouble()
+                val ran = randomGenerator.nextDouble()
                 var ndx = 0
                 while (ran >= alleleProportionList[ndx].first) ndx++
                 alleleProportionList[ndx].second
@@ -245,7 +330,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      * xR = Reduced model
      * returns Wilk's lambda pvalue
      */
-    private fun manovaPvalue(Y: DoubleMatrix, xF: DoubleMatrix, xR: DoubleMatrix): Double {
+    private fun manovaPvalue(Y: DoubleMatrix, xF: DoubleMatrix, xR: DoubleMatrix): List<Double> {
         //total SQ
         val YtY: DoubleMatrix = Y.crossproduct()
         //number of variables
@@ -284,8 +369,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val num: Double = p * df
         val den: Double = (r * t) - (2 * f)
         val pvalue: Double = LinearModelUtils.Ftest(fCalc, num, den)
-        return pvalue
-        //return listOf(ve, den, pvalue, lambda)
+//        return pvalue
+        return listOf(fCalc, num, den, pvalue)
     }
 
     /**
@@ -699,3 +784,4 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 //}
 
 data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
+data class SnpData(val name: String, val index: Int, val chromosome : String, val position : Int)
