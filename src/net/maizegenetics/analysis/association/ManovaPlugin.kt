@@ -1,9 +1,7 @@
 package net.maizegenetics.analysis.association
 
 import com.google.common.collect.HashMultiset
-import com.google.common.collect.Multiset
 import net.maizegenetics.dna.snp.GenotypeTable
-import net.maizegenetics.dna.snp.NucleotideAlignmentConstants
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
@@ -11,7 +9,6 @@ import net.maizegenetics.phenotype.GenotypePhenotype
 import net.maizegenetics.phenotype.Phenotype
 import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.plugindef.DataSet
-import net.maizegenetics.plugindef.GeneratePluginCode
 import net.maizegenetics.plugindef.PluginParameter
 import net.maizegenetics.stats.linearmodels.FactorModelEffect
 import net.maizegenetics.stats.linearmodels.LinearModelUtils
@@ -22,7 +19,6 @@ import org.apache.log4j.Logger
 import java.awt.Frame
 import java.util.*
 import javax.swing.ImageIcon
-import kotlin.collections.HashMap
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -108,7 +104,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .dependentOnParameter(writeFiles)
             .build()
 
-    private var maximumNumberOfVariantsInModel = PluginParameter.Builder("maxQTN", 100, Int::class.java)
+    private var maximumNumberOfVariantsInModel = PluginParameter.Builder("maxQTN", 100, Int::class.javaObjectType)
             .description("maximum number of QTN to be fit in the model")
             .guiName("Maximum QTN Number")
             .build()
@@ -153,51 +149,58 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val Y = createY()
 
         val modelEffectList = ArrayList<ModelEffect>()
-        xR = forwardStep(Y, xR, modelEffectList)
+        val step1 = forwardStep(Y, xR, modelEffectList, null)
+        xR = step1.first
+        var snpInModel = step1.second
         while (xR != null && modelEffectList.size <= maximumNumberOfVariantsInModel()) {
-            xR = forwardStep(Y, xR, modelEffectList)
+            var step2 = forwardStep(Y, xR, modelEffectList, snpInModel)
+            xR = step2.first
+            snpInModel = step2.second
         }
-
 
         return null
     }
 
-    fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix, modelEffectList : MutableList<ModelEffect>) : DoubleMatrix? {
+    fun forwardStep(Y: DoubleMatrix, xR: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, snpInModel: MutableList<String>?): Pair<DoubleMatrix?, MutableList<String>?> {
         val nSites = myGenoPheno.genotypeTable().numberOfSites()
         var minPval = 1.0
-        var bestModelEffect : ModelEffect? = null
+        var bestModelEffect: ModelEffect? = null
 
         //TODO do not test sites already in modelEffectList
         for (sitenum in 0 until nSites) {
-            val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum))
-            val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
-                    true, myGenoPheno.genotypeTable().siteName(sitenum))
-            val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
-            val pval = manovaPvalue(Y, siteDesignMatrix, xR)
-            if (pval < minPval) {
-                minPval = pval
-                bestModelEffect = modelEffect
+            if (snpInModel == null || !snpInModel.contains(myGenoPheno.genotypeTable().siteName(sitenum))) {
+                val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum))
+                val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
+                        true, myGenoPheno.genotypeTable().siteName(sitenum))
+                val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
+                println(xR)
+                val pval = manovaPvalue(Y, siteDesignMatrix, xR)
+                if (pval < minPval) {
+                    minPval = pval
+                    bestModelEffect = modelEffect
+                }
             }
         }
 
         if (minPval <= enterLimit() && bestModelEffect != null) {
             modelEffectList.add(bestModelEffect)
             println("${bestModelEffect.id}, pval = $minPval")
-            return xR.concatenate(bestModelEffect.x, false)
+            snpInModel?.add(bestModelEffect.id.toString())
+            return Pair(xR.concatenate(bestModelEffect.x, false), snpInModel)
         }
-        return null;
+        return Pair(null, null)
     }
 
-    fun imputeNsInGenotype(genotypes : Array<String>) : Array<String> {
+    fun imputeNsInGenotype(genotypes: Array<String>): Array<String> {
         //TODO write test to make sure this works
         val alleleCounter = HashMultiset.create<String>()
         for (allele in genotypes) if (!allele.equals("N")) alleleCounter.add(allele)
         val totalCount = alleleCounter.count().toDouble()
-        val alleleProportionList = ArrayList<Pair<Double,String>>()
+        val alleleProportionList = ArrayList<Pair<Double, String>>()
         var cumulativeSum = 0
         for (entry in alleleCounter.entrySet()) {
             cumulativeSum += entry.count
-            alleleProportionList.add(Pair(cumulativeSum/totalCount, entry.element))
+            alleleProportionList.add(Pair(cumulativeSum / totalCount, entry.element))
         }
 
         return genotypes.map {
@@ -264,7 +267,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         }
         //Degree of Freedom
         val df = xF.columnRank().toDouble() - xR.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
-        if (df == 0.0 ){
+        if (df == 0.0) {
             return 1.0
         }
         val t: Double
