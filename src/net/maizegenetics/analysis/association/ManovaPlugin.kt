@@ -285,12 +285,14 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         var minPval = 1.1
         futureList.forEach {
             val result = it.get(5, TimeUnit.SECONDS)
-            val statistics = result.second
-            val probability = statistics[3]
-            if (probability < minPval) {
-                minPval = probability
-                bestModelEffect = result.first
-                bestStatList = statistics
+            if (result != null) {
+                val statistics = result.second
+                val probability = statistics[3]
+                if (probability < minPval) {
+                    minPval = probability
+                    bestModelEffect = result.first
+                    bestStatList = statistics
+                }
             }
         }
 
@@ -884,10 +886,10 @@ class ManovaTester(val start : Int, val end : Int, val Y: DoubleMatrix, val xR: 
 
     val randomGenerator = Random(start)
 
-    override fun call(): Pair<ModelEffect, List<Double>> {
+    override fun call(): Pair<ModelEffect, List<Double>> ? {
         var minPval = 1.1
-        lateinit var bestModelEffect: ModelEffect
-        lateinit var bestResult : List<Double>
+        var bestModelEffect: ModelEffect? = null
+        var bestResult : List<Double>? = null
 
         for (sitenum in start until end) {
             if (!snpsAdded.contains(sitenum)) {
@@ -907,6 +909,7 @@ class ManovaTester(val start : Int, val end : Int, val Y: DoubleMatrix, val xR: 
             }
         }
 
+        if (bestModelEffect == null || bestResult == null) return null
         return Pair(bestModelEffect, bestResult)
     }
 }
