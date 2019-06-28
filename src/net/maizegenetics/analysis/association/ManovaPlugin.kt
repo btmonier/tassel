@@ -262,6 +262,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val maxNumberThreads = maxThreads()
         val nThreads = if (maxNumberThreads != null) min(maxNumberThreads, nAvailableProcessors) else nAvailableProcessors
 
+
         val myExecutor = Executors.newFixedThreadPool(nThreads)
 
 
@@ -270,10 +271,12 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         var siteIndex = 0
         val futureList = ArrayList<Future<Pair<ModelEffect,List<Double>>>>()
+        println("parallel execution using ${nThreads} threads, batch size = $batchSize")
 
         while (siteIndex < nSites) {
             val start = siteIndex
             val siteIndex = Math.min(nSites, siteIndex + batchSize)
+            println("starting a batch at site index = $start")
             futureList.add(myExecutor.submit(ManovaTester(start, siteIndex, Y, xR, snpsAdded, myGenoPheno)))
         }
 
