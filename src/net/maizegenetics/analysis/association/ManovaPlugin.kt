@@ -20,6 +20,8 @@ import org.apache.log4j.Logger
 import java.awt.Frame
 import java.util.*
 import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import javax.swing.ImageIcon
 import kotlin.math.pow
 import kotlin.random.Random
@@ -186,7 +188,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         for (sitenum in 0 until nSites) {
             if (!snpsAdded.contains(sitenum)) {
-                val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum))
+                val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum), randomGenerator)
                 val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
                         true, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
                         sitenum, myGenoPheno.genotypeTable().chromosomeName(sitenum),
@@ -229,8 +231,54 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         //set up an ExecutorService
         val nAvailableProcessors = Runtime.getRuntime().availableProcessors()
+        val nThreads = Math.max(1, nAvailableProcessors)
+        val myExecutor = Executors.newFixedThreadPool(nThreads)
 
-        return null;
+
+        val nSites = myGenoPheno.genotypeTable().numberOfSites()
+        val batchSize = Math.max(1,nSites / nThreads / 100)
+
+        var siteIndex = 0
+        val futureList = ArrayList<Future<Pair<ModelEffect,List<Double>>>>()
+
+        while (siteIndex < nSites) {
+            val start = siteIndex
+            val siteIndex = Math.min(nSites, siteIndex + batchSize)
+            futureList.add(myExecutor.submit(ManovaTester(start, siteIndex, Y, xR, snpsAdded, myGenoPheno)))
+        }
+
+        lateinit var bestStatList : List<Double>
+        lateinit var bestModelEffect : ModelEffect
+        var minPval = 1.1
+        futureList.forEach {
+            val result = it.get()
+            val statistics = result.second
+            val probability = statistics[3]
+            if (probability < minPval) {
+                minPval = probability
+                bestModelEffect = result.first
+                bestStatList = statistics
+            }
+        }
+
+        if (minPval <= enterLimit()) {
+            modelEffectList.add(bestModelEffect)
+            snpsAdded.add((bestModelEffect.id as SnpData).index)
+            println("${(bestModelEffect.id as SnpData).name}, pval = $minPval")
+
+            //add a row to the step report
+            //"SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"
+            val snpdataForSite = bestModelEffect.id as SnpData
+
+
+            stepsReportBuilder.add(arrayOf(snpdataForSite.name, snpdataForSite.chromosome, snpdataForSite.position,
+                    "add", bestStatList[0], bestStatList[1], bestStatList[2], bestStatList[3]))
+            return xR.concatenate(bestModelEffect.x, false)
+        }
+
+        calculateModelForManovaReport(Y, modelEffectList)
+
+        return null
     }
 
     fun backwardStep(Y:DoubleMatrix, modelEffectList: MutableList<ModelEffect>, originalXR : DoubleMatrix) : Pair<Boolean, DoubleMatrix> {
@@ -310,29 +358,6 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         }
     }
 
-    fun imputeNsInGenotype(genotypes: Array<String>): Array<String> {
-        //TODO write test to make sure this works
-        val alleleCounter = HashMultiset.create<String>()
-        for (allele in genotypes) if (!allele.equals("N")) alleleCounter.add(allele)
-        val totalCount = alleleCounter.count().toDouble()
-        val alleleProportionList = ArrayList<Pair<Double, String>>()
-        var cumulativeSum = 0
-        for (entry in alleleCounter.entrySet()) {
-            cumulativeSum += entry.count
-            alleleProportionList.add(Pair(cumulativeSum / totalCount, entry.element))
-        }
-
-        return genotypes.map {
-            if (it.equals("N")) {
-                val ran = randomGenerator.nextDouble()
-                var ndx = 0
-                while (ran >= alleleProportionList[ndx].first) ndx++
-                alleleProportionList[ndx].second
-            } else it
-        }.toTypedArray()
-
-    }
-
     fun createY(): DoubleMatrix {
         val dataAttributeList = myGenoPheno.phenotype().attributeListOfType(Phenotype.ATTRIBUTE_TYPE.data)
         val nTraits = dataAttributeList.size
@@ -350,63 +375,63 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     }
 
 
-    fun calcBeta(Y: DoubleMatrix, X: DoubleMatrix): BetaValue {
-        val XtX: DoubleMatrix = X.crossproduct()
-        val XtY: DoubleMatrix = X.crossproduct(Y)
-        val XtXinv: DoubleMatrix = XtX.generalizedInverse()
-        val B: DoubleMatrix = XtXinv.mult(XtY)
-        val H: DoubleMatrix = B.transpose().mult(XtY)
-        return BetaValue(B, H)
-    }
-
-    /**
-     * Y = Phenotypic data
-     * xF = Full model
-     * xR = Reduced model
-     * returns Wilk's lambda pvalue
-     */
-    private fun manovaPvalue(Y: DoubleMatrix, xF: DoubleMatrix, xR: DoubleMatrix): List<Double> {
-        //total SQ
-        val YtY: DoubleMatrix = Y.crossproduct()
-        //number of variables
-        val p = Y.numberOfColumns().toDouble()
-        //full model
-        val hF = calcBeta(Y, xF).H
-        //Residual (Error) matrix
-        val E: DoubleMatrix = YtY.minus(hF)
-        //reduced model
-        val hR = calcBeta(Y, xR).H
-        //adjusted hypothesis matrix
-        val hA: DoubleMatrix = hF.minus(hR)
-        //Wilks lambda
-        val eigen: EigenvalueDecomposition = E.inverse().mult(hA).eigenvalueDecomposition
-        var lambda = 1.0
-        for (i in 0..(eigen.eigenvalues.size - 1)) {
-            lambda *= 1 / (1 + eigen.eigenvalues[i])
-        }
-        //Degree of Freedom
-        val df = xF.columnRank().toDouble() - xR.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
-        if (df == 0.0) {
-            return listOf(1.0, 0.0, 0.0, 1.0)
-        }
-        val t: Double
-        if ((p.pow(2) + df.pow(2) - 5) > 0) {
-            t = Math.sqrt((p.pow(2) * df.pow(2) - 4) / (p.pow(2) + df.pow(2) - 5))
-        } else {
-            t = 1.0
-        }
-
-        val ve = Y.numberOfRows().toDouble() - xF.columnRank().toDouble()
-
-        val r = ve - (p - df + 1) / 2
-        val f = (p * df - 2) / 4
-        val fCalc = ((1 - lambda.pow(1 / t)) / (lambda.pow(1 / t))) * ((r * t - 2 * f) / (p * df))
-        val num: Double = p * df
-        val den: Double = (r * t) - (2 * f)
-        val pvalue: Double = LinearModelUtils.Ftest(fCalc, num, den)
-//        return pvalue
-        return listOf(fCalc, num, den, pvalue)
-    }
+//    fun calcBeta(Y: DoubleMatrix, X: DoubleMatrix): BetaValue {
+//        val XtX: DoubleMatrix = X.crossproduct()
+//        val XtY: DoubleMatrix = X.crossproduct(Y)
+//        val XtXinv: DoubleMatrix = XtX.generalizedInverse()
+//        val B: DoubleMatrix = XtXinv.mult(XtY)
+//        val H: DoubleMatrix = B.transpose().mult(XtY)
+//        return BetaValue(B, H)
+//    }
+//
+//    /**
+//     * Y = Phenotypic data
+//     * xF = Full model
+//     * xR = Reduced model
+//     * returns Wilk's lambda pvalue
+//     */
+//    private fun manovaPvalue(Y: DoubleMatrix, xF: DoubleMatrix, xR: DoubleMatrix): List<Double> {
+//        //total SQ
+//        val YtY: DoubleMatrix = Y.crossproduct()
+//        //number of variables
+//        val p = Y.numberOfColumns().toDouble()
+//        //full model
+//        val hF = calcBeta(Y, xF).H
+//        //Residual (Error) matrix
+//        val E: DoubleMatrix = YtY.minus(hF)
+//        //reduced model
+//        val hR = calcBeta(Y, xR).H
+//        //adjusted hypothesis matrix
+//        val hA: DoubleMatrix = hF.minus(hR)
+//        //Wilks lambda
+//        val eigen: EigenvalueDecomposition = E.inverse().mult(hA).eigenvalueDecomposition
+//        var lambda = 1.0
+//        for (i in 0..(eigen.eigenvalues.size - 1)) {
+//            lambda *= 1 / (1 + eigen.eigenvalues[i])
+//        }
+//        //Degree of Freedom
+//        val df = xF.columnRank().toDouble() - xR.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
+//        if (df == 0.0) {
+//            return listOf(1.0, 0.0, 0.0, 1.0)
+//        }
+//        val t: Double
+//        if ((p.pow(2) + df.pow(2) - 5) > 0) {
+//            t = Math.sqrt((p.pow(2) * df.pow(2) - 4) / (p.pow(2) + df.pow(2) - 5))
+//        } else {
+//            t = 1.0
+//        }
+//
+//        val ve = Y.numberOfRows().toDouble() - xF.columnRank().toDouble()
+//
+//        val r = ve - (p - df + 1) / 2
+//        val f = (p * df - 2) / 4
+//        val fCalc = ((1 - lambda.pow(1 / t)) / (lambda.pow(1 / t))) * ((r * t - 2 * f) / (p * df))
+//        val num: Double = p * df
+//        val den: Double = (r * t) - (2 * f)
+//        val pvalue: Double = LinearModelUtils.Ftest(fCalc, num, den)
+////        return pvalue
+//        return listOf(fCalc, num, den, pvalue)
+//    }
 
     override fun getIcon(): ImageIcon? {
         return null
@@ -779,9 +804,115 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
 data class SnpData(val name: String, val index: Int, val chromosome : String, val position : Int)
 
-class ManovaTester() : Callable<List<Double>> {
+class ManovaTester(val start : Int, val end : Int, val Y: DoubleMatrix, val xR: DoubleMatrix,
+                   val snpsAdded: MutableList<Int>, val genoPheno : GenotypePhenotype) : Callable<Pair<ModelEffect, List<Double>>> {
 
-    override fun call(): List<Double> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    val randomGenerator = Random(start)
+
+    override fun call(): Pair<ModelEffect, List<Double>> {
+        var minPval = 1.1
+        lateinit var bestModelEffect: ModelEffect
+        lateinit var bestResult : List<Double>
+
+        for (sitenum in start..end) {
+            if (!snpsAdded.contains(sitenum)) {
+                val genotypesForSite = imputeNsInGenotype(genoPheno.getStringGenotype(sitenum), randomGenerator)
+                val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
+                        true, SnpData(genoPheno.genotypeTable().siteName(sitenum),
+                        sitenum, genoPheno.genotypeTable().chromosomeName(sitenum),
+                        genoPheno.genotypeTable().chromosomalPosition(sitenum)))
+                val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
+                val result = manovaPvalue(Y, siteDesignMatrix, xR)
+                val pval = result[3]
+                if (pval < minPval) {
+                    minPval = pval
+                    bestModelEffect = modelEffect
+                    bestResult = result
+                }
+            }
+        }
+
+        return Pair(bestModelEffect, bestResult)
     }
 }
+
+/**
+ * Y = Phenotypic data
+ * xF = Full model
+ * xR = Reduced model
+ * returns Wilk's lambda pvalue
+ */
+fun manovaPvalue(Y: DoubleMatrix, xF: DoubleMatrix, xR: DoubleMatrix): List<Double> {
+    //total SQ
+    val YtY: DoubleMatrix = Y.crossproduct()
+    //number of variables
+    val p = Y.numberOfColumns().toDouble()
+    //full model
+    val hF = calcBeta(Y, xF).H
+    //Residual (Error) matrix
+    val E: DoubleMatrix = YtY.minus(hF)
+    //reduced model
+    val hR = calcBeta(Y, xR).H
+    //adjusted hypothesis matrix
+    val hA: DoubleMatrix = hF.minus(hR)
+    //Wilks lambda
+    val eigen: EigenvalueDecomposition = E.inverse().mult(hA).eigenvalueDecomposition
+    var lambda = 1.0
+    for (i in 0..(eigen.eigenvalues.size - 1)) {
+        lambda *= 1 / (1 + eigen.eigenvalues[i])
+    }
+    //Degree of Freedom
+    val df = xF.columnRank().toDouble() - xR.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
+    if (df == 0.0) {
+        return listOf(1.0, 0.0, 0.0, 1.0)
+    }
+    val t: Double
+    if ((p.pow(2) + df.pow(2) - 5) > 0) {
+        t = Math.sqrt((p.pow(2) * df.pow(2) - 4) / (p.pow(2) + df.pow(2) - 5))
+    } else {
+        t = 1.0
+    }
+
+    val ve = Y.numberOfRows().toDouble() - xF.columnRank().toDouble()
+
+    val r = ve - (p - df + 1) / 2
+    val f = (p * df - 2) / 4
+    val fCalc = ((1 - lambda.pow(1 / t)) / (lambda.pow(1 / t))) * ((r * t - 2 * f) / (p * df))
+    val num: Double = p * df
+    val den: Double = (r * t) - (2 * f)
+    val pvalue: Double = LinearModelUtils.Ftest(fCalc, num, den)
+//        return pvalue
+    return listOf(fCalc, num, den, pvalue)
+}
+
+fun calcBeta(Y: DoubleMatrix, X: DoubleMatrix): BetaValue {
+    val XtX: DoubleMatrix = X.crossproduct()
+    val XtY: DoubleMatrix = X.crossproduct(Y)
+    val XtXinv: DoubleMatrix = XtX.generalizedInverse()
+    val B: DoubleMatrix = XtXinv.mult(XtY)
+    val H: DoubleMatrix = B.transpose().mult(XtY)
+    return BetaValue(B, H)
+}
+
+fun imputeNsInGenotype(genotypes: Array<String>, randomGenerator : Random): Array<String> {
+    //TODO write test to make sure this works
+    val alleleCounter = HashMultiset.create<String>()
+    for (allele in genotypes) if (!allele.equals("N")) alleleCounter.add(allele)
+    val totalCount = alleleCounter.count().toDouble()
+    val alleleProportionList = ArrayList<Pair<Double, String>>()
+    var cumulativeSum = 0
+    for (entry in alleleCounter.entrySet()) {
+        cumulativeSum += entry.count
+        alleleProportionList.add(Pair(cumulativeSum / totalCount, entry.element))
+    }
+
+    return genotypes.map {
+        if (it.equals("N")) {
+            val ran = randomGenerator.nextDouble()
+            var ndx = 0
+            while (ran >= alleleProportionList[ndx].first) ndx++
+            alleleProportionList[ndx].second
+        } else it
+    }.toTypedArray()
+}
+
