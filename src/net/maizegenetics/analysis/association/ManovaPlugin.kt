@@ -179,9 +179,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         var bestModelEffect: ModelEffect? = null
         lateinit var bestResult : List<Double>
 
-        val siteIndices = modelEffectList.map { (it.id as SnpData).index}.toList()
         for (sitenum in 0 until nSites) {
-            if (!siteIndices.contains(sitenum)) {
+            if (!snpsAdded.contains(sitenum)) {
                 val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum))
                 val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
                         true, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
