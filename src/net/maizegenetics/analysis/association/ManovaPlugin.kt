@@ -112,8 +112,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
     private lateinit var myGenoPheno: GenotypePhenotype
     private lateinit var myDatasetName: String
-    private val myFactorNameList: MutableList<String> = ArrayList()
-    private val randomGenerator = Random(100)
+    private lateinit var myFactorNameList: MutableList<String>
+    private lateinit var randomGenerator: Random
 
     //TableReport builders
     private lateinit var manovaReportBuilder : TableReportBuilder
@@ -121,7 +121,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     private lateinit var stepsReportBuilder : TableReportBuilder
 
     override fun preProcessParameters(input: DataSet?) {
-
+        myFactorNameList = ArrayList<String>()
         DoubleMatrixFactory.setDefault(DoubleMatrixFactory.FactoryType.ejml)
 
         //input data should be a single GenotypePhenotype
@@ -149,7 +149,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
                 TableReportBuilder.getInstance("Empirical Null", arrayOf("Trait", "p-value"))
         stepsReportBuilder =
                 TableReportBuilder.getInstance("Steps", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
-
+        randomGenerator = Random(100)
 
         var xR = DoubleMatrixFactory.DEFAULT.make(myGenoPheno.numberOfObservations(), 1, 1.0)
         val Y = createY()
