@@ -184,9 +184,10 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             if (!siteIndices.contains(sitenum)) {
                 val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum))
                 val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
-                        true, SnpData(myGenoPheno.genotypeTable().siteName(sitenum), sitenum))
+                        true, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
+                        sitenum, myGenoPheno.genotypeTable().chromosomeName(sitenum),
+                        myGenoPheno.genotypeTable().chromosomalPosition(sitenum)))
                 val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
-                println(xR)
                 val result = manovaPvalue(Y, siteDesignMatrix, xR)
                 val pval = result[3]
                 if (pval < minPval) {
@@ -352,7 +353,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         //Degree of Freedom
         val df = xF.columnRank().toDouble() - xR.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
         if (df == 0.0) {
-            return 1.0
+            return listOf(1.0, 0.0, 0.0, 1.0)
         }
         val t: Double
         if ((p.pow(2) + df.pow(2) - 5) > 0) {
@@ -371,48 +372,6 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val pvalue: Double = LinearModelUtils.Ftest(fCalc, num, den)
 //        return pvalue
         return listOf(fCalc, num, den, pvalue)
-    }
-
-    /**
-     * Y = Phenotypic data
-     * xI = intercept
-     * returns Wilk's lambda pvalue
-     */
-    private fun manovaPvalue(Y: DoubleMatrix, xI: DoubleMatrix): Double {
-        //total SQ
-        val YtY: DoubleMatrix = Y.crossproduct()
-        //number of variables
-        val p = Y.numberOfColumns().toDouble()
-        //full model
-        val hI = calcBeta(Y, xI).H
-        //Residual (Error) matrix
-        val E: DoubleMatrix = YtY.minus(hI)
-        //Wilks lambda
-        val eigen: EigenvalueDecomposition = E.inverse().mult(hI).eigenvalueDecomposition
-        var lambda = 1.0
-        for (i in 0..(eigen.eigenvalues.size - 1)) {
-            lambda *= 1 / (1 + eigen.eigenvalues[i])
-        }
-        //Degree of Freedom
-        val df = xI.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
-        val t: Double
-        if ((p.pow(2) + df.pow(2) - 5) > 0) {
-            t = Math.sqrt((p.pow(2) * df.pow(2) - 4) / (p.pow(2) + df.pow(2) - 5))
-        } else {
-            t = 1.0
-        }
-
-        val ve = Y.numberOfRows().toDouble() - xI.columnRank().toDouble()
-
-        val r = ve - (p - df + 1) / 2
-        val f = (p * df - 2) / 4
-        val fCalc = ((1 - lambda.pow(1 / t)) / (lambda.pow(1 / t))) * ((r * t - 2 * f) / (p * df))
-        val num: Double = p * df
-        val den: Double = (r * t) - (2 * f)
-        val pvalue: Double = LinearModelUtils.Ftest(fCalc, num, den)
-
-        return pvalue
-        //return listOf(ve, den, pvalue, lambda)
     }
 
     override fun getIcon(): ImageIcon? {
