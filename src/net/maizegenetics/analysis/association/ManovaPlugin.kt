@@ -19,6 +19,7 @@ import net.maizegenetics.util.TableReportBuilder
 import org.apache.log4j.Logger
 import java.awt.Frame
 import java.util.*
+import java.util.concurrent.Callable
 import javax.swing.ImageIcon
 import kotlin.math.pow
 import kotlin.random.Random
@@ -144,7 +145,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
     override fun processData(input: DataSet): DataSet? {
         manovaReportBuilder =
-                TableReportBuilder.getInstance("Manova", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
+                TableReportBuilder.getInstance("Manova", arrayOf("SiteID", "Chr", "Position", "approx_F", "num_df", "den_df", "probF"))
         permutationReportBuilder =
                 TableReportBuilder.getInstance("Empirical Null", arrayOf("Trait", "p-value"))
         stepsReportBuilder =
@@ -221,6 +222,17 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         return null
     }
 
+    fun forwardStepParallel(Y: DoubleMatrix, xR: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, snpsAdded: MutableList<Int>): DoubleMatrix? {
+        //submit a range of snps to ManovaTester, which will return the SnpData and List<Double> result from manovaPvalue
+        //for the snp with the lowest p value
+        //repeat for all batches until all have been processed then pick the lowest p-value of those
+
+        //set up an ExecutorService
+        val nAvailableProcessors = Runtime.getRuntime().availableProcessors()
+
+        return null;
+    }
+
     fun backwardStep(Y:DoubleMatrix, modelEffectList: MutableList<ModelEffect>, originalXR : DoubleMatrix) : Pair<Boolean, DoubleMatrix> {
         //test each snp one at a time, except for the last snp added
         //record the maximum pvalue
@@ -276,6 +288,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     }
 
     fun calculateModelForManovaReport(Y:DoubleMatrix, modelEffectList: MutableList<ModelEffect>) {
+
         val nEffects = modelEffectList.size
         val nObs = myGenoPheno.numberOfObservations()
 
@@ -285,13 +298,15 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
                 if (effect != snp) {
                     xR = xR.concatenate(modelEffectList[effect].x, false)
                 }
-                val xF = xR.concatenate(modelEffectList[snp].x, false)
-                val result = manovaPvalue(Y, xF, xR)
-                val snpdataForSite = modelEffectList[snp].id as SnpData
-                manovaReportBuilder.add(arrayOf(snpdataForSite.name, snpdataForSite.chromosome, snpdataForSite.position,
-                        "remove", result[0], result[1], result[2], result[3]))
-
             }
+
+            val xF = xR.concatenate(modelEffectList[snp].x, false)
+            val result = manovaPvalue(Y, xF, xR)
+            val snpdataForSite = modelEffectList[snp].id as SnpData
+            //                "SiteID", "Chr", "Position", "approx_F", "num_df", "den_df", "probF"
+            manovaReportBuilder.add(arrayOf(snpdataForSite.name, snpdataForSite.chromosome, snpdataForSite.position,
+                    result[0], result[1], result[2], result[3]))
+
         }
     }
 
@@ -763,3 +778,10 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
 data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
 data class SnpData(val name: String, val index: Int, val chromosome : String, val position : Int)
+
+class ManovaTester() : Callable<List<Double>> {
+
+    override fun call(): List<Double> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}
