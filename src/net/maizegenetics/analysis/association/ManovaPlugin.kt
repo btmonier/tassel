@@ -276,7 +276,23 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     }
 
     fun calculateModelForManovaReport(Y:DoubleMatrix, modelEffectList: MutableList<ModelEffect>) {
+        val nEffects = modelEffectList.size
+        val nObs = myGenoPheno.numberOfObservations()
 
+        for (snp in 0 until nEffects) {
+            var xR = DoubleMatrixFactory.DEFAULT.make(nObs, 1, 1.0)
+            for (effect in 0 until nEffects) {
+                if (effect != snp) {
+                    xR = xR.concatenate(modelEffectList[effect].x, false)
+                }
+                val xF = xR.concatenate(modelEffectList[snp].x, false)
+                val result = manovaPvalue(Y, xF, xR)
+                val snpdataForSite = modelEffectList[snp].id as SnpData
+                manovaReportBuilder.add(arrayOf(snpdataForSite.name, snpdataForSite.chromosome, snpdataForSite.position,
+                        "remove", result[0], result[1], result[2], result[3]))
+
+            }
+        }
     }
 
     fun imputeNsInGenotype(genotypes: Array<String>): Array<String> {
