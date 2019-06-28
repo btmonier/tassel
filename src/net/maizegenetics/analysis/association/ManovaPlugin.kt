@@ -201,7 +201,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         if (minPval <= enterLimit() && bestModelEffect != null) {
             modelEffectList.add(bestModelEffect)
             snpsAdded.add((bestModelEffect.id as SnpData).index)
-            println("${myGenoPheno.genotypeTable().siteName(bestModelEffect.id as Int)}, pval = $minPval")
+            println("${(bestModelEffect.id as SnpData).name}, pval = $minPval")
 
             //add a row to the step report
             //"SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"
