@@ -116,12 +116,9 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     private val randomGenerator = Random(100)
 
     //TableReport builders
-    private val manovaReportBuilder =
-            TableReportBuilder.getInstance("Manova", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
-    private val permutationReportBuilder =
-            TableReportBuilder.getInstance("Empirical Null", arrayOf("Trait", "p-value"))
-    private val stepsReportBuilder =
-            TableReportBuilder.getInstance("Steps", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
+    private lateinit var manovaReportBuilder : TableReportBuilder
+    private lateinit var permutationReportBuilder : TableReportBuilder
+    private lateinit var stepsReportBuilder : TableReportBuilder
 
     override fun preProcessParameters(input: DataSet?) {
 
@@ -146,6 +143,13 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     }
 
     override fun processData(input: DataSet): DataSet? {
+        manovaReportBuilder =
+                TableReportBuilder.getInstance("Manova", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
+        permutationReportBuilder =
+                TableReportBuilder.getInstance("Empirical Null", arrayOf("Trait", "p-value"))
+        stepsReportBuilder =
+                TableReportBuilder.getInstance("Steps", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
+
 
         var xR = DoubleMatrixFactory.DEFAULT.make(myGenoPheno.numberOfObservations(), 1, 1.0)
         val Y = createY()
