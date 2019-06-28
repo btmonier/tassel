@@ -889,7 +889,7 @@ class ManovaTester(val start : Int, val end : Int, val Y: DoubleMatrix, val xR: 
         lateinit var bestModelEffect: ModelEffect
         lateinit var bestResult : List<Double>
 
-        for (sitenum in start..end) {
+        for (sitenum in start until end) {
             if (!snpsAdded.contains(sitenum)) {
                 val genotypesForSite = imputeNsInGenotype(genoPheno.getStringGenotype(sitenum), randomGenerator)
                 val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
