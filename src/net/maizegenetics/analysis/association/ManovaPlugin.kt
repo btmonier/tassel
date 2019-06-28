@@ -7,10 +7,8 @@ import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
 import net.maizegenetics.phenotype.GenotypePhenotype
 import net.maizegenetics.phenotype.Phenotype
-import net.maizegenetics.plugindef.AbstractPlugin
-import net.maizegenetics.plugindef.DataSet
-import net.maizegenetics.plugindef.Datum
-import net.maizegenetics.plugindef.PluginParameter
+import net.maizegenetics.plugindef.*
+import net.maizegenetics.plugindef.GeneratePluginCode.*
 import net.maizegenetics.stats.linearmodels.FactorModelEffect
 import net.maizegenetics.stats.linearmodels.LinearModelUtils
 import net.maizegenetics.stats.linearmodels.ModelEffect
@@ -25,6 +23,9 @@ import java.util.concurrent.Future
 import javax.swing.ImageIcon
 import kotlin.math.pow
 import kotlin.random.Random
+import net.maizegenetics.plugindef.PluginParameter
+import kotlin.math.min
+
 
 /**
  * @author Samuel Fernandes and Terry Casstevens
@@ -113,6 +114,17 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .guiName("Maximum QTN Number")
             .build()
 
+    private var runParallel = PluginParameter.Builder("parallel", true, Boolean::class.javaObjectType)
+            .description("")
+            .guiName("Run Parallel")
+            .build()
+
+    private var maxThreads = PluginParameter.Builder("threads", Integer.MAX_VALUE, Int::class.javaObjectType)
+            .description("")
+            .guiName("Number of threads")
+            .build()
+
+
     private lateinit var myGenoPheno: GenotypePhenotype
     private lateinit var myDatasetName: String
     private lateinit var myFactorNameList: MutableList<String>
@@ -161,13 +173,28 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val snpsAddedToModel = ArrayList<Int>()
         val step1 = forwardStep(Y, xR, modelEffectList, snpsAddedToModel)
         xR = step1
-        while (xR != null && modelEffectList.size <= maximumNumberOfVariantsInModel()) {
-            var step2 = forwardStep(Y, xR, modelEffectList, snpsAddedToModel)
-            xR = step2
-            if (xR != null && modelEffectList.size > 1) {
-                var result = backwardStep(Y, modelEffectList, xR)
-                while (result.first) result = backwardStep(Y, modelEffectList, result.second)
-                xR = result.second
+
+        val parallel = runParallel()
+        if (parallel == null || parallel) {
+            while (xR != null && modelEffectList.size <= maximumNumberOfVariantsInModel()) {
+                var step2 = forwardStepParallel(Y, xR, modelEffectList, snpsAddedToModel)
+                xR = step2
+                if (xR != null && modelEffectList.size > 1) {
+                    var result = backwardStep(Y, modelEffectList, xR)
+                    while (result.first) result = backwardStep(Y, modelEffectList, result.second)
+                    xR = result.second
+                }
+            }
+
+        } else {
+            while (xR != null && modelEffectList.size <= maximumNumberOfVariantsInModel()) {
+                var step2 = forwardStep(Y, xR, modelEffectList, snpsAddedToModel)
+                xR = step2
+                if (xR != null && modelEffectList.size > 1) {
+                    var result = backwardStep(Y, modelEffectList, xR)
+                    while (result.first) result = backwardStep(Y, modelEffectList, result.second)
+                    xR = result.second
+                }
             }
         }
 
@@ -231,7 +258,9 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         //set up an ExecutorService
         val nAvailableProcessors = Runtime.getRuntime().availableProcessors()
-        val nThreads = Math.max(1, nAvailableProcessors)
+        val maxNumberThreads = maxThreads()
+        val nThreads = if (maxNumberThreads != null) min(maxNumberThreads, nAvailableProcessors) else nAvailableProcessors
+
         val myExecutor = Executors.newFixedThreadPool(nThreads)
 
 
@@ -795,11 +824,53 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         return this
     }
 
+    /**
+     * Run Parallel
+     *
+     * @return Run Parallel
+     */
+    fun runParallel(): Boolean? {
+        return runParallel.value()
+    }
+
+    /**
+     * Set Run Parallel. Run Parallel
+     *
+     * @param value Run Parallel
+     *
+     * @return this plugin
+     */
+    fun runParallel(value: Boolean?): ManovaPlugin {
+        runParallel = PluginParameter(runParallel, value)
+        return this
+    }
+
+    /**
+     * Number of threads
+     *
+     * @return Number of threads
+     */
+    fun maxThreads(): Int? {
+        return maxThreads.value()
+    }
+
+    /**
+     * Set Number of threads. Number of threads
+     *
+     * @param value Number of threads
+     *
+     * @return this plugin
+     */
+    fun maxThreads(value: Int?): ManovaPlugin {
+        maxThreads = PluginParameter(maxThreads, value)
+        return this
+    }
+
 }
 
-//fun main(args : Array<String>) {
-//    GeneratePluginCode.generate(ManovaPlugin::class.java)
-//}
+fun main(args : Array<String>) {
+    generate(ManovaPlugin::class.java)
+}
 
 data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
 data class SnpData(val name: String, val index: Int, val chromosome : String, val position : Int)
