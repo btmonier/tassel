@@ -275,7 +275,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         while (siteIndex < nSites) {
             val start = siteIndex
-            val siteIndex = Math.min(nSites, siteIndex + batchSize)
+            siteIndex = Math.min(nSites, siteIndex + batchSize)
             println("starting a batch at site index = $start")
             futureList.add(myExecutor.submit(ManovaTester(start, siteIndex, Y, xR, snpsAdded, myGenoPheno)))
         }
