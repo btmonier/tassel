@@ -24,6 +24,7 @@ import javax.swing.ImageIcon
 import kotlin.math.pow
 import kotlin.random.Random
 import net.maizegenetics.plugindef.PluginParameter
+import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 
@@ -119,7 +120,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .guiName("Run Parallel")
             .build()
 
-    private var maxThreads = PluginParameter.Builder("threads", Integer.MAX_VALUE, Int::class.javaObjectType)
+    private var maxThreads = PluginParameter.Builder("threads", 2, Int::class.javaObjectType)
             .description("")
             .guiName("Number of threads")
             .build()
@@ -198,6 +199,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             }
         }
 
+        calculateModelForManovaReport(Y, modelEffectList)
+
         val datumList = ArrayList<Datum>()
 
         //TODO make comments more informative
@@ -246,8 +249,6 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             return xR.concatenate(bestModelEffect.x, false)
         }
 
-        calculateModelForManovaReport(Y, modelEffectList)
-
         return null
     }
 
@@ -280,7 +281,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         lateinit var bestModelEffect : ModelEffect
         var minPval = 1.1
         futureList.forEach {
-            val result = it.get()
+            val result = it.get(5, TimeUnit.SECONDS)
             val statistics = result.second
             val probability = statistics[3]
             if (probability < minPval) {
@@ -289,6 +290,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
                 bestStatList = statistics
             }
         }
+
+        myExecutor.shutdown()
 
         if (minPval <= enterLimit()) {
             modelEffectList.add(bestModelEffect)
@@ -304,8 +307,6 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
                     "add", bestStatList[0], bestStatList[1], bestStatList[2], bestStatList[3]))
             return xR.concatenate(bestModelEffect.x, false)
         }
-
-        calculateModelForManovaReport(Y, modelEffectList)
 
         return null
     }
