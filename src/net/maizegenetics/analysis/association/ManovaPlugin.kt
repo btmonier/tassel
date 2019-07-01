@@ -7,6 +7,7 @@ import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
 import net.maizegenetics.phenotype.GenotypePhenotype
 import net.maizegenetics.phenotype.Phenotype
+import net.maizegenetics.phenotype.PhenotypeUtils
 import net.maizegenetics.plugindef.*
 import net.maizegenetics.plugindef.GeneratePluginCode.*
 import net.maizegenetics.stats.linearmodels.FactorModelEffect
@@ -24,12 +25,16 @@ import javax.swing.ImageIcon
 import kotlin.math.pow
 import kotlin.random.Random
 import net.maizegenetics.plugindef.PluginParameter
+import net.maizegenetics.util.TableReportUtils
+import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 
 /**
- * @author Samuel Fernandes and Terry Casstevens
+ * @author Samuel B. Fernandes
+ * @author Peter Bradbury
+ * @author Terry Casstevens
  * Created June 24, 2019
  */
 
@@ -37,7 +42,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
     private val myLogger = Logger.getLogger(ManovaPlugin::class.java)
 
-    private var usePermutations = PluginParameter.Builder("usePerm", true, Boolean::class.javaObjectType)
+    private var usePermutations = PluginParameter.Builder("usePerm", false, Boolean::class.javaObjectType)
             .description("Should permutations be used to set the enter and exit limits for stepwise regression? A permutation test will be used to determine the enter limit. The exit limit will be set to 2 times the enter limit.")
             .guiName("Use permutations")
             .build()
@@ -45,6 +50,12 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     private var numberOfPermutations = PluginParameter.Builder("nPerm", 1000, Int::class.javaObjectType)
             .description("The number of permutations used to determine the enter limit.")
             .guiName("Number of permutations")
+            .dependentOnParameter(usePermutations)
+            .build()
+
+    private var permutationAlpha = PluginParameter.Builder("permAlpha", 0.05, Double::class.javaObjectType)
+            .description("Type I errors will be controlled at this level.")
+            .guiName("Alpha for permutations")
             .dependentOnParameter(usePermutations)
             .build()
 
@@ -60,7 +71,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .dependentOnParameter(usePermutations, false)
             .build()
 
-    private var isNested = PluginParameter.Builder("isNested", true, Boolean::class.javaObjectType)
+    private var isNested = PluginParameter.Builder("isNested", false, Boolean::class.javaObjectType)
             .description("Should SNPs/markers be nested within a factor, such as family?")
             .guiName("")
             .build()
@@ -78,27 +89,31 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .description("If the genotype table contains more than one type of genotype data, choose the type to use for the analysis.")
             .build()
 
-    private var createAnova = PluginParameter.Builder("anova", true, Boolean::class.javaObjectType)
-            .description("Create pre- and post-scan anova reports.")
-            .guiName("Create anova reports")
+    private var createManova = PluginParameter.Builder("Manova", true, Boolean::class.javaObjectType)
+            .description("Create manova reports.")
+            .guiName("Create manova reports")
             .build()
 
+/*
     private var createEffects = PluginParameter.Builder("effects", true, Boolean::class.javaObjectType)
             .description("Create a report of marker effects based on the scan results.")
             .guiName("Create effects report")
             .build()
+*/
 
     private var createStep = PluginParameter.Builder("step", true, Boolean::class.javaObjectType)
             .description("Create a report of the which markers enter and leave the model as it is being fit.")
             .guiName("Create step report")
             .build()
 
+/*
     private var createResiduals = PluginParameter.Builder("residuals", false, Boolean::class.javaObjectType)
             .description("Create a phenotype dataset of model residuals for each chromosome. For each chromosome, the residuals will be calculated from a model with all terms EXCEPT the markers on that chromosome.")
             .guiName("Create residuals")
             .build()
+*/
 
-    private var writeFiles = PluginParameter.Builder("saveToFile", false, Boolean::class.javaObjectType)
+    private var writeFiles = PluginParameter.Builder("saveToFile", true, Boolean::class.javaObjectType)
             .description("Should the requested output be written to files?")
             .guiName("Write to files")
             .build()
@@ -120,7 +135,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             .guiName("Run Parallel")
             .build()
 
-    private var maxThreads = PluginParameter.Builder("threads", 2, Int::class.javaObjectType)
+    private var maxThreads = PluginParameter.Builder("threads", Runtime.getRuntime().availableProcessors(), Int::class.javaObjectType)
             .description("")
             .guiName("Number of threads")
             .build()
@@ -132,9 +147,9 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     private lateinit var randomGenerator: Random
 
     //TableReport builders
-    private lateinit var manovaReportBuilder : TableReportBuilder
-    private lateinit var permutationReportBuilder : TableReportBuilder
-    private lateinit var stepsReportBuilder : TableReportBuilder
+    private lateinit var manovaReportBuilder: TableReportBuilder
+    private lateinit var permutationReportBuilder: TableReportBuilder
+    private lateinit var stepsReportBuilder: TableReportBuilder
 
     override fun preProcessParameters(input: DataSet?) {
         myFactorNameList = ArrayList<String>()
@@ -166,6 +181,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         stepsReportBuilder =
                 TableReportBuilder.getInstance("Steps", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
         randomGenerator = Random(100)
+
+        val start = System.nanoTime()
 
         var xR = DoubleMatrixFactory.DEFAULT.make(myGenoPheno.numberOfObservations(), 1, 1.0)
         val Y = createY()
@@ -199,14 +216,42 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             }
         }
 
+        myLogger.debug(String.format("ran analysis in %d ms.", (System.nanoTime() - start) / 1000000))
+
         calculateModelForManovaReport(Y, modelEffectList)
 
         val datumList = ArrayList<Datum>()
 
-        //TODO make comments more informative
-        datumList.add(Datum("Manova", manovaReportBuilder.build(), "manova report"))
-        datumList.add(Datum("Steps", stepsReportBuilder.build(), "step report"))
-        if (usePermutations()) datumList.add(Datum("Permutation", permutationReportBuilder.build(), "permutation report"))
+        if (createStep.value()) {
+            val outputStep = stepsReportBuilder.build()
+            datumList.add(Datum("Steps", outputStep, "Multi-trait Stepwise regression results:\n" + "Model fitting steps\n"))
+
+            if (writeFiles.value()) {
+                val filenameStep = outputName.value() + "_steps.txt"
+                TableReportUtils.saveDelimitedTableReport(outputStep, File(filenameStep))
+            }
+        }
+
+        if (createManova.value()) {
+            val outputMan = manovaReportBuilder.build()
+            datumList.add(Datum("Manova", outputMan, "Multi-trait Stepwise regression results:\\n Manova for the final model \\n"))
+
+            if (writeFiles.value()) {
+                val filenameMan = outputName.value() + "_Manova.txt"
+                TableReportUtils.saveDelimitedTableReport(outputMan, File(filenameMan))
+            }
+        }
+
+        if (usePermutations.value()) {
+            val outputPer = permutationReportBuilder.build()
+            datumList.add(Datum("Permutation", outputPer, "permutation report"))
+
+            if (writeFiles.value()) {
+                val filename = outputName.value() + "_permutations.txt"
+                TableReportUtils.saveDelimitedTableReport(outputPer, File(filename))
+            }
+        }
+
         return DataSet(datumList, this)
     }
 
@@ -214,7 +259,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val nSites = myGenoPheno.genotypeTable().numberOfSites()
         var minPval = 1.0
         var bestModelEffect: ModelEffect? = null
-        lateinit var bestResult : List<Double>
+        lateinit var bestResult: List<Double>
 
         for (sitenum in 0 until nSites) {
             if (!snpsAdded.contains(sitenum)) {
@@ -267,10 +312,10 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
 
         val nSites = myGenoPheno.genotypeTable().numberOfSites()
-        val batchSize = Math.max(1,nSites / nThreads / 100)
+        val batchSize = Math.max(1, nSites / nThreads / 100)
 
         var siteIndex = 0
-        val futureList = ArrayList<Future<Pair<ModelEffect,List<Double>>>>()
+        val futureList = ArrayList<Future<Pair<ModelEffect, List<Double>>>>()
         println("parallel execution using ${nThreads} threads, batch size = $batchSize")
 
         while (siteIndex < nSites) {
@@ -280,15 +325,15 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             futureList.add(myExecutor.submit(ManovaTester(start, siteIndex, Y, xR, snpsAdded, myGenoPheno)))
         }
 
-        lateinit var bestStatList : List<Double>
-        lateinit var bestModelEffect : ModelEffect
-        var minPval = 1.1
+        lateinit var bestStatList: List<Double>
+        lateinit var bestModelEffect: ModelEffect
+        var minPval = 1.0
         futureList.forEach {
             val result = it.get(5, TimeUnit.SECONDS)
             if (result != null) {
                 val statistics = result.second
                 val probability = statistics[3]
-                if (probability < minPval) {
+                if (probability <= minPval) {
                     minPval = probability
                     bestModelEffect = result.first
                     bestStatList = statistics
@@ -316,7 +361,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         return null
     }
 
-    fun backwardStep(Y:DoubleMatrix, modelEffectList: MutableList<ModelEffect>, originalXR : DoubleMatrix) : Pair<Boolean, DoubleMatrix> {
+    fun backwardStep(Y: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, originalXR: DoubleMatrix): Pair<Boolean, DoubleMatrix> {
         //test each snp one at a time, except for the last snp added
         //record the maximum pvalue
         //if max pvalue > exit limit remove the snp and return true
@@ -324,16 +369,16 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         var maxPValue = 0.0
         var maxSnpIndex = 0
-        var bestResult : List<Double>? = null
+        var bestResult: List<Double>? = null
 
         val nSnpsInModel = modelEffectList.size
         val nObs = myGenoPheno.numberOfObservations()
 
-        val intercept = DoubleMatrixFactory.DEFAULT.make(nObs,1,1.0)
-        lateinit var maxXR : DoubleMatrix
+        val intercept = DoubleMatrixFactory.DEFAULT.make(nObs, 1, 1.0)
+        lateinit var maxXR: DoubleMatrix
 
         //do not reanalyze the last snp added
-        for (snp in 0 until nSnpsInModel - 1)  {
+        for (snp in 0 until nSnpsInModel - 1) {
             //xR includes all effects except snp
             var xR = intercept
             for (ndx in 0 until nSnpsInModel) {
@@ -370,7 +415,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
     }
 
-    fun calculateModelForManovaReport(Y:DoubleMatrix, modelEffectList: MutableList<ModelEffect>) {
+    fun calculateModelForManovaReport(Y: DoubleMatrix, modelEffectList: MutableList<ModelEffect>) {
 
         val nEffects = modelEffectList.size
         val nObs = myGenoPheno.numberOfObservations()
@@ -409,64 +454,6 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         return Y
     }
 
-
-//    fun calcBeta(Y: DoubleMatrix, X: DoubleMatrix): BetaValue {
-//        val XtX: DoubleMatrix = X.crossproduct()
-//        val XtY: DoubleMatrix = X.crossproduct(Y)
-//        val XtXinv: DoubleMatrix = XtX.generalizedInverse()
-//        val B: DoubleMatrix = XtXinv.mult(XtY)
-//        val H: DoubleMatrix = B.transpose().mult(XtY)
-//        return BetaValue(B, H)
-//    }
-//
-//    /**
-//     * Y = Phenotypic data
-//     * xF = Full model
-//     * xR = Reduced model
-//     * returns Wilk's lambda pvalue
-//     */
-//    private fun manovaPvalue(Y: DoubleMatrix, xF: DoubleMatrix, xR: DoubleMatrix): List<Double> {
-//        //total SQ
-//        val YtY: DoubleMatrix = Y.crossproduct()
-//        //number of variables
-//        val p = Y.numberOfColumns().toDouble()
-//        //full model
-//        val hF = calcBeta(Y, xF).H
-//        //Residual (Error) matrix
-//        val E: DoubleMatrix = YtY.minus(hF)
-//        //reduced model
-//        val hR = calcBeta(Y, xR).H
-//        //adjusted hypothesis matrix
-//        val hA: DoubleMatrix = hF.minus(hR)
-//        //Wilks lambda
-//        val eigen: EigenvalueDecomposition = E.inverse().mult(hA).eigenvalueDecomposition
-//        var lambda = 1.0
-//        for (i in 0..(eigen.eigenvalues.size - 1)) {
-//            lambda *= 1 / (1 + eigen.eigenvalues[i])
-//        }
-//        //Degree of Freedom
-//        val df = xF.columnRank().toDouble() - xR.columnRank().toDouble()//data[data.names[0]].asStrings().distinctBy {it.hashCode()}.size.toDouble()
-//        if (df == 0.0) {
-//            return listOf(1.0, 0.0, 0.0, 1.0)
-//        }
-//        val t: Double
-//        if ((p.pow(2) + df.pow(2) - 5) > 0) {
-//            t = Math.sqrt((p.pow(2) * df.pow(2) - 4) / (p.pow(2) + df.pow(2) - 5))
-//        } else {
-//            t = 1.0
-//        }
-//
-//        val ve = Y.numberOfRows().toDouble() - xF.columnRank().toDouble()
-//
-//        val r = ve - (p - df + 1) / 2
-//        val f = (p * df - 2) / 4
-//        val fCalc = ((1 - lambda.pow(1 / t)) / (lambda.pow(1 / t))) * ((r * t - 2 * f) / (p * df))
-//        val num: Double = p * df
-//        val den: Double = (r * t) - (2 * f)
-//        val pvalue: Double = LinearModelUtils.Ftest(fCalc, num, den)
-////        return pvalue
-//        return listOf(fCalc, num, den, pvalue)
-//    }
 
     override fun getIcon(): ImageIcon? {
         return null
@@ -537,6 +524,28 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      */
     fun numberOfPermutations(value: Int): ManovaPlugin {
         numberOfPermutations = PluginParameter(numberOfPermutations, value)
+        return this
+    }
+
+    /**
+     * Type I errors will be controlled at this level.
+     *
+     * @return Alpha for permutations
+     */
+    fun permutationAlpha(): Double? {
+        return permutationAlpha.value()
+    }
+
+    /**
+     * Set Alpha for permutations. Type I errors will be controlled
+     * at this level.
+     *
+     * @param value Alpha for permutations
+     *
+     * @return this plugin
+     */
+    fun permutationAlpha(value: Double?): ManovaPlugin {
+        permutationAlpha = PluginParameter(permutationAlpha, value)
         return this
     }
 
@@ -672,8 +681,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Create anova reports
      */
-    fun createAnova(): Boolean {
-        return createAnova.value()
+    fun createManova(): Boolean {
+        return createManova.value()
     }
 
     /**
@@ -684,8 +693,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun createAnova(value: Boolean): ManovaPlugin {
-        createAnova = PluginParameter(createAnova, value)
+    fun createManova(value: Boolean): ManovaPlugin {
+        createManova = PluginParameter(createManova, value)
         return this
     }
 
@@ -695,9 +704,11 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Create effects report
      */
+/*
     fun createEffects(): Boolean {
         return createEffects.value()
     }
+*/
 
     /**
      * Set Create effects report. Create a report of marker
@@ -707,10 +718,12 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
+/*
     fun createEffects(value: Boolean): ManovaPlugin {
         createEffects = PluginParameter(createEffects, value)
         return this
     }
+*/
 
     /**
      * Create a report of the which markers enter and leave
@@ -743,9 +756,11 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return Create residuals
      */
+/*
     fun createResiduals(): Boolean {
         return createResiduals.value()
     }
+*/
 
     /**
      * Set Create residuals. Create a phenotype dataset of
@@ -757,10 +772,12 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
+/*
     fun createResiduals(value: Boolean): ManovaPlugin {
         createResiduals = PluginParameter(createResiduals, value)
         return this
     }
+*/
 
     /**
      * Should the requested output be written to files?
@@ -874,22 +891,22 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
 }
 
-fun main(args : Array<String>) {
+/*fun main(args : Array<String>) {
     generate(ManovaPlugin::class.java)
-}
+}*/
 
 data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
-data class SnpData(val name: String, val index: Int, val chromosome : String, val position : Int)
+data class SnpData(val name: String, val index: Int, val chromosome: String, val position: Int)
 
-class ManovaTester(val start : Int, val end : Int, val Y: DoubleMatrix, val xR: DoubleMatrix,
-                   val snpsAdded: MutableList<Int>, val genoPheno : GenotypePhenotype) : Callable<Pair<ModelEffect, List<Double>>> {
+class ManovaTester(val start: Int, val end: Int, val Y: DoubleMatrix, val xR: DoubleMatrix,
+                   val snpsAdded: MutableList<Int>, val genoPheno: GenotypePhenotype) : Callable<Pair<ModelEffect, List<Double>>> {
 
     val randomGenerator = Random(start)
 
-    override fun call(): Pair<ModelEffect, List<Double>> ? {
+    override fun call(): Pair<ModelEffect, List<Double>>? {
         var minPval = 1.1
         var bestModelEffect: ModelEffect? = null
-        var bestResult : List<Double>? = null
+        var bestResult: List<Double>? = null
 
         for (sitenum in start until end) {
             if (!snpsAdded.contains(sitenum)) {
@@ -972,7 +989,7 @@ fun calcBeta(Y: DoubleMatrix, X: DoubleMatrix): BetaValue {
     return BetaValue(B, H)
 }
 
-fun imputeNsInGenotype(genotypes: Array<String>, randomGenerator : Random): Array<String> {
+fun imputeNsInGenotype(genotypes: Array<String>, randomGenerator: Random): Array<String> {
     //TODO write test to make sure this works
     val alleleCounter = HashMultiset.create<String>()
     for (allele in genotypes) if (!allele.equals("N")) alleleCounter.add(allele)
