@@ -5,15 +5,9 @@ import net.maizegenetics.dna.snp.GenotypeTable
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition
-import net.maizegenetics.phenotype.GenotypePhenotype
-import net.maizegenetics.phenotype.Phenotype
-import net.maizegenetics.phenotype.PhenotypeUtils
+import net.maizegenetics.phenotype.*
 import net.maizegenetics.plugindef.*
 import net.maizegenetics.plugindef.GeneratePluginCode.*
-import net.maizegenetics.stats.linearmodels.FactorModelEffect
-import net.maizegenetics.stats.linearmodels.LinearModelUtils
-import net.maizegenetics.stats.linearmodels.ModelEffect
-import net.maizegenetics.stats.linearmodels.ModelEffectUtils
 import net.maizegenetics.util.TableReportBuilder
 import org.apache.log4j.Logger
 import java.awt.Frame
@@ -25,6 +19,7 @@ import javax.swing.ImageIcon
 import kotlin.math.pow
 import kotlin.random.Random
 import net.maizegenetics.plugindef.PluginParameter
+import net.maizegenetics.stats.linearmodels.*
 import net.maizegenetics.util.TableReportUtils
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -145,6 +140,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     private lateinit var myDatasetName: String
     private lateinit var myFactorNameList: MutableList<String>
     private lateinit var randomGenerator: Random
+    private lateinit var nestingFactorModelEffect : FactorModelEffect
 
     //TableReport builders
     private lateinit var manovaReportBuilder: TableReportBuilder
@@ -187,7 +183,25 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         var xR = DoubleMatrixFactory.DEFAULT.make(myGenoPheno.numberOfObservations(), 1, 1.0)
         val Y = createY()
 
+        //add covariate and factor design matrices to the reduced model
         val modelEffectList = ArrayList<ModelEffect>()
+
+        val covariateAttributeList = myGenoPheno.phenotype().attributeListOfType(Phenotype.ATTRIBUTE_TYPE.covariate)
+        for (covariate in covariateAttributeList) {
+            val covArray = (covariate as NumericAttribute).doubleValues()
+            modelEffectList.add(CovariateModelEffect(covArray, covariate.name()))
+        }
+        val factorAttributeList = myGenoPheno.phenotype().attributeListOfType(Phenotype.ATTRIBUTE_TYPE.factor)
+        for (factor in factorAttributeList) {
+            val factorArray = (factor as CategoricalAttribute).allIntValues()
+            modelEffectList.add(FactorModelEffect(factorArray, true, factor.name()))
+        }
+
+        val factorIndex = myGenoPheno.phenotype().attributeIndexForName(nestingFactor())
+        val nestingAttribute = myGenoPheno.phenotype().attribute(factorIndex)
+        nestingFactorModelEffect = FactorModelEffect((nestingAttribute as CategoricalAttribute).allIntValues(), false, nestingAttribute.name())
+
+        val numberOfBaseEffects = modelEffectList.size
         val snpsAddedToModel = ArrayList<Int>()
         val step1 = forwardStep(Y, xR, modelEffectList, snpsAddedToModel)
         xR = step1
@@ -198,8 +212,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
                 var step2 = forwardStepParallel(Y, xR, modelEffectList, snpsAddedToModel)
                 xR = step2
                 if (xR != null && modelEffectList.size > 1) {
-                    var result = backwardStep(Y, modelEffectList, xR)
-                    while (result.first) result = backwardStep(Y, modelEffectList, result.second)
+                    var result = backwardStep(Y, modelEffectList, xR, numberOfBaseEffects)
+                    while (result.first) result = backwardStep(Y, modelEffectList, result.second, numberOfBaseEffects)
                     xR = result.second
                 }
             }
@@ -209,8 +223,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
                 var step2 = forwardStep(Y, xR, modelEffectList, snpsAddedToModel)
                 xR = step2
                 if (xR != null && modelEffectList.size > 1) {
-                    var result = backwardStep(Y, modelEffectList, xR)
-                    while (result.first) result = backwardStep(Y, modelEffectList, result.second)
+                    var result = backwardStep(Y, modelEffectList, xR, numberOfBaseEffects)
+                    while (result.first) result = backwardStep(Y, modelEffectList, result.second, numberOfBaseEffects)
                     xR = result.second
                 }
             }
@@ -264,10 +278,19 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         for (sitenum in 0 until nSites) {
             if (!snpsAdded.contains(sitenum)) {
                 val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum), randomGenerator)
-                val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
-                        true, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
-                        sitenum, myGenoPheno.genotypeTable().chromosomeName(sitenum),
-                        myGenoPheno.genotypeTable().chromosomalPosition(sitenum)))
+
+                val modelEffect = if (isNested()) {
+                    val snpEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
+                            false, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
+                            sitenum, myGenoPheno.genotypeTable().chromosomeName(sitenum),
+                            myGenoPheno.genotypeTable().chromosomalPosition(sitenum)))
+                    NestedFactorModelEffect(snpEffect, nestingFactorModelEffect, snpEffect.id)
+                } else {
+                    FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
+                            true, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
+                            sitenum, myGenoPheno.genotypeTable().chromosomeName(sitenum),
+                            myGenoPheno.genotypeTable().chromosomalPosition(sitenum)))
+                }
                 val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
                 val result = manovaPvalue(Y, siteDesignMatrix, xR)
                 val pval = result[3]
@@ -361,7 +384,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         return null
     }
 
-    fun backwardStep(Y: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, originalXR: DoubleMatrix): Pair<Boolean, DoubleMatrix> {
+    fun backwardStep(Y: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, originalXR: DoubleMatrix, numberOfBaseEffects: Int): Pair<Boolean, DoubleMatrix> {
         //test each snp one at a time, except for the last snp added
         //record the maximum pvalue
         //if max pvalue > exit limit remove the snp and return true
@@ -371,17 +394,17 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         var maxSnpIndex = 0
         var bestResult: List<Double>? = null
 
-        val nSnpsInModel = modelEffectList.size
+        val nEffectsInModel = modelEffectList.size
         val nObs = myGenoPheno.numberOfObservations()
 
         val intercept = DoubleMatrixFactory.DEFAULT.make(nObs, 1, 1.0)
         lateinit var maxXR: DoubleMatrix
 
         //do not reanalyze the last snp added
-        for (snp in 0 until nSnpsInModel - 1) {
+        for (snp in numberOfBaseEffects until nEffectsInModel - 1) {
             //xR includes all effects except snp
             var xR = intercept
-            for (ndx in 0 until nSnpsInModel) {
+            for (ndx in numberOfBaseEffects until nEffectsInModel) {
                 if (ndx != snp) xR = xR.concatenate(modelEffectList[ndx].x, false)
             }
             val siteDesignMatrix = xR.concatenate(modelEffectList[snp].x, false)
