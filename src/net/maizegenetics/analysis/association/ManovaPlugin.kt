@@ -345,7 +345,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             val start = siteIndex
             siteIndex = Math.min(nSites, siteIndex + batchSize)
             println("starting a batch at site index = $start")
-            futureList.add(myExecutor.submit(ManovaTester(start, siteIndex, Y, xR, snpsAdded, myGenoPheno)))
+            futureList.add(myExecutor.submit(ManovaTester(start, siteIndex, Y, xR, snpsAdded, myGenoPheno, isNested(), nestingFactorModelEffect)))
         }
 
         lateinit var bestStatList: List<Double>
@@ -922,26 +922,36 @@ data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
 data class SnpData(val name: String, val index: Int, val chromosome: String, val position: Int)
 
 class ManovaTester(val start: Int, val end: Int, val Y: DoubleMatrix, val xR: DoubleMatrix,
-                   val snpsAdded: MutableList<Int>, val genoPheno: GenotypePhenotype) : Callable<Pair<ModelEffect, List<Double>>> {
+                   val snpsAdded: MutableList<Int>, val genoPheno: GenotypePhenotype, val isNested: Boolean,
+                   val nestingFactorModelEffect : FactorModelEffect) : Callable<Pair<ModelEffect, List<Double>>> {
 
     val randomGenerator = Random(start)
 
     override fun call(): Pair<ModelEffect, List<Double>>? {
-        var minPval = 1.1
+        var minPval = 1.0
         var bestModelEffect: ModelEffect? = null
         var bestResult: List<Double>? = null
 
         for (sitenum in start until end) {
-            if (!snpsAdded.contains(sitenum)) {
+             if (!snpsAdded.contains(sitenum)) {
                 val genotypesForSite = imputeNsInGenotype(genoPheno.getStringGenotype(sitenum), randomGenerator)
-                val modelEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
-                        true, SnpData(genoPheno.genotypeTable().siteName(sitenum),
-                        sitenum, genoPheno.genotypeTable().chromosomeName(sitenum),
-                        genoPheno.genotypeTable().chromosomalPosition(sitenum)))
+
+                val modelEffect = if (isNested) {
+                    val snpEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
+                            false, SnpData(genoPheno.genotypeTable().siteName(sitenum),
+                            sitenum, genoPheno.genotypeTable().chromosomeName(sitenum),
+                            genoPheno.genotypeTable().chromosomalPosition(sitenum)))
+                    NestedFactorModelEffect(snpEffect, nestingFactorModelEffect, snpEffect.id)
+                } else {
+                    FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
+                            true, SnpData(genoPheno.genotypeTable().siteName(sitenum),
+                            sitenum, genoPheno.genotypeTable().chromosomeName(sitenum),
+                            genoPheno.genotypeTable().chromosomalPosition(sitenum)))
+                }
                 val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
                 val result = manovaPvalue(Y, siteDesignMatrix, xR)
                 val pval = result[3]
-                if (pval < minPval) {
+                if (pval <= minPval) {
                     minPval = pval
                     bestModelEffect = modelEffect
                     bestResult = result
