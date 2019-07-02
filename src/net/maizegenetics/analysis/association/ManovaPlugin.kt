@@ -140,7 +140,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     private lateinit var myDatasetName: String
     private lateinit var myFactorNameList: MutableList<String>
     private lateinit var randomGenerator: Random
-    private lateinit var nestingFactorModelEffect : FactorModelEffect
+    private var nestingFactorModelEffect : FactorModelEffect? = null
 
     //TableReport builders
     private lateinit var manovaReportBuilder: TableReportBuilder
@@ -197,9 +197,22 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             modelEffectList.add(FactorModelEffect(factorArray, true, factor.name()))
         }
 
-        val factorIndex = myGenoPheno.phenotype().attributeIndexForName(nestingFactor())
-        val nestingAttribute = myGenoPheno.phenotype().attribute(factorIndex)
-        nestingFactorModelEffect = FactorModelEffect((nestingAttribute as CategoricalAttribute).allIntValues(), false, nestingAttribute.name())
+        //put nesting checks here
+        //if isNested, make sure there is a valid nesting factor. Otherwise, throw an error
+        if (isInteractive) {
+            if (isNested()) {
+                if (factorAttributeList.size == 0) throw IllegalArgumentException("If model is nested, data must contain a factor variable")
+                nestingFactorModelEffect = FactorModelEffect((factorAttributeList[0] as CategoricalAttribute).allIntValues(), false, factorAttributeList[0].name())
+            }
+        } else {
+            if (isNested()) {
+                if (nestingFactor == null) throw java.lang.IllegalArgumentException("If model is nested, nestingFactor must be specified")
+                val factorIndex = myGenoPheno.phenotype().attributeIndexForName(nestingFactor())
+                if (factorIndex < 0) throw IllegalArgumentException("The nesting factor ${nestingFactor()} does not exist")
+                val nestingAttribute = myGenoPheno.phenotype().attribute(factorIndex)
+                nestingFactorModelEffect = FactorModelEffect((nestingAttribute as CategoricalAttribute).allIntValues(), false, nestingAttribute.name())
+             }
+        }
 
         val numberOfBaseEffects = modelEffectList.size
         val snpsAddedToModel = ArrayList<Int>()
@@ -284,7 +297,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
                             false, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
                             sitenum, myGenoPheno.genotypeTable().chromosomeName(sitenum),
                             myGenoPheno.genotypeTable().chromosomalPosition(sitenum)))
-                    NestedFactorModelEffect(snpEffect, nestingFactorModelEffect, snpEffect.id)
+                    if (nestingFactorModelEffect == null) throw java.lang.IllegalArgumentException("")
+                    NestedFactorModelEffect(snpEffect, nestingFactorModelEffect!!, snpEffect.id)
                 } else {
                     FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
                             true, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
@@ -923,7 +937,7 @@ data class SnpData(val name: String, val index: Int, val chromosome: String, val
 
 class ManovaTester(val start: Int, val end: Int, val Y: DoubleMatrix, val xR: DoubleMatrix,
                    val snpsAdded: MutableList<Int>, val genoPheno: GenotypePhenotype, val isNested: Boolean,
-                   val nestingFactorModelEffect : FactorModelEffect) : Callable<Pair<ModelEffect, List<Double>>> {
+                   val nestingFactorModelEffect : FactorModelEffect?) : Callable<Pair<ModelEffect, List<Double>>> {
 
     val randomGenerator = Random(start)
 
@@ -941,7 +955,7 @@ class ManovaTester(val start: Int, val end: Int, val Y: DoubleMatrix, val xR: Do
                             false, SnpData(genoPheno.genotypeTable().siteName(sitenum),
                             sitenum, genoPheno.genotypeTable().chromosomeName(sitenum),
                             genoPheno.genotypeTable().chromosomalPosition(sitenum)))
-                    NestedFactorModelEffect(snpEffect, nestingFactorModelEffect, snpEffect.id)
+                    NestedFactorModelEffect(snpEffect, nestingFactorModelEffect!!, snpEffect.id)
                 } else {
                     FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
                             true, SnpData(genoPheno.genotypeTable().siteName(sitenum),
