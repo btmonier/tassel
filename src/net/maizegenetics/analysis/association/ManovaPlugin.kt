@@ -201,17 +201,17 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         //if isNested, make sure there is a valid nesting factor. Otherwise, throw an error
         if (isInteractive) {
             if (isNested()) {
-                if (factorAttributeList.size == 0) throw IllegalArgumentException("If model is nested, data must contain a factor variable")
-                nestingFactorModelEffect = FactorModelEffect((factorAttributeList[0] as CategoricalAttribute).allIntValues(), false, factorAttributeList[0].name())
-            }
-        } else {
-            if (isNested()) {
                 if (nestingFactor == null) throw java.lang.IllegalArgumentException("If model is nested, nestingFactor must be specified")
                 val factorIndex = myGenoPheno.phenotype().attributeIndexForName(nestingFactor())
                 if (factorIndex < 0) throw IllegalArgumentException("The nesting factor ${nestingFactor()} does not exist")
                 val nestingAttribute = myGenoPheno.phenotype().attribute(factorIndex)
                 nestingFactorModelEffect = FactorModelEffect((nestingAttribute as CategoricalAttribute).allIntValues(), false, nestingAttribute.name())
-             }
+            }
+        } else {
+            if (isNested()) {
+                if (factorAttributeList.size == 0) throw IllegalArgumentException("If model is nested, data must contain a factor variable")
+                nestingFactorModelEffect = FactorModelEffect((factorAttributeList[0] as CategoricalAttribute).allIntValues(), false, factorAttributeList[0].name())
+            }
         }
 
         val numberOfBaseEffects = modelEffectList.size
