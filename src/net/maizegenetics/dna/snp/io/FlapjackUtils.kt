@@ -11,6 +11,9 @@ import org.apache.log4j.Logger
 /**
  * @author Terry Casstevens
  * Created July 02, 2019
+ *
+ * This specifics of the Flapjack format can be found here
+ * http://flapjack.hutton.ac.uk/en/latest/projects_&_data_formats.html
  */
 
 private val myLogger = Logger.getLogger("net.maizegenetics.dna.snp.io.FlapjackUtils")
