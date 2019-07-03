@@ -32,9 +32,9 @@ private val FLAPJACK_CHARS = arrayOf("A", "C", "G", "T", FLAPJACK_MISSING, FLAPJ
 /**
  * Writes given genotype table to Flapjack format
  */
-fun writeToFlapjack(genotypes: GenotypeTable, filename: String, delimChar: Char = '\t'): String {
+fun writeToFlapjack(genotypes: GenotypeTable, filename: String, delimiter: Char = '\t'): String {
 
-    if (delimChar != ' ' && delimChar != '\t') {
+    if (delimiter != ' ' && delimiter != '\t') {
         throw IllegalArgumentException("FlapjackUtils: writeToFlapjack: Delimiter character must be either a blank space or a tab.")
     }
 
@@ -49,12 +49,12 @@ fun writeToFlapjack(genotypes: GenotypeTable, filename: String, delimChar: Char 
 
                 for (site in 0 until genotypes.numberOfSites()) {
                     mapWriter.write(genotypes.siteName(site))
-                    mapWriter.write(delimChar.toInt())
+                    mapWriter.write(delimiter.toInt())
                     mapWriter.write(genotypes.chromosomeName(site))
-                    mapWriter.write(delimChar.toInt())
+                    mapWriter.write(delimiter.toInt())
                     mapWriter.write(Integer.toString(genotypes.chromosomalPosition(site)))
                     mapWriter.write("\n")
-                    genoWriter.write(delimChar.toInt())
+                    genoWriter.write(delimiter.toInt())
                     genoWriter.write(genotypes.siteName(site))
                 }
 
@@ -68,7 +68,7 @@ fun writeToFlapjack(genotypes: GenotypeTable, filename: String, delimChar: Char 
 
                 for (site in 0 until genotypes.numberOfSites()) {
 
-                    genoWriter.write(delimChar.toInt())
+                    genoWriter.write(delimiter.toInt())
 
                     val alleles = genotypes.genotypeArray(taxa, site)
                     when (alleles.size) {
