@@ -23,6 +23,7 @@ import net.maizegenetics.dna.snp.ExportUtils;
 import net.maizegenetics.dna.snp.FilterList;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.io.FilterJSONUtils;
+import net.maizegenetics.dna.snp.io.FlapjackUtils;
 import net.maizegenetics.dna.snp.io.JSONUtils;
 import net.maizegenetics.dna.snp.io.SiteScoresIO;
 import net.maizegenetics.phenotype.Phenotype;
@@ -99,6 +100,7 @@ public class ExportPlugin extends AbstractPlugin {
                 temp.add(FileLoadPlugin.TasselFileType.HDF5);
                 temp.add(FileLoadPlugin.TasselFileType.VCF);
                 temp.add(FileLoadPlugin.TasselFileType.Plink);
+                temp.add(FileLoadPlugin.TasselFileType.Flapjack);
                 temp.add(FileLoadPlugin.TasselFileType.Phylip_Seq);
                 temp.add(FileLoadPlugin.TasselFileType.Phylip_Inter);
                 temp.add(FileLoadPlugin.TasselFileType.Table);
@@ -258,6 +260,8 @@ public class ExportPlugin extends AbstractPlugin {
             resultFile = ExportUtils.writeToHapmap(inputAlignment, true, saveFile(), '\t', includeTaxaAnnotations(), this);
         } else if (fileType() == FileLoadPlugin.TasselFileType.Plink) {
             resultFile = ExportUtils.writeToPlink(inputAlignment, saveFile(), '\t');
+        } else if (fileType() == FileLoadPlugin.TasselFileType.Flapjack) {
+            resultFile = FlapjackUtils.writeToFlapjack(inputAlignment, saveFile(), '\t');
         } else if (fileType() == FileLoadPlugin.TasselFileType.Phylip_Seq) {
             resultFile = Utils.addSuffixIfNeeded(saveFile(), ".phy");
             try (PrintWriter out = new PrintWriter(new FileWriter(resultFile))) {
