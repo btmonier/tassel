@@ -3,9 +3,7 @@
 package net.maizegenetics.dna.snp.io
 
 import net.maizegenetics.dna.snp.GenotypeTable
-import net.maizegenetics.dna.snp.ImportUtils
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants.UNDEFINED_ALLELE_STR
-import net.maizegenetics.util.LoggingUtils
 import net.maizegenetics.util.Utils
 import org.apache.log4j.Logger
 
@@ -102,11 +100,4 @@ fun writeToFlapjack(genotypes: GenotypeTable, filename: String, delimiter: Char 
         throw IllegalStateException("Problem writing Flapjack files: $mapFileName and $genoFileName\n${e.message}")
     }
 
-}
-
-fun main() {
-    LoggingUtils.setupDebugLogging()
-    val filename = "/Users/terry/terry/tassel-5-source/mdp_genotype.hmp.txt"
-    val genotype = ImportUtils.read(filename)
-    writeToFlapjack(genotype, "/Users/terry/terry/tassel-5-source/mdp_genotype")
 }
