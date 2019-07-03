@@ -17,6 +17,7 @@ import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache;
+import net.maizegenetics.dna.snp.io.FlapjackUtils;
 import net.maizegenetics.phenotype.CategoricalAttribute;
 import net.maizegenetics.phenotype.CorePhenotype;
 import net.maizegenetics.phenotype.GenotypePhenotype;
@@ -30,7 +31,6 @@ import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
-import sun.awt.image.ImageWatched;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -631,6 +631,10 @@ public class GenerateRCode {
 
         return result;
 
+    }
+
+    public static void exportToFlapjack(GenotypeTable genotype, String filename) {
+        FlapjackUtils.writeToFlapjack(genotype, filename, '\t');
     }
 
 
