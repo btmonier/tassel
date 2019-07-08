@@ -43,9 +43,8 @@ class NestedFactorModelEffect(val nestedEffect : FactorModelEffect, val outerEff
                     designCol++
                 }
             }
-            designMatrix
+
         }
-        designMatrix
         return designMatrix as DoubleMatrix
 
     }
