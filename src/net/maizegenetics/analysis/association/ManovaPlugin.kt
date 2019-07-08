@@ -197,6 +197,8 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
             modelEffectList.add(FactorModelEffect(factorArray, true, factor.name()))
         }
 
+        val startModelSize = factorAttributeList.size + covariateAttributeList.size
+
         //put nesting checks here
         //if isNested, make sure there is a valid nesting factor. Otherwise, throw an error
         if (isInteractive) {
@@ -245,7 +247,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         myLogger.debug(String.format("ran analysis in %d ms.", (System.nanoTime() - start) / 1000000))
 
-        calculateModelForManovaReport(Y, modelEffectList)
+        calculateModelForManovaReport(Y, modelEffectList, startModelSize)
 
         val datumList = ArrayList<Datum>()
 
@@ -452,14 +454,14 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
     }
 
-    fun calculateModelForManovaReport(Y: DoubleMatrix, modelEffectList: MutableList<ModelEffect>) {
+    fun calculateModelForManovaReport(Y: DoubleMatrix, modelEffectList: MutableList<ModelEffect>, startModelSize: Int) {
 
         val nEffects = modelEffectList.size
         val nObs = myGenoPheno.numberOfObservations()
 
-        for (snp in 0 until nEffects) {
+        for (snp in startModelSize until nEffects) {
             var xR = DoubleMatrixFactory.DEFAULT.make(nObs, 1, 1.0)
-            for (effect in 0 until nEffects) {
+            for (effect in startModelSize until nEffects) {
                 if (effect != snp) {
                     xR = xR.concatenate(modelEffectList[effect].x, false)
                 }
@@ -467,6 +469,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
             val xF = xR.concatenate(modelEffectList[snp].x, false)
             val result = manovaPvalue(Y, xF, xR)
+            modelEffectList[snp].id
             val snpdataForSite = modelEffectList[snp].id as SnpData
             //                "SiteID", "Chr", "Position", "approx_F", "num_df", "den_df", "probF"
             manovaReportBuilder.add(arrayOf(snpdataForSite.name, snpdataForSite.chromosome, snpdataForSite.position,
@@ -955,6 +958,7 @@ class ManovaTester(val start: Int, val end: Int, val Y: DoubleMatrix, val xR: Do
                             false, SnpData(genoPheno.genotypeTable().siteName(sitenum),
                             sitenum, genoPheno.genotypeTable().chromosomeName(sitenum),
                             genoPheno.genotypeTable().chromosomalPosition(sitenum)))
+                    nestingFactorModelEffect
                     NestedFactorModelEffect(snpEffect, nestingFactorModelEffect!!, snpEffect.id)
                 } else {
                     FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
