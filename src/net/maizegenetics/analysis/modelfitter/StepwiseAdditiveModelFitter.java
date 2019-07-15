@@ -185,6 +185,7 @@ public class StepwiseAdditiveModelFitter {
 
             //add initial site list to model
             addInitialSitesToModel();
+            addBaseToStepsReport();
 
             //call fitModel()
             if (fitSites) fitModel();
@@ -447,6 +448,33 @@ public class StepwiseAdditiveModelFitter {
         row[col++] = new Double(modelcfmSSdf[0] / (modelcfmSSdf[0] + errorSSdf[0]));
         stepsReportBuilder.add(row);
         myLogger.info(String.format("site %s, action = %s, p = %1.5e\n", myGenotype.positions().siteName(siteNumber), action, p));
+    }
+
+    protected void addBaseToStepsReport() {
+        //add this to the steps report builder which has columns
+        //"Trait","SiteID","Chr","Position","action","df","MS","F","probF","AIC","BIC","mBIC","ModelRsq"
+        SweepFastLinearModel sflm = new SweepFastLinearModel(myModel, y);
+        double[] errorSSdf = sflm.getResidualSSdf();
+        Object[] row = new Object[13];
+        int col = 0;
+        double[] modelSSdf = sflm.getFullModelSSdf();
+        double[] modelcfmSSdf = sflm.getModelcfmSSdf();
+        int nsites = mySites.size();
+        int N = y.length;
+        row[col++] = currentTraitName;
+        row[col++] = "Base Model";
+        row[col++] = "--";
+        row[col++] = "--";
+        row[col++] = "--";
+        row[col++] = "--";
+        row[col++] = "--";
+        row[col++] = "--";
+        row[col++] = "--";
+        row[col++] = aic(errorSSdf[0], N, modelSSdf[1]);
+        row[col++] = bic(errorSSdf[0], N, modelSSdf[1]);
+        row[col++] = mbic(errorSSdf[0], N, modelSSdf[1], nsites);
+        row[col++] = modelcfmSSdf[0] / (modelcfmSSdf[0] + errorSSdf[0]);
+        stepsReportBuilder.add(row);
     }
 
     private Optional<ModelEffect> backwardStep() {
