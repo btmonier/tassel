@@ -153,7 +153,7 @@ abstract public class AbstractPlugin implements Plugin {
         throw new UnsupportedOperationException();
     }
 
-    public List<Field> getParameterFields() {
+    protected List<Field> getParameterFields() {
 
         List<Field> result = new ArrayList<>();
         Field[] fields = getClass().getDeclaredFields();
