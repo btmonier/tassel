@@ -412,15 +412,6 @@ public class GenerateRCode {
     public static Phenotype createPhenotypeFromRDataFrameElements(String[] taxaArray, String[] colNames, String[] attributeType, List dataVectors) {
         List<Taxon> taxaList = Stream.of(taxaArray).map(Taxon::new).collect(Collectors.toList());
 
-//        List<Taxon> taxaList = new ArrayList<Taxon>();
-//        taxaList.add(new Taxon("t1"));
-//        taxaList.add(new Taxon("t2"));
-//        taxaList.add(new Taxon("t3"));
-//        taxaList.add(new Taxon("t1"));
-//        taxaList.add(new Taxon("t2"));
-//        taxaList.add(new Taxon("t3"));
-
-
         List<PhenotypeAttribute> attributes = new ArrayList<PhenotypeAttribute>();
         List<Phenotype.ATTRIBUTE_TYPE> types = new ArrayList<Phenotype.ATTRIBUTE_TYPE>();
         TaxaAttribute ta = new TaxaAttribute(taxaList);
