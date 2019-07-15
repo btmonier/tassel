@@ -273,8 +273,6 @@ abstract public class AbstractPlugin implements Plugin {
                     throw new IllegalArgumentException("Should be one character");
                 }
                 return (T) new Character(input.charAt(0));
-            } else if (outputClass.isAssignableFrom(Boolean.class)) {
-                return (T) new Boolean(input);
             } else {
                 return outputClass.getConstructor(String.class).newInstance(input);
             }
