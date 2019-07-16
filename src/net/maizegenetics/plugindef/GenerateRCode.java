@@ -236,9 +236,9 @@ public class GenerateRCode {
     }
 
     /**
-     * Temporary place for this experimental method.
+     * This converts a genotype table to a dosage integer array.
      *
-     * @param genotype
+     * @param genotype genotype table
      *
      * @return int[] in column order with NA set to R approach
      */
@@ -265,7 +265,7 @@ public class GenerateRCode {
             }
 
             // value assigned to site / taxon is the number of alleles
-            // that doesn't not match the major allele.
+            // that do not match the major allele.
             for (int taxon = 0; taxon < genotype.numberOfTaxa(); taxon++) {
                 int value = 0;
                 byte[] alleles = GenotypeTableUtils.getDiploidValues(siteGenotypes[taxon]);
@@ -282,16 +282,24 @@ public class GenerateRCode {
     }
 
     /**
-     * Temporary place for this experimental method.
+     * This converts the taxa of the specified genotype table to
+     * an array of taxa name strings.
      *
-     * @param genotype
+     * @param genotype genotype table
      *
-     * @return int[] in column order with NA set to R approach
+     * @return string array of taxa names
      */
     public static String[] genotypeTableToSampleNameArray(GenotypeTable genotype) {
         return genotypeTableToSampleNameArray(genotype.taxa());
     }
 
+    /**
+     * This converts the taxa list to an array of taxa name strings.
+     *
+     * @param taxa taxa list
+     *
+     * @return string array of taxa names
+     */
     public static String[] genotypeTableToSampleNameArray(TaxaList taxa) {
         return taxa.stream()
                 .map(Taxon::getName)
@@ -299,11 +307,11 @@ public class GenerateRCode {
     }
 
     /**
-     * Temporary place for this experimental method.
+     * This converts the given position list to a @{@link PositionVectors}
      *
      * @param positions
      *
-     * @return int[] in column order with NA set to R approach
+     * @return @{@link PositionVectors}
      */
     public static PositionVectors genotypeTableToPositionListOfArrays(PositionList positions) {
 
@@ -326,6 +334,14 @@ public class GenerateRCode {
         return new PositionVectors(chromosomes, startPos, strand, refAllele, altAllele);
     }
 
+    /**
+     * This converts the position list of the given genotype table to
+     * a @{@link PositionVectors}
+     *
+     * @param genotype genotype table
+     *
+     * @return @{@link PositionVectors}
+     */
     public static PositionVectors genotypeTableToPositionListOfArrays(GenotypeTable genotype) {
         return genotypeTableToPositionListOfArrays(genotype.positions());
     }
