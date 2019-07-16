@@ -37,7 +37,7 @@ class GenotypeToAdditiveValuesPlugin(parentFrame: Frame?, isInteractive: Boolean
             val majorAllele = AlleleFreqCache.majorAllele(alleleCounts)
 
             // value assigned to site / taxon is the number of alleles
-            // that doesn't not match the major allele.
+            // that do not match the major allele.
             for (taxon in 0 until genotype.numberOfTaxa()) {
                 var value: Byte = 0
                 val alleles = GenotypeTableUtils.getDiploidValues(siteGenotypes[taxon])
