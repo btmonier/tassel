@@ -18,13 +18,7 @@ import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache;
 import net.maizegenetics.dna.snp.io.FlapjackUtils;
-import net.maizegenetics.phenotype.CategoricalAttribute;
-import net.maizegenetics.phenotype.CorePhenotype;
-import net.maizegenetics.phenotype.GenotypePhenotype;
-import net.maizegenetics.phenotype.NumericAttribute;
-import net.maizegenetics.phenotype.Phenotype;
-import net.maizegenetics.phenotype.PhenotypeAttribute;
-import net.maizegenetics.phenotype.TaxaAttribute;
+import net.maizegenetics.phenotype.*;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
@@ -37,11 +31,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -410,6 +401,9 @@ public class GenerateRCode {
     }
 
     public static Phenotype createPhenotypeFromRDataFrameElements(String[] taxaArray, String[] colNames, String[] attributeType, List dataVectors) {
+        if (colNames.length != attributeType.length || colNames.length != dataVectors.size())
+            throw new IllegalArgumentException("ColNames, attributeType, and dataVectors need to be same size");
+
         List<Taxon> taxaList = Stream.of(taxaArray).map(Taxon::new).collect(Collectors.toList());
 
         List<PhenotypeAttribute> attributes = new ArrayList<PhenotypeAttribute>();
@@ -418,49 +412,40 @@ public class GenerateRCode {
         attributes.add(ta);
         types.add(Phenotype.ATTRIBUTE_TYPE.taxa);
 
-        //TODO test for size of colNames
-        if (colNames.length != attributeType.length || colNames.length != dataVectors.size())
-            throw new IllegalArgumentException("ColNames, attributeType, and dataVectors need to be same size");
         for (int i = 0; i < colNames.length; i++) {
             Object o = dataVectors.get(i);
             if (o instanceof double[]) {
                 attributes.add(new NumericAttribute(colNames[i], (double[]) o));
-                System.out.println(attributeType[i]);
                 Phenotype.ATTRIBUTE_TYPE attribute_type = Phenotype.ATTRIBUTE_TYPE.valueOf(attributeType[i]);
                 types.add(attribute_type);
             } else if (o instanceof int[]) {
                 //INT min is NA
                 int[] initialTraits = (int[]) o;
-                float[] traitsValueWithNaN = new float[initialTraits.length];
-                for (int j = 0; j < initialTraits.length; j++)
-                    traitsValueWithNaN[j] = (initialTraits[j] == Integer.MIN_VALUE) ? Float.NaN : initialTraits[j];
-                attributes.add(new NumericAttribute(colNames[i], traitsValueWithNaN));
-                System.out.println(attributeType[i]);
                 Phenotype.ATTRIBUTE_TYPE attribute_type = Phenotype.ATTRIBUTE_TYPE.valueOf(attributeType[i]);
-                types.add(attribute_type);
+                if (attribute_type == Phenotype.ATTRIBUTE_TYPE.data || attribute_type == Phenotype.ATTRIBUTE_TYPE.covariate) {
+                    float[] traitsValueWithNaN = new float[initialTraits.length];
+                    for (int j = 0; j < initialTraits.length; j++)
+                        traitsValueWithNaN[j] = (initialTraits[j] == Integer.MIN_VALUE) ? Float.NaN : initialTraits[j];
+                    attributes.add(new NumericAttribute(colNames[i], traitsValueWithNaN));
+                    types.add(attribute_type);
+                } else if (attribute_type == Phenotype.ATTRIBUTE_TYPE.factor) {
+                    String[] categories = Arrays.stream(initialTraits).mapToObj(intval -> Integer.toString(intval)).toArray(String[]::new);
+                    attributes.add(new CategoricalAttribute(colNames[i], categories));
+                    types.add(attribute_type);
+                } else {
+                    throw new IllegalArgumentException("attribute type of " + attributeType[i] + "inconsistent with data type of int for " + colNames[i]);
+                }
             } else if (o instanceof String[]) {
                 attributes.add(new CategoricalAttribute(colNames[i], (String[]) o));
-                System.out.println(attributeType[i]);
                 Phenotype.ATTRIBUTE_TYPE attribute_type = Phenotype.ATTRIBUTE_TYPE.valueOf(attributeType[i]);
                 types.add(attribute_type);
             } else {
                 throw new IllegalArgumentException("Unsupported type for phenotype table");
             }
-
+            System.out.println("phenotype column added: " + colNames[i] + "," + attributeType[i]);
         }
-//
-//        CategoricalAttribute factor = new CategoricalAttribute("factor", new String[]{"A","A","A","B","B","B"});
-//        NumericAttribute trait = new NumericAttribute("trait1", new float[]{1,2,3,4,5,6});
-//
-//
-//        attributes.add(factor);
-//        attributes.add(trait);
-//
-//
-//        types.add(Phenotype.ATTRIBUTE_TYPE.factor);
-//        types.add(Phenotype.ATTRIBUTE_TYPE.data);
 
-        return new CorePhenotype(attributes, types, "pheno1");
+        return new PhenotypeBuilder().fromAttributeList(attributes, types).build().get(0);
     }
 
     //    traitName traitType       traitAttribute isReponse isPredictor   newType effect
