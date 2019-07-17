@@ -1,26 +1,29 @@
 /*
  *  ReadBedfile
- * 
+ *
  *  Created on Feb 15, 2017
  */
 package net.maizegenetics.dna.snp.io;
 
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeMap;
+import com.google.common.collect.TreeRangeSet;
+import net.maizegenetics.dna.map.Position;
+import net.maizegenetics.dna.map.PositionList;
+import net.maizegenetics.dna.map.PositionListBuilder;
+import net.maizegenetics.util.Utils;
+import org.apache.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.google.common.collect.*;
-import net.maizegenetics.dna.map.Position;
-import net.maizegenetics.util.Tuple;
-import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
 
 import static java.util.stream.Collectors.collectingAndThen;
 
 /**
- *
  * @author Terry Casstevens
  */
 public class ReadBedfile {
@@ -30,7 +33,6 @@ public class ReadBedfile {
     private ReadBedfile() {
         // utility
     }
-
 
     public static List<BedFileRange> getRanges(String bedFile) {
 
@@ -79,6 +81,20 @@ public class ReadBedfile {
 
     }
 
+    /**
+     * Gets position list from specified bed file.
+     *
+     * @return position list
+     */
+    public static PositionList getPositionList(String bedfile) {
+        PositionListBuilder builder = new PositionListBuilder();
+        getRanges(bedfile).stream().forEach(range -> {
+            for (int pos = range.start(); pos <= range.end(); pos++) {
+                builder.add(Position.of(range.chr(), pos));
+            }
+        });
+        return builder.build();
+    }
 
     public static RangeSet<Position> getRangesAsPositions(String bedfile) {
         return getRanges(bedfile).stream()
@@ -87,8 +103,8 @@ public class ReadBedfile {
                 .collect(collectingAndThen(Collectors.toSet(), TreeRangeSet::create));
     }
 
-    public static RangeMap<Position,String> getRangesAsPositionMap(String bedfile) {
-        TreeRangeMap<Position,String> positionNameRangeMap=TreeRangeMap.create();
+    public static RangeMap<Position, String> getRangesAsPositionMap(String bedfile) {
+        TreeRangeMap<Position, String> positionNameRangeMap = TreeRangeMap.create();
         for (BedFileRange bedFileRange : getRanges(bedfile)) {
             positionNameRangeMap.put(Range.closed(Position.of(bedFileRange.myChrInt, bedFileRange.myStartPos),
                     Position.of(bedFileRange.myChrInt, bedFileRange.myEndPos)),
@@ -96,7 +112,6 @@ public class ReadBedfile {
         }
         return positionNameRangeMap;
     }
-
 
     public static class BedFileRange implements Comparable<BedFileRange> {
 

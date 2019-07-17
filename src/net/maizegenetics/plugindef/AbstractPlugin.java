@@ -8,7 +8,9 @@ package net.maizegenetics.plugindef;
 
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.GenotypeTable;
+import net.maizegenetics.dna.snp.ImportUtils;
 import net.maizegenetics.dna.snp.io.JSONUtils;
+import net.maizegenetics.dna.snp.io.ReadBedfile;
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.gui.SelectFromAvailableDialog;
 import net.maizegenetics.gui.SiteNamesAvailableListModel;
@@ -249,7 +251,20 @@ abstract public class AbstractPlugin implements Plugin {
             } else if (outputClass.isAssignableFrom(List.class)) {
                 return (T) getListFromString(input);
             } else if (outputClass.isAssignableFrom(PositionList.class)) {
-                return (T) JSONUtils.importPositionListFromJSON(input);
+                String test = input.trim().substring(Math.max(0, input.length() - 8)).toLowerCase();
+                if ((test.endsWith(".bed")) || (test.endsWith(".bed.gz"))) {
+                    return (T) ReadBedfile.getPositionList(input);
+                } else if (test.endsWith(".json") || test.endsWith(".json.gz")) {
+                    return (T) JSONUtils.importPositionListFromJSON(input);
+                } else {
+                    try {
+                        GenotypeTable temp = ImportUtils.read(input);
+                        return (T) temp.positions();
+                    } catch (Exception e) {
+                        myLogger.debug(e.getMessage(), e);
+                        throw new IllegalArgumentException("AbstractPlugin: convert: don't know who to covert: " + input + " to postion list");
+                    }
+                }
             } else if (outputClass.isAssignableFrom(TaxaList.class)) {
                 String test = input.trim().substring(Math.max(0, input.length() - 8)).toLowerCase();
                 if (test.endsWith(".json") || test.endsWith(".json.gz")) {
