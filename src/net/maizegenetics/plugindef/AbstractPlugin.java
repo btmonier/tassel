@@ -37,6 +37,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
@@ -230,11 +231,21 @@ abstract public class AbstractPlugin implements Plugin {
             } else if (outputClass.isAssignableFrom(Integer.class)) {
                 char groupingSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getGroupingSeparator();
                 input = input.replace(String.valueOf(groupingSeparator), "");
+                char decimalSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getDecimalSeparator();
+                input = input.replace(String.valueOf(decimalSeparator), ".");
                 return (T) new Integer(new BigDecimal(input).intValueExact());
             } else if (outputClass.isAssignableFrom(Double.class)) {
                 char groupingSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getGroupingSeparator();
                 input = input.replace(String.valueOf(groupingSeparator), "");
+                char decimalSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getDecimalSeparator();
+                input = input.replace(String.valueOf(decimalSeparator), ".");
                 return (T) new Double(new BigDecimal(input).doubleValue());
+            } else if (outputClass.isAssignableFrom(Float.class)) {
+                char groupingSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getGroupingSeparator();
+                input = input.replace(String.valueOf(groupingSeparator), "");
+                char decimalSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getDecimalSeparator();
+                input = input.replace(String.valueOf(decimalSeparator), ".");
+                return (T) new Double(new BigDecimal(input).floatValue());
             } else if (outputClass.isAssignableFrom(List.class)) {
                 return (T) getListFromString(input);
             } else if (outputClass.isAssignableFrom(PositionList.class)) {
@@ -1053,11 +1064,7 @@ abstract public class AbstractPlugin implements Plugin {
                 }
 
                 if (current.value() != null) {
-                    if (Integer.class.isAssignableFrom(current.valueType())) {
-                        field.setText(NumberFormat.getInstance().format(current.value()));
-                    } else {
-                        field.setText(current.value().toString());
-                    }
+                    setFieldToValue(field, current, current.value());
                 }
 
                 field.addFocusListener(new FocusAdapter() {
@@ -1065,17 +1072,12 @@ abstract public class AbstractPlugin implements Plugin {
                     public void focusLost(FocusEvent e) {
                         String input = field.getText().trim();
                         try {
+                            PluginParameter parameter = getParameterInstance(current.cmdLineName());
                             if (!current.acceptsValue(input)) {
                                 JOptionPane.showMessageDialog(dialog, current.guiName() + " range: " + current.rangeToString());
-                                field.setText(getParameterInstance(current.cmdLineName()).value().toString());
-                            }
-                            if (Integer.class.isAssignableFrom(current.valueType())) {
-                                Integer temp = convert(field.getText(), Integer.class);
-                                if (temp == null) {
-                                    field.setText(null);
-                                } else {
-                                    field.setText(NumberFormat.getInstance().format(temp.intValue()));
-                                }
+                                setFieldToValue(field, parameter, parameter.value());
+                            } else {
+                                setFieldToValue(field, parameter, convert(input, parameter.valueType()));
                             }
                         } catch (Exception ex) {
                             myLogger.debug(ex.getMessage(), ex);
@@ -1156,6 +1158,30 @@ abstract public class AbstractPlugin implements Plugin {
 
     }
 
+    /**
+     * This sets the GUI field text to appropriate formatting for integers, doubles, floats, strings, etc. for the
+     * user's default locale.
+     *
+     * @param field text field
+     * @param parameter associated plugin parameter
+     * @param value value to format
+     */
+    private void setFieldToValue(JTextField field, PluginParameter<?> parameter, Object value) {
+        if (value == null) {
+            field.setText(null);
+        } else if (Integer.class.isAssignableFrom(parameter.valueType())) {
+            field.setText(NumberFormat.getInstance().format(value));
+        } else if ((Double.class.isAssignableFrom(parameter.valueType())) ||
+                (Float.class.isAssignableFrom(parameter.valueType()))) {
+            DecimalFormat temp = new DecimalFormat();
+            temp.setMaximumFractionDigits(5);
+            temp.setMinimumFractionDigits(1);
+            field.setText(temp.format(value));
+        } else {
+            field.setText(value.toString());
+        }
+    }
+
     private void setFieldsToDefault(Map<String, JComponent> parameterFields) {
 
         final List<PluginParameter<?>> parameterInstances = getParameterInstances();
@@ -1173,11 +1199,7 @@ abstract public class AbstractPlugin implements Plugin {
     private void setFieldToDefault(JComponent component, PluginParameter<?> current) {
         if (component instanceof JTextField) {
             Object defaultValue = current.defaultValue();
-            if (defaultValue == null) {
-                ((JTextField) component).setText(null);
-            } else {
-                ((JTextField) component).setText(defaultValue.toString());
-            }
+            setFieldToValue((JTextField) component, current, defaultValue);
             setParameter(current.cmdLineName(), defaultValue);
         } else if (component instanceof JCheckBox) {
             Boolean value = (Boolean) current.defaultValue();
