@@ -23,7 +23,9 @@ import net.maizegenetics.stats.linearmodels.*
 import net.maizegenetics.util.TableReportUtils
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 
 /**
@@ -173,7 +175,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         manovaReportBuilder =
                 TableReportBuilder.getInstance("Manova", arrayOf("SiteID", "Chr", "Position", "approx_F", "num_df", "den_df", "probF"))
         permutationReportBuilder =
-                TableReportBuilder.getInstance("Empirical Null", arrayOf("Trait", "p-value"))
+                TableReportBuilder.getInstance("Empirical Null", arrayOf("p-value"))
         stepsReportBuilder =
                 TableReportBuilder.getInstance("Steps", arrayOf("SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"))
         randomGenerator = Random(100)
@@ -189,12 +191,20 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         val covariateAttributeList = myGenoPheno.phenotype().attributeListOfType(Phenotype.ATTRIBUTE_TYPE.covariate)
         for (covariate in covariateAttributeList) {
             val covArray = (covariate as NumericAttribute).doubleValues()
-            modelEffectList.add(CovariateModelEffect(covArray, covariate.name()))
+            val covModelEffect = CovariateModelEffect(covArray, covariate.name())
+            modelEffectList.add(covModelEffect)
+
+            //add the effect design matrix to xR
+            xR = xR.concatenate(covModelEffect.x, false)
         }
         val factorAttributeList = myGenoPheno.phenotype().attributeListOfType(Phenotype.ATTRIBUTE_TYPE.factor)
         for (factor in factorAttributeList) {
             val factorArray = (factor as CategoricalAttribute).allIntValues()
-            modelEffectList.add(FactorModelEffect(factorArray, true, factor.name()))
+            val factorModelEffect = FactorModelEffect(factorArray, true, factor.name())
+            modelEffectList.add(factorModelEffect)
+
+            //add the effect design matrix to xR
+            xR = xR.concatenate(factorModelEffect.x, false)
         }
 
         val startModelSize = factorAttributeList.size + covariateAttributeList.size
@@ -217,6 +227,12 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         }
 
         val numberOfBaseEffects = modelEffectList.size
+
+        //should a permutation test be run
+        if (usePermutations()) {
+            runPermutationTest(Y, xR)
+        }
+
         val snpsAddedToModel = ArrayList<Int>()
         val step1 = forwardStep(Y, xR, modelEffectList, snpsAddedToModel)
         xR = step1
@@ -355,12 +371,11 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         var siteIndex = 0
         val futureList = ArrayList<Future<Pair<ModelEffect, List<Double>>>>()
-        println("parallel execution using ${nThreads} threads, batch size = $batchSize")
+        myLogger.debug("parallel execution using ${nThreads} threads, batch size = $batchSize")
 
         while (siteIndex < nSites) {
             val start = siteIndex
             siteIndex = Math.min(nSites, siteIndex + batchSize)
-            println("starting a batch at site index = $start")
             futureList.add(myExecutor.submit(ManovaTester(start, siteIndex, Y, xR, snpsAdded, myGenoPheno, isNested(), nestingFactorModelEffect)))
         }
 
@@ -385,7 +400,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         if (minPval <= enterLimit()) {
             modelEffectList.add(bestModelEffect)
             snpsAdded.add((bestModelEffect.id as SnpData).index)
-            println("${(bestModelEffect.id as SnpData).name}, pval = $minPval")
+            myLogger.debug("${(bestModelEffect.id as SnpData).name}, pval = $minPval")
 
             //add a row to the step report
             //"SiteID", "Chr", "Position", "action", "approx_F", "num_df", "den_df", "probF"
@@ -476,6 +491,115 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
                     result[0], result[1], result[2], result[3]))
 
         }
+    }
+
+    fun runPermutationTest(Y: DoubleMatrix, xR: DoubleMatrix) {
+        val nObs = Y.numberOfRows()
+        val permutationPvalues = ArrayList<Double>()
+        val index = (0 until nObs).toMutableList()
+        val nPerm = numberOfPermutations()
+        val permAlpha: Double = permutationAlpha() ?: throw IllegalArgumentException("permutation alpha level is null.")
+        val permPercentile = max(0,(nPerm * permAlpha).roundToInt() - 1)
+
+        for (i in  0 until numberOfPermutations()) {
+            if (i % 10 == 0) myLogger.debug("Running permutation $i")
+            //shuffle rows or Y
+            index.shuffle(randomGenerator)
+            val shuffledY = Y.getSelection(index.toIntArray(), null)
+
+            //fit snps using a modification of forward step and return lowest p-value
+            //add p-value to list of p-values
+            val executeParallel = runParallel() ?: true
+            if (executeParallel)permutationPvalues.add(permutationParallel(shuffledY, xR))
+            else permutationPvalues.add(permutationTestNotParallel(shuffledY, xR))
+        }
+
+        //set the enter and exit limits based on the alpha percentile of pvalues
+        permutationPvalues.sort()
+        val permutationLimit = permutationPvalues[permPercentile]
+        println("permutation limit = ${permutationLimit}")
+        enterLimit(permutationLimit)
+        exitLimit(permutationLimit)
+        permutationPvalues.forEach { permutationReportBuilder.addElements(it); println(it) }
+    }
+
+    fun permutationParallel(Y: DoubleMatrix, xR: DoubleMatrix): Double {
+        //submit a range of snps to ManovaTester, which will return the SnpData and List<Double> result from manovaPvalue
+        //for the snp with the lowest p value
+        //repeat for all batches until all have been processed then pick the lowest p-value of those
+
+        //set up an ExecutorService
+        val nAvailableProcessors = Runtime.getRuntime().availableProcessors()
+        val maxNumberThreads = maxThreads()
+        val nThreads = if (maxNumberThreads != null) min(maxNumberThreads, nAvailableProcessors) else nAvailableProcessors
+
+
+        val myExecutor = Executors.newFixedThreadPool(nThreads)
+
+
+        val nSites = myGenoPheno.genotypeTable().numberOfSites()
+        val batchSize = Math.max(1, nSites / nThreads / 100)
+
+        var siteIndex = 0
+        val futureList = ArrayList<Future<Pair<ModelEffect, List<Double>>>>()
+
+        val snpsAdded = ArrayList<Int>() //an empty list, because no snps have been added
+        while (siteIndex < nSites) {
+            val start = siteIndex
+            siteIndex = Math.min(nSites, siteIndex + batchSize)
+            futureList.add(myExecutor.submit(ManovaTester(start, siteIndex, Y, xR, snpsAdded, myGenoPheno, isNested(), nestingFactorModelEffect)))
+        }
+
+        lateinit var bestStatList: List<Double>
+        var minPval = 1.0
+        futureList.forEach {
+            val result = it.get(25, TimeUnit.MINUTES)
+            if (result != null) {
+                val statistics = result.second
+                val probability = statistics[3]
+                if (probability <= minPval) {
+                    minPval = probability
+                    bestStatList = statistics
+                }
+            }
+        }
+
+        myExecutor.shutdown()
+
+
+        return minPval;
+    }
+
+    fun permutationTestNotParallel(Y: DoubleMatrix, xR: DoubleMatrix): Double {
+        val nSites = myGenoPheno.genotypeTable().numberOfSites()
+        var minPval = 1.0
+
+        for (sitenum in 0 until nSites) {
+            val genotypesForSite = imputeNsInGenotype(myGenoPheno.getStringGenotype(sitenum), randomGenerator)
+
+            val modelEffect = if (isNested()) {
+                val snpEffect = FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
+                        false, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
+                        sitenum, myGenoPheno.genotypeTable().chromosomeName(sitenum),
+                        myGenoPheno.genotypeTable().chromosomalPosition(sitenum)))
+                if (nestingFactorModelEffect == null) throw java.lang.IllegalArgumentException("")
+                NestedFactorModelEffect(snpEffect, nestingFactorModelEffect!!, snpEffect.id)
+            } else {
+                FactorModelEffect(ModelEffectUtils.getIntegerLevels(genotypesForSite),
+                        true, SnpData(myGenoPheno.genotypeTable().siteName(sitenum),
+                        sitenum, myGenoPheno.genotypeTable().chromosomeName(sitenum),
+                        myGenoPheno.genotypeTable().chromosomalPosition(sitenum)))
+            }
+            val siteDesignMatrix = xR.concatenate(modelEffect.x, false)
+            val result = manovaPvalue(Y, siteDesignMatrix, xR)
+            val pval = result[3]
+            if (pval < minPval) {
+                minPval = pval
+            }
+
+        }
+
+        return minPval
     }
 
     fun createY(): DoubleMatrix {
