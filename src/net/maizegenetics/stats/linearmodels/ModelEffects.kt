@@ -5,7 +5,7 @@ import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory
 
 class NestedFactorModelEffect(val nestedEffect : FactorModelEffect, val outerEffect : FactorModelEffect, val id : Any) : ModelEffect {
     //so that the designMatrix is only calculated once
-    var designMatrix : DoubleMatrix? = null
+    var designMatrix : DoubleMatrix = DoubleMatrixFactory.DEFAULT.make(1,1,0.0);
 
     init {
         if (nestedEffect.size != outerEffect.size) throw IllegalArgumentException("nested and outer effects must have the same size (number of observations)")
@@ -25,14 +25,14 @@ class NestedFactorModelEffect(val nestedEffect : FactorModelEffect, val outerEff
 
     override fun getX(): DoubleMatrix {
 
-        if (designMatrix == null) {
+        if (designMatrix.numberOfRows() == 1) {
             //do element-wise multiplication of columns of nestedEffect with columns of outerEffect
             val nestedDM = nestedEffect.x
             val outerDM = outerEffect.x
             val nrows = nestedDM.numberOfRows()
             val ncols = nestedDM.numberOfColumns() * outerDM.numberOfColumns();
 
-            val designMatrix = DoubleMatrixFactory.DEFAULT.make(nrows, ncols)
+            designMatrix = DoubleMatrixFactory.DEFAULT.make(nrows, ncols)
 
             var designCol = 0
             for (nestedCol in 0 until nestedDM.numberOfColumns()) {
@@ -45,7 +45,7 @@ class NestedFactorModelEffect(val nestedEffect : FactorModelEffect, val outerEff
             }
 
         }
-        return designMatrix as DoubleMatrix
+        return designMatrix
 
     }
 

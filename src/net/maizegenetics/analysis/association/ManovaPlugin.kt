@@ -368,7 +368,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
         lateinit var bestModelEffect: ModelEffect
         var minPval = 1.0
         futureList.forEach {
-            val result = it.get(5, TimeUnit.SECONDS)
+            val result = it.get(25, TimeUnit.SECONDS)
             if (result != null) {
                 val statistics = result.second
                 val probability = statistics[3]
