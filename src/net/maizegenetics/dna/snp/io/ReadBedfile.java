@@ -89,7 +89,7 @@ public class ReadBedfile {
     public static PositionList getPositionList(String bedfile) {
         PositionListBuilder builder = new PositionListBuilder();
         getRanges(bedfile).stream().forEach(range -> {
-            for (int pos = range.start(); pos <= range.end(); pos++) {
+            for (int pos = range.start(); pos < range.end(); pos++) {
                 builder.add(Position.of(range.chr(), pos));
             }
         });
