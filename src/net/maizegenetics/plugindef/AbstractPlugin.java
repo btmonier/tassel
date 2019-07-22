@@ -767,7 +767,7 @@ abstract public class AbstractPlugin implements Plugin {
                             if (input != null) {
                                 setParameter(current.cmdLineName(), input.myObj);
                             }
-                        } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.POSITION_LIST) {
+                        } else if (PositionList.class.isAssignableFrom(current.valueType())) {
                             if (component instanceof JComboBox) {
                                 Object temp = ((JComboBox) component).getSelectedItem();
                                 if (temp == POSITION_LIST_NONE) {
@@ -926,7 +926,7 @@ abstract public class AbstractPlugin implements Plugin {
                 temp.setToolTipText(getToolTip(current));
                 panel.add(temp);
                 parameterFields.put(current.cmdLineName(), menu);
-            } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.POSITION_LIST) {
+            } else if (PositionList.class.isAssignableFrom(current.valueType())) {
                 Datum datum = getPositionList();
                 if (datum != null) {
                     JComboBox menu = new JComboBox();
