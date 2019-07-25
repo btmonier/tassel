@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
+
 import net.maizegenetics.analysis.data.FileLoadPlugin;
 import net.maizegenetics.dna.map.PositionListBuilder;
 import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTable;
@@ -42,16 +43,32 @@ public class ImportUtils {
     }
 
     /**
-     * This utility attempts to identify the file format(i.e. Hapmap, VCF, HDF5,
-     * Fasta, PLINK, Phylip, Numerical Genotype) of the given file and loads it
-     * as a Genotype Table.
+     * This utility attempts to identify the file format(i.e. Hapmap, VCF, HDF5, Fasta, PLINK, Phylip, Numerical
+     * Genotype) of the given file and loads it as a Genotype Table.
      *
-     * @param filename
-     * @return
+     * @param filename input file
+     *
+     * @return genotype table
      */
     public static GenotypeTable read(String filename) {
+        return read(filename, true, false);
+    }
+
+    /**
+     * This utility attempts to identify the file format(i.e. Hapmap, VCF, HDF5, Fasta, PLINK, Phylip, Numerical
+     * Genotype) of the given file and loads it as a Genotype Table.
+     *
+     * @param filename input file
+     * @param keepDepth whether to keep depth (if available)
+     * @param sortPositions whether to sort positions (if out of order)
+     *
+     * @return genotype table
+     */
+    public static GenotypeTable read(String filename, boolean keepDepth, boolean sortPositions) {
         FileLoadPlugin plugin = new FileLoadPlugin(null, false);
         plugin.setTheFileType(FileLoadPlugin.TasselFileType.Unknown);
+        plugin.keepDepth(keepDepth);
+        plugin.sortPositions(sortPositions);
         plugin.setOpenFiles(new String[]{filename});
         DataSet dataSet = plugin.performFunction(null);
         if ((dataSet == null) || (dataSet.getSize() != 1)) {
@@ -66,11 +83,11 @@ public class ImportUtils {
     }
 
     /**
-     * This utility attempts to identify the file format(i.e. Hapmap, VCF, HDF5,
-     * Fasta, PLINK, Phylip, Numerical Genotype) of the given file and loads it
-     * as a DataSet.
+     * This utility attempts to identify the file format(i.e. Hapmap, VCF, HDF5, Fasta, PLINK, Phylip, Numerical
+     * Genotype) of the given file and loads it as a DataSet.
      *
      * @param filename
+     *
      * @return
      */
     public static DataSet readDataSet(String filename) {
@@ -104,7 +121,7 @@ public class ImportUtils {
         return null;
 
     }
-    
+
     public static GenotypeTable readFromVCF(final String filename, ProgressListener listener, boolean keepDepth, boolean sortPositions) {
         BuilderFromVCF builder = BuilderFromVCF.getBuilder(filename, listener);
         if (keepDepth) {
@@ -133,6 +150,7 @@ public class ImportUtils {
      * Read GenotypeTable from HapMap file
      *
      * @param filename input HapMap file name
+     *
      * @return a genotype table
      */
     public static GenotypeTable readFromHapmap(final String filename) {
@@ -144,19 +162,21 @@ public class ImportUtils {
      *
      * @param filename input HapMap file name
      * @param listener progress listener to track reading rate
+     *
      * @return a genotype table
      */
     public static GenotypeTable readFromHapmap(final String filename, ProgressListener listener) {
         return readFromHapmap(filename, listener, false);
     }
-    
+
     /**
      * Read GenotypeTable from HapMap file
      *
      * @param filename input HapMap file name
      * @param listener progress listener to track reading rate
      * @param sortPositions whether to sort positions
-     * @return 
+     *
+     * @return
      */
     public static GenotypeTable readFromHapmap(final String filename, ProgressListener listener, boolean sortPositions) {
         BuilderFromHapMap builder = BuilderFromHapMap.getBuilder(filename, listener);
