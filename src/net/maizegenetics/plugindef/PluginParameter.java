@@ -37,7 +37,7 @@ public final class PluginParameter<T> {
     public enum PARAMETER_TYPE {
 
         NA, IN_FILE, OUT_FILE, IN_DIR, OUT_DIR, GENOTYPE_TABLE, SITE_NAME_LIST,
-        OBJECT_LIST_SINGLE_SELECT, POSITION_LIST, DISTANCE_MATRIX,
+        OBJECT_LIST_SINGLE_SELECT, DISTANCE_MATRIX,
         LABEL, PASSWORD
     }
 
@@ -388,11 +388,6 @@ public final class PluginParameter<T> {
 
         public Builder<T> siteNameList() {
             myParameterType = PARAMETER_TYPE.SITE_NAME_LIST;
-            return this;
-        }
-
-        public Builder<T> positionList() {
-            myParameterType = PARAMETER_TYPE.POSITION_LIST;
             return this;
         }
 
