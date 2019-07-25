@@ -16,6 +16,7 @@ import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
+import net.maizegenetics.dna.snp.ImportUtils;
 import net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache;
 import net.maizegenetics.dna.snp.io.FlapjackUtils;
 import net.maizegenetics.phenotype.*;
@@ -627,6 +628,10 @@ public class GenerateRCode {
 
     public static void exportToFlapjack(GenotypeTable genotype, String filename) {
         FlapjackUtils.writeToFlapjack(genotype, filename, '\t');
+    }
+
+    public static GenotypeTable read(String filename, boolean keepDepth, boolean sortPositions) {
+        return ImportUtils.read(filename, keepDepth, sortPositions);
     }
 
 
