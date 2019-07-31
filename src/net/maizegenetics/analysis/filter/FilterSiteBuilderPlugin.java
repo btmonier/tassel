@@ -103,8 +103,7 @@ public class FilterSiteBuilderPlugin extends AbstractPlugin {
             .description("")
             .build();
     private PluginParameter<PositionList> myPositionList = new PluginParameter.Builder<>(FILTER_SITES_ATTRIBUTES.positionList.name(), null, PositionList.class)
-            .positionList()
-            .description("Filter based on position list.")
+            .description("Filter based on position list. Position list can come from .json, .bed, or any TASSEL supported genotype file.")
             .build();
     private PluginParameter<List> mySiteNamesList = new PluginParameter.Builder<>(FILTER_SITES_ATTRIBUTES.siteNames.name(), null, List.class)
             .siteNameList()
