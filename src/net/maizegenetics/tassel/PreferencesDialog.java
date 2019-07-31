@@ -5,15 +5,21 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.ParameterCache;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.prefs.TasselPrefs;
+import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Terry Casstevens
  */
 public class PreferencesDialog extends AbstractPlugin {
+
+    private static final Logger myLogger = Logger.getLogger(PreferencesDialog.class);
 
     private PluginParameter<Boolean> myRetainRareAlleles = new PluginParameter.Builder<>("retainRareAlleles", TasselPrefs.ALIGNMENT_RETAIN_RARE_ALLELES_DEFAULT, Boolean.class)
             .description("True if rare alleles should be retained.  This has no effect on Nucleotide Data as all alleles will be retained regardless.")
@@ -29,17 +35,36 @@ public class PreferencesDialog extends AbstractPlugin {
             .inFile()
             .build();
 
+    private PluginParameter<LocaleWrapper> myLocale = new PluginParameter.Builder<>("locale", null, LocaleWrapper.class)
+            .description("Default locale for TASSEL")
+            .required(false)
+            .objectListSingleSelect()
+            .build();
+
     public PreferencesDialog(Frame parentFrame, boolean isInteractive) {
         super(parentFrame, isInteractive);
         // Load global parameter / value is config file specified
         ParameterCache.load(TasselPrefs.getConfigFile());
+        Locale locale = TasselPrefs.getLocale();
+        Locale.setDefault(locale);
+        myLogger.info("TasselPrefs: default locale set: " + locale.getDisplayName());
     }
 
     @Override
     protected void preProcessParameters(DataSet input) {
+
         setParameter(myRetainRareAlleles, TasselPrefs.getAlignmentRetainRareAlleles());
         setParameter(mySendLogToConsole, TasselPrefs.getLogSendToConsole());
         setParameter(myConfigFile, TasselPrefs.getConfigFile());
+
+        List<LocaleWrapper> temp = new ArrayList<>();
+        temp.add(new LocaleWrapper(TasselPrefs.getLocale()));
+        for (Locale current : Locale.getAvailableLocales()) {
+            if (current.toString() != null && !current.toString().isEmpty())
+                temp.add(new LocaleWrapper(current));
+        }
+        myLocale = new PluginParameter<>(myLocale, temp);
+
     }
 
     @Override
@@ -52,7 +77,11 @@ public class PreferencesDialog extends AbstractPlugin {
 
         TasselPrefs.putConfigFile(configFile());
         ParameterCache.load(TasselPrefs.getConfigFile());
-        ((TASSELMainFrame)getParentFrame()).updatePluginsWithGlobalConfigParameters();
+
+        TasselPrefs.putLocale(locale().myLocale);
+        Locale.setDefault(locale().myLocale);
+
+        ((TASSELMainFrame) getParentFrame()).updatePluginsWithGlobalConfigParameters();
 
         return null;
 
@@ -121,6 +150,27 @@ public class PreferencesDialog extends AbstractPlugin {
         return this;
     }
 
+    /**
+     * Default locale for TASSEL
+     *
+     * @return Locale
+     */
+    public LocaleWrapper locale() {
+        return myLocale.value();
+    }
+
+    /**
+     * Set Locale. Default locale for TASSEL
+     *
+     * @param value Locale
+     *
+     * @return this plugin
+     */
+    public PreferencesDialog locale(LocaleWrapper value) {
+        myLocale = new PluginParameter<>(myLocale, value);
+        return this;
+    }
+
     @Override
     public ImageIcon getIcon() {
         URL imageURL = TasselLogging.class.getResource("/net/maizegenetics/analysis/images/preferences.gif");
@@ -140,4 +190,18 @@ public class PreferencesDialog extends AbstractPlugin {
     public String getToolTipText() {
         return "Preferences";
     }
+
+    private class LocaleWrapper {
+        public final Locale myLocale;
+
+        private LocaleWrapper(Locale locale) {
+            myLocale = locale;
+        }
+
+        @Override
+        public String toString() {
+            return myLocale.getDisplayName();
+        }
+    }
+
 }

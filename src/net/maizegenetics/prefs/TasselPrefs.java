@@ -6,7 +6,11 @@
  */
 package net.maizegenetics.prefs;
 
+import org.apache.commons.lang.LocaleUtils;
+import org.apache.log4j.Logger;
+
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.prefs.Preferences;
 
@@ -14,6 +18,8 @@ import java.util.prefs.Preferences;
  * @author Terry Casstevens
  */
 public class TasselPrefs {
+
+    private static final Logger myLogger = Logger.getLogger(TasselPrefs.class);
 
     private static boolean PERSIST_PREFERENCES = false;
     private static final Map<String, Object> TEMP_CACHED_VALUES = new HashMap<>();
@@ -41,6 +47,7 @@ public class TasselPrefs {
     public static final int TASSEL_MAX_THREADS_DEFAULT = Math.max(Runtime.getRuntime().availableProcessors() - 1, 1);
     public static final String TASSEL_CONFIG_FILE = "configFile";
     public static final String TASSEL_CONFIG_FILE_DEFAULT = "";
+    public static final String TASSEL_LOCALE = "locale";
     //
     // ExportPlugin preferences
     //
@@ -112,11 +119,9 @@ public class TasselPrefs {
     }
 
     /**
-     * Whether to Persist Preferences. Preference changes should be persisted
-     * when executing GUI and set only temporarily from Command Line Flags. Also
-     * getting preferences should use stored values when executing GUI. And
-     * should use default values (if not temporarily set) when executing from
-     * Command Line.
+     * Whether to Persist Preferences. Preference changes should be persisted when executing GUI and set only
+     * temporarily from Command Line Flags. Also getting preferences should use stored values when executing GUI. And
+     * should use default values (if not temporarily set) when executing from Command Line.
      *
      * @param persist whether to persist preferences
      */
@@ -316,6 +321,24 @@ public class TasselPrefs {
 
     public static void putConfigFile(String value) {
         putPref(TASSEL_TOP, TASSEL_CONFIG_FILE, value);
+    }
+
+    public static Locale getLocale() {
+        String localeStr = getPref(TASSEL_TOP, TASSEL_LOCALE, Locale.getDefault().toString());
+        Locale result = Locale.getDefault();
+        try {
+            result = LocaleUtils.toLocale(localeStr);
+        } catch (Exception e) {
+            TasselPrefs.putLocale(result);
+            myLogger.debug(e.getMessage(), e);
+        }
+        return result;
+    }
+
+    public static void putLocale(Locale value) {
+        if (value != null && value.toString() != null && !value.toString().isEmpty()) {
+            putPref(TASSEL_TOP, TASSEL_LOCALE, value.toString());
+        }
     }
 
     //
