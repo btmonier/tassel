@@ -59,6 +59,7 @@ public class PreferencesDialog extends AbstractPlugin {
 
         List<LocaleWrapper> temp = new ArrayList<>();
         temp.add(new LocaleWrapper(TasselPrefs.getLocale()));
+        temp.add(new LocaleWrapper(Locale.US));
         for (Locale current : Locale.getAvailableLocales()) {
             if (current.toString() != null && !current.toString().isEmpty())
                 temp.add(new LocaleWrapper(current));
