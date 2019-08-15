@@ -196,8 +196,7 @@ public class PhenotypeBuilder {
 	}
 	
 	/**
-	 * @param attributeIndex	the numeric index (column number) of an attribute in the base Phenotype
-	 * @param type	the new type for that attribute
+	 * @param changeMap	a Map of PhenotypeAttribute to ATTRIBUTE_TYPE for PhenotypeAttributes that should be assigned new types
 	 * @return	a PhenotypeBuilder that will build a phenotype with the changed attribute type
 	 */
 	public PhenotypeBuilder changeAttributeType(Map<PhenotypeAttribute, ATTRIBUTE_TYPE> changeMap) {
@@ -338,7 +337,7 @@ public class PhenotypeBuilder {
 		}
 
 	}
-	
+
 	private Phenotype importPhenotypeFile(File phenotypeFile) throws IOException {
 		Pattern whiteSpace = Pattern.compile("\\s+");
 		ArrayList<PhenotypeAttribute> attributes = new ArrayList<>();
@@ -348,16 +347,41 @@ public class PhenotypeBuilder {
 		phenotypeReader.readLine();  //assumes the first line has been read to determine that this is indeed a Phenotype file
 		String[] typeString = whiteSpace.split(phenotypeReader.readLine());
 		String[] phenoNames = whiteSpace.split(phenotypeReader.readLine());
-		
+		if (typeString.length != phenoNames.length) {
+			phenotypeReader.close();
+			StringBuilder msg = new StringBuilder("Error importing ");
+			msg.append(phenotypeFile.toString()).append(".\nThe number of data types must equal the number of phenotype names.");
+			throw new IllegalArgumentException(msg.toString());
+		}
+
 		//find the taxa column
 		int taxaCol = 0;
-		while (!typeString[taxaCol].toLowerCase().equals("taxa")) taxaCol++;
-		
+		while (!typeString[taxaCol].toLowerCase().equals("taxa")) {
+			taxaCol++;
+			if (taxaCol == typeString.length) {
+				phenotypeReader.close();
+				StringBuilder msg = new StringBuilder("Error importing ");
+				msg.append(phenotypeFile.toString()).append(".\ndata types must contain one taxa column");
+				throw new IllegalArgumentException(msg.toString());
+			}
+		}
+
 		int nPheno = typeString.length;
 		ArrayList<String[]> stringData = new ArrayList<String[]>();
 		String inputStr;
+		int lineNumber = 3;
 		while ((inputStr = phenotypeReader.readLine()) != null) {
-			stringData.add(whiteSpace.split(inputStr));
+			lineNumber++;
+			String[] stringDataValues = whiteSpace.split(inputStr);
+			if (stringDataValues.length != nPheno) {
+				phenotypeReader.close();
+				StringBuilder msg = new StringBuilder("Error importing ");
+				msg.append(phenotypeFile.toString()).append(".\nImport stopped because line number ");
+				msg.append(lineNumber).append(" had ").append(stringDataValues.length);
+				msg.append(" values but there are ").append(nPheno).append(" data types in the header.");
+				throw new IllegalArgumentException(msg.toString());
+			}
+			stringData.add(stringDataValues);
 		}
 
 		int nObs = stringData.size();
@@ -367,12 +391,12 @@ public class PhenotypeBuilder {
 				OpenBitSet missing = new OpenBitSet(nObs);
 				int obsCount = 0;
 				for (String[] inputLine : stringData) {
-                                        if (inputLine[pheno].equalsIgnoreCase("NaN")
-                                                || inputLine[pheno].equalsIgnoreCase("NA")
-                                                || inputLine[pheno].equals(".")) {
-                                            dataArray[obsCount] = Float.NaN;
-                                            missing.fastSet(obsCount);
-                                        } else {
+					if (inputLine[pheno].equalsIgnoreCase("NaN")
+							|| inputLine[pheno].equalsIgnoreCase("NA")
+							|| inputLine[pheno].equals(".")) {
+						dataArray[obsCount] = Float.NaN;
+						missing.fastSet(obsCount);
+					} else {
 						try {
 							dataArray[obsCount] = Float.parseFloat(inputLine[pheno]);
 						} catch (NumberFormatException nfe) {
@@ -399,12 +423,17 @@ public class PhenotypeBuilder {
 				}
 				attributes.add(new CategoricalAttribute(phenoNames[pheno], labelArray));
 				types.add(ATTRIBUTE_TYPE.factor);
+			} else {
+				StringBuilder msg = new StringBuilder("Error Importing ");
+				msg.append(phenotypeFile.toString()).append(".\nImproper data type : ").append(typeString[pheno]);
+				throw new IllegalArgumentException(msg.toString());
 			}
 		}
 		phenotypeReader.close();
 
 		return new CorePhenotype(attributes, types, phenotypeName);
 	}
+
 	
 	private Phenotype importTraits(File phenotypeFile) throws IOException {
 		BufferedReader phenotypeReader = new BufferedReader(new FileReader(phenotypeFile));
