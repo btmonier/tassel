@@ -400,7 +400,7 @@ public class PhenotypeBuilder {
 						try {
 							dataArray[obsCount] = Float.parseFloat(inputLine[pheno]);
 						} catch (NumberFormatException nfe) {
-							throw new IllegalArgumentException("PhenotypeBuilder: importPhenotypeFile: at observation " + obsCount + " Taxon: " + inputLine[taxaCol] + " Value: " + inputLine[pheno] + " is not allowed.");
+							throw new IllegalArgumentException("PhenotypeBuilder: importPhenotypeFile: at observation " + obsCount + " Taxon: " + inputLine[taxaCol] + " Value: " + inputLine[pheno] + " is not a number.");
 						}
 					}
 					obsCount++;
