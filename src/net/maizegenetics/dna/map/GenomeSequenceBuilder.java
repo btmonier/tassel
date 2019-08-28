@@ -70,7 +70,7 @@ public class GenomeSequenceBuilder {
     public static GenomeSequence instance(Chromosome chromosome, String sequence) {
         Function<Character, Character> charConversion= (c) -> c;
         Map<Chromosome, byte[]> chromPositionMap = new HashMap<>();
-        Chromosome currChr=new Chromosome(chromosome.getName(),sequence.length(),chromosome.getAnnotation());
+        Chromosome currChr=Chromosome.instance(chromosome.getName(),sequence.length(),chromosome.getAnnotation());
         chromPositionMap.put(currChr,halfByteCompression(sequence.getBytes(),charConversion));
         return new HalfByteGenomeSequence(chromPositionMap);
     }
@@ -94,7 +94,7 @@ public class GenomeSequenceBuilder {
                 if (line.startsWith(">")) {
                     if (currChr != null) {
                         // end processing current chromosome sequence
-                        currChr=new Chromosome(currChr.getName(),currSeq.size(),currChr.getAnnotation());
+                        currChr=Chromosome.instance(currChr.getName(),currSeq.size(),currChr.getAnnotation());
                         chromPositionMap.put(currChr, halfByteCompression(currSeq.toByteArray(),charConversion));
                     }
                     currChr = parseChromosome(line); 
@@ -105,7 +105,7 @@ public class GenomeSequenceBuilder {
             }
             // reached end of file - write last bytes
             if (currSeq.size() > 0) {
-                currChr=new Chromosome(currChr.getName(),currSeq.size(),currChr.getAnnotation());
+                currChr=Chromosome.instance(currChr.getName(),currSeq.size(),currChr.getAnnotation());
                 chromPositionMap.put(currChr, halfByteCompression(currSeq.toByteArray(),charConversion));
             }
             br.close();
@@ -142,7 +142,7 @@ public class GenomeSequenceBuilder {
             myAnnotations = GeneralAnnotationStorage.getBuilder().addAnnotation("Description", currChrDesc).build();
             chrS = chrS.substring(0,chrS.indexOf(" "));
         } 
-        return new Chromosome(chrS, -1, myAnnotations);
+        return Chromosome.instance(chrS, -1, myAnnotations);
     }
 
 }
