@@ -34,6 +34,14 @@ public class ReadBedfile {
         // utility
     }
 
+    /**
+     * Function to parse the bedFile and create a List of BedFileRanges.
+     *
+     * The positions stored in BedFileRange are 1-based inclusive exclusive.
+     * This is done by adding 1 to both the start and end position from the BED file.
+     * @param bedFile
+     * @return
+     */
     public static List<BedFileRange> getRanges(String bedFile) {
 
         List<BedFileRange> result = new ArrayList<>();
@@ -104,7 +112,7 @@ public class ReadBedfile {
      */
     public static RangeSet<Position> getRangesAsPositions(String bedfile) {
         return getRanges(bedfile).stream()
-                //This needs to be closedOpen as we retain inclusive-exclusive after we shift the indices up 1 bp.
+                //This needs to be closedOpen as we retain inclusive-exclusive.
                 //Also using bedFileRange.myChr instead of bedFileRange.myChrInt as converting a String -> Int -> String is lossy when the string is non-numeric.
                 .map(bedFileRange -> Range.closedOpen(Position.of(bedFileRange.myChr, bedFileRange.myStartPos),
                         Position.of(bedFileRange.myChr, bedFileRange.myEndPos)))
@@ -120,7 +128,7 @@ public class ReadBedfile {
     public static RangeMap<Position, String> getRangesAsPositionMap(String bedfile) {
         TreeRangeMap<Position, String> positionNameRangeMap = TreeRangeMap.create();
         for (BedFileRange bedFileRange : getRanges(bedfile)) {
-            //This needs to be closedOpen as we retain inclusive-exclusive after we shift the indices up 1 bp.
+            //This needs to be closedOpen as we retain inclusive-exclusive.
             //Also using bedFileRange.myChr instead of bedFileRange.myChrInt as converting a String -> Int -> String is lossy when the string is non-numeric.
             positionNameRangeMap.put(Range.closedOpen(Position.of(bedFileRange.myChr, bedFileRange.myStartPos),
                     Position.of(bedFileRange.myChr, bedFileRange.myEndPos)),
