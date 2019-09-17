@@ -105,8 +105,10 @@ public class ReadBedfile {
     }
 
     /**
-     * Function that returns the BED ranges into a RangeSet of Positions.
-     * NOTE: The ranges returned will be 1-based Closed-Open(Inclusive-Exclusive)
+     * Function that returns the 1-based Position ranges from a BED file as a RangeSet of Positions.
+     * NOTE: getRanges(bedFile) will be called which will shift the start and end positions in the BED file up by 1.
+     *       Because of this the ranges returned will be 1-based Closed-Open(Inclusive-Exclusive).
+     *       This is NOT returning ranges in BED specification(0-based Inclusive-Exclusive).
      * @param bedfile
      * @return
      */
@@ -120,8 +122,10 @@ public class ReadBedfile {
     }
 
     /**
-     * Function that returns BED ranges as a RangeMap of Positions to the annotated name of the region.
-     * NOTE: The ranges returned will be 1-based Closed-Open(Inclusive-Exclusive)
+     * Function that returns the 1-based Position ranges from a BED file as a RangeMap of Positions to the annotated name of the region.
+     * NOTE: getRanges(bedFile) will be called which will shift the start and end positions in the BED file up by 1.
+     *       Because of this the ranges returned will be 1-based Closed-Open(Inclusive-Exclusive).
+     *       This is NOT returning ranges in BED specification(0-based Inclusive-Exclusive).
      * @param bedfile
      * @return
      */
