@@ -6,6 +6,7 @@ package net.maizegenetics.plugindef;
 import com.google.common.base.CaseFormat;
 import net.maizegenetics.analysis.association.FastMultithreadedAssociationPlugin;
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
+import net.maizegenetics.analysis.association.GenomicSelectionPlugin;
 import net.maizegenetics.analysis.association.MLMPlugin;
 import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
@@ -632,6 +633,21 @@ public class GenerateRCode {
 
     public static GenotypeTable read(String filename, boolean keepDepth, boolean sortPositions) {
         return ImportUtils.read(filename, keepDepth, sortPositions);
+    }
+
+    public static TableReport genomicSelection(Phenotype phenotype, DistanceMatrix matrix, boolean doCV, int kFolds, int nIter) {
+
+        GenomicSelectionPlugin plugin = new GenomicSelectionPlugin(null, false);
+        plugin.performCrossValidation(doCV);
+        plugin.kFolds(kFolds);
+        plugin.nIterations(nIter);
+
+        Datum phenoInput = new Datum("phenotype", phenotype, null);
+        Datum matrixInput = new Datum("matrix", matrix, null);
+        DataSet result = plugin.performFunction(new DataSet(new Datum[]{phenoInput, matrixInput}, null));
+
+        return (TableReport) result.getDataOfType(TableReport.class).get(0).getData();
+
     }
 
 
