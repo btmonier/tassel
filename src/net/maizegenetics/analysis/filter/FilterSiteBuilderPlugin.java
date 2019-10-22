@@ -17,10 +17,7 @@ import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.phenotype.GenotypePhenotype;
 import net.maizegenetics.phenotype.GenotypePhenotypeBuilder;
-import net.maizegenetics.plugindef.AbstractPlugin;
-import net.maizegenetics.plugindef.DataSet;
-import net.maizegenetics.plugindef.Datum;
-import net.maizegenetics.plugindef.PluginParameter;
+import net.maizegenetics.plugindef.*;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -58,7 +55,11 @@ public class FilterSiteBuilderPlugin extends AbstractPlugin {
             .guiName("Min Heterozygous Proportion").range(Range.closed(0.0, 1.0)).build();
     private PluginParameter<Double> myMaxHeterozygous = new PluginParameter.Builder<Double>(FILTER_SITES_ATTRIBUTES.maxHeterozygous.name(), 1.0, Double.class)
             .guiName("Max Heterozygous Proportion").range(Range.closed(0.0, 1.0)).build();
-    private PluginParameter<Boolean> myRemoveMinorSNPStates = new PluginParameter.Builder<>(FILTER_SITES_ATTRIBUTES.removeMinorSNPStates.name(), false, Boolean.class)
+    private PluginParameter<Double> myMaxHetByMaf = new PluginParameter.Builder<Double>(FILTER_SITES_ATTRIBUTES.maxHetUsingMAF.name(), 2.0, Double.class)
+            .guiName("Max Heterozygous By MAF").range(Range.closed(0.0, 2.0))
+            .description("Maximum heterozygous proportion cannot be greater than 2 * minor allele frequency. Setting the MAF multiplier below 2 will filter out sites with excess heterozygosity.")
+            .build();
+    PluginParameter<Boolean> myRemoveMinorSNPStates = new PluginParameter.Builder<>(FILTER_SITES_ATTRIBUTES.removeMinorSNPStates.name(), false, Boolean.class)
             .guiName("Remove Minor SNP States")
             .description("")
             .build();
@@ -466,6 +467,32 @@ public class FilterSiteBuilderPlugin extends AbstractPlugin {
     }
 
     /**
+     * Maximum heterozygous proportion cannot be greater than
+     * 2 * minor allele frequency. Setting the MAF multiplier
+     * below 2 will filter out sites with excess heterozygosity.
+     *
+     * @return Max Heterozygous By MAF
+     */
+    public Double maxHetByMaf() {
+        return myMaxHetByMaf.value();
+    }
+
+    /**
+     * Set Max Heterozygous By MAF. Maximum heterozygous proportion
+     * cannot be greater than 2 * minor allele frequency.
+     * Setting the MAF multiplier below 2 will filter out
+     * sites with excess heterozygosity.
+     *
+     * @param value Max Heterozygous By MAF
+     *
+     * @return this plugin
+     */
+    public FilterSiteBuilderPlugin maxHetByMaf(Double value) {
+        myMaxHetByMaf = new PluginParameter<>(myMaxHetByMaf, value);
+        return this;
+    }
+
+    /**
      * Remove Minor SNP States
      *
      * @return Remove Minor SNP States
@@ -762,4 +789,7 @@ public class FilterSiteBuilderPlugin extends AbstractPlugin {
         return this;
     }
 
+    public static void main(String[] args) {
+        GeneratePluginCode.generate(FilterSiteBuilderPlugin.class);
+    }
 }

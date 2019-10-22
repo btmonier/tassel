@@ -24,7 +24,7 @@ final public class FilterSite implements Filter {
         startSite, endSite, startChr, startPos, endChr,
         endPos, includeSites, siteNames, chrPosFile,
         positionList, removeMinorSNPStates, removeSitesWithIndels, bedFile,
-        minHeterozygous, maxHeterozygous;
+        minHeterozygous, maxHeterozygous, maxHetUsingMAF;
     }
 
     public enum SITE_RANGE_FILTER_TYPES {
@@ -131,6 +131,15 @@ final public class FilterSite implements Filter {
         Double value = (Double) myAttributes.get(FILTER_SITES_ATTRIBUTES.maxHeterozygous);
         if (value == null) {
             return 1.0;
+        } else {
+            return value;
+        }
+    }
+
+    public double maxHetByMaf() {
+        Double value = (Double) myAttributes.get(FILTER_SITES_ATTRIBUTES.maxHetUsingMAF);
+        if (value == null) {
+            return 2.0;
         } else {
             return value;
         }

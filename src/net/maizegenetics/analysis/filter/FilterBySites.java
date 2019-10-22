@@ -129,11 +129,13 @@ public class FilterBySites {
             });
         }
 
-        if (filter.minHeterozygous() != 0.0 || filter.maxHeterozygous() != 1.0) {
+        if (filter.minHeterozygous() != 0.0 || filter.maxHeterozygous() != 1.0 || filter.maxHetByMaf() < 2.0) {
             stream = stream(result, stream);
             stream = stream.filter((Stats stats) -> {
                 double hetFreq = stats.proportionHeterozygous();
-                return filter.minHeterozygous() <= hetFreq && filter.maxHeterozygous() >= hetFreq;
+                if (filter.maxHetByMaf() >= 2.0 ) return filter.minHeterozygous() <= hetFreq && filter.maxHeterozygous() >= hetFreq;
+                double maxHetByMafFilter = stats.minorAlleleFrequency() * filter.maxHetByMaf();
+                return filter.minHeterozygous() <= hetFreq && filter.maxHeterozygous() >= hetFreq && hetFreq <= maxHetByMafFilter;
             });
         }
 
