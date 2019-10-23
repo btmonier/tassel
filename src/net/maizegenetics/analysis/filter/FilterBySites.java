@@ -134,7 +134,8 @@ public class FilterBySites {
             stream = stream.filter((Stats stats) -> {
                 double hetFreq = stats.proportionHeterozygous();
                 if (filter.maxHetByMaf() >= 2.0 ) return filter.minHeterozygous() <= hetFreq && filter.maxHeterozygous() >= hetFreq;
-                double maxHetByMafFilter = stats.minorAlleleFrequency() * filter.maxHetByMaf();
+                double maf = stats.minorAlleleFrequency();
+                double maxHetByMafFilter = 2 * maf * (1 - maf) * (1 - filter.maxHetByMaf());
                 return filter.minHeterozygous() <= hetFreq && filter.maxHeterozygous() >= hetFreq && hetFreq <= maxHetByMafFilter;
             });
         }
