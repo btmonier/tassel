@@ -55,7 +55,7 @@ public class FilterSiteBuilderPlugin extends AbstractPlugin {
             .guiName("Min Heterozygous Proportion").range(Range.closed(0.0, 1.0)).build();
     private PluginParameter<Double> myMaxHeterozygous = new PluginParameter.Builder<Double>(FILTER_SITES_ATTRIBUTES.maxHeterozygous.name(), 1.0, Double.class)
             .guiName("Max Heterozygous Proportion").range(Range.closed(0.0, 1.0)).build();
-    private PluginParameter<Double> myMaxHetByMaf = new PluginParameter.Builder<Double>(FILTER_SITES_ATTRIBUTES.maxHetUsingMAF.name(), 2.0, Double.class)
+    private PluginParameter<Double> myMaxHetByMaf = new PluginParameter.Builder<Double>(FILTER_SITES_ATTRIBUTES.maxHetUsingMAF.name(), 0.0, Double.class)
             .guiName("F for Max Heterozygous").range(Range.closed(0.0, 1.0))
             .description("Maximum heterozygous proportion cannot be greater than 2 * minor allele frequency. This sets maxHeterozygous = 2 * MAF * (1 - MAF) * (1 - F), where F = 1 is fully inbred.")
             .build();
