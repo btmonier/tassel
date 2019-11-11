@@ -122,6 +122,23 @@ public class ReadBedfile {
     }
 
     /**
+     * Function that returns the 1-based closed Position ranges from a BED file as a RangeSet of Positions.
+     * NOTE: getRanges(bedFile) will be called which will shift the start in the BED file up by 1.
+     *       Because of this the ranges returned will be 1-based Closed(Inclusive-Inclusive).
+     *       This is NOT returning ranges in BED specification(0-based Inclusive-Exclusive).
+     * @param bedfile
+     * @return
+     */
+    public static RangeSet<Position> getClosedRangesAsPositions(String bedfile) {
+        return getRanges(bedfile).stream()
+                //This needs to be closedOpen as we retain inclusive-exclusive.
+                //Also using bedFileRange.myChr instead of bedFileRange.myChrInt as converting a String -> Int -> String is lossy when the string is non-numeric.
+                .map(bedFileRange -> Range.closed(Position.of(bedFileRange.myChr, bedFileRange.myStartPos),
+                        Position.of(bedFileRange.myChr, bedFileRange.myEndPos-1)))
+                .collect(collectingAndThen(Collectors.toSet(), TreeRangeSet::create));
+    }
+
+    /**
      * Function that returns the 1-based Position ranges from a BED file as a RangeMap of Positions to the annotated name of the region.
      * NOTE: getRanges(bedFile) will be called which will shift the start and end positions in the BED file up by 1.
      *       Because of this the ranges returned will be 1-based Closed-Open(Inclusive-Exclusive).
