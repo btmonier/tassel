@@ -54,8 +54,6 @@ public class ParameterCache {
         } catch (Exception e) {
             CACHE = null;
             myLogger.debug(e.getMessage(), e);
-            System.out.println("TERRY: " + e.getMessage());
-            System.out.println("TERRY: " + e.getClass().getName());
             throw new IllegalArgumentException("ParameterCache: load: problem reading properties file: " + filename + "\n" + e.getMessage());
         }
 
