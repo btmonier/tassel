@@ -43,8 +43,9 @@ public class PreferencesDialog extends AbstractPlugin {
 
     public PreferencesDialog(Frame parentFrame, boolean isInteractive) {
         super(parentFrame, isInteractive);
-        // Load global parameter / value is config file specified
-        ParameterCache.load(TasselPrefs.getConfigFile());
+        // Don't Load global parameters here
+        // It will cause GUI to fail startup if error occurs
+        // ParameterCache.load(TasselPrefs.getConfigFile());
         Locale locale = TasselPrefs.getLocale();
         Locale.setDefault(locale);
         myLogger.info("TasselPrefs: default locale set: " + locale.getDisplayName());

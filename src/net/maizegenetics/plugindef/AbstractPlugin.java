@@ -222,6 +222,14 @@ abstract public class AbstractPlugin implements Plugin {
         }
     }
 
+    public boolean isPluginParameter(String key) {
+        if (getParameterInstance(key) == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     public static <T> T convert(String input, Class<T> outputClass) {
         try {
             if ((input == null) || (input.length() == 0)) {
