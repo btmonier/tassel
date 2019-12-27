@@ -3,7 +3,6 @@ package net.maizegenetics.analysis.imputation;
 import com.google.common.collect.Range;
 import com.google.common.collect.TreeRangeMap;
 import net.maizegenetics.analysis.data.FileLoadPlugin;
-import net.maizegenetics.analysis.data.SortGenotypeFilePlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.dna.map.Chromosome;
 import net.maizegenetics.dna.map.PositionList;
@@ -16,11 +15,10 @@ import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.LoggingUtils;
 
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ProjectNamPlugin extends AbstractPlugin {
@@ -31,7 +29,7 @@ public class ProjectNamPlugin extends AbstractPlugin {
             .inDir()
             .build();
 
-    PluginParameter<String> progenyOutput = new PluginParameter.Builder<>("/Users/peterbradbury/temp/baoxing/output.txt", "", String.class)
+    PluginParameter<String> progenyOutput = new PluginParameter.Builder<>("output", "/Users/peterbradbury/temp/baoxing/namProjectedCNS.hmp.txt", String.class)
             .required(false)
             .guiName("Progeny Output File")
             .description("The parent calls for the NAM progeny")
@@ -46,13 +44,19 @@ public class ProjectNamPlugin extends AbstractPlugin {
         createNamFilenames();
 
         //takes the parent genotypes as input or imports
-        List<Datum> inputGenotypes = input.getDataOfType(GenotypeTable.class);
-        if (inputGenotypes.size() == 1) {
-            parentGT = (GenotypeTable) inputGenotypes.get(0).getData();
-        } else {
-            parentGT = importAndFilterParents();
+        if (input == null) parentGT = importAndFilterParents();
+        else {
+            List<Datum> inputGenotypes = input.getDataOfType(GenotypeTable.class);
+            if (inputGenotypes.size() == 1) {
+                parentGT = (GenotypeTable) inputGenotypes.get(0).getData();
+            } else {
+                throw new IllegalArgumentException("input must be null or contain one GenotypeTable");
+            }
         }
 
+        //which taxon is B73?
+        Taxon B73gt = parentGT.taxa().stream().filter(t -> t.getName().equals("B73")).findFirst().get();
+        int B73GtIndex = parentGT.taxa().indexOf(B73gt);
 
         //get the PositionList for positions to be imputed
         PositionList sitesToImpute = parentGT.positions();
@@ -72,36 +76,47 @@ public class ProjectNamPlugin extends AbstractPlugin {
 
                 //   open the sorted file as a genotype table
                 String filename = namFilenames[fam][chrndx];
+                System.out.println("processing " + filename);
                 FileLoadPlugin fileLoader = new FileLoadPlugin(null, false)
                         .sortPositions(true)
                         .keepDepth(false)
                         .fileType(FileLoadPlugin.TasselFileType.Hapmap);
                 fileLoader.setOpenFiles(filename);
-                GenotypeTable allGenos = (GenotypeTable) fileLoader.performFunction(null).getData(0).getData();
+                GenotypeTable genoAll = (GenotypeTable) fileLoader.performFunction(null).getData(0).getData();
 
-                //   filter the file to this chromosome
+                //filter the nam progeny genotypes to this chromosome
+                //this step is necessary to filter out sites that projected to a different chromosome
                 DataSet ds = new FilterSiteBuilderPlugin(null, false)
-                        .siteFilter(FilterSite.SITE_RANGE_FILTER_TYPES.POSITIONS).startChr(myChr).endChr(myChr)
+                        .siteFilter(FilterSite.SITE_RANGE_FILTER_TYPES.POSITIONS)
+                        .startChr(myChr).endChr(myChr)
                         .startPos(1).endPos(Integer.MAX_VALUE)
-                        .processData(DataSet.getDataSet(allGenos));
+                        .performFunction(DataSet.getDataSet(genoAll));
+
                 GenotypeTable geno = (GenotypeTable) ds.getDataOfType(GenotypeTable.class).get(0).getData();
 
-                //   get B73 allele
+                //find B73 and the other parent from the nam parent calls
                 Taxon B73 = geno.taxa().stream().filter(t -> t.getName().startsWith("B73")).findFirst().orElseGet(() -> new Taxon("B73"));
                 Taxon other = geno.taxa().stream().filter(t -> !t.getName().startsWith("B73") && !t.getName().startsWith("Z0")).findFirst().get();
+                Optional<Taxon> optOtherGT = parentGT.taxa().stream().filter(t -> other.getName().startsWith(t.getName())).findFirst();
+                if (!optOtherGT.isPresent()) continue;
+                int otherGtIndex = parentGT.taxa().indexOf(optOtherGT.get());
 
                 Map<Byte,Long> countMap = geno.streamGenotype(geno.taxa().indexOf(B73))
+                        .filter(b -> b != GenotypeTable.UNKNOWN_DIPLOID_ALLELE)
                         .collect(Collectors.groupingBy(b -> b, Collectors.counting()));
-                Byte B73AlleleByte = 0;
-                long alleleCount = 0;
+                Byte B73Byte = 0;
+                long genotypeCount = 0;
                 for (Map.Entry<Byte, Long> ent : countMap.entrySet()) {
-                    if (countMap.get(ent.getValue()) > alleleCount) {
-                        alleleCount = countMap.get(ent.getValue());
-                        B73AlleleByte = ent.getKey();
+                    if (countMap.get(ent.getKey()) > genotypeCount) {
+                        genotypeCount = countMap.get(ent.getKey());
+                        B73Byte = ent.getKey();
                     }
                 }
 
-                String B73AlleleString = NucleotideAlignmentConstants.getHaplotypeNucleotide(B73AlleleByte);
+                if (GenotypeTableUtils.isHeterozygous(B73Byte)) {
+                    throw new IllegalArgumentException("B73 genotype is het for " + filename);
+                }
+                String B73AlleleString = NucleotideAlignmentConstants.getNucleotideIUPAC(B73Byte);
                 byte B73Genotype, otherGenotype, het;
 
                 if (B73AlleleString.equals("A")) {
@@ -120,6 +135,7 @@ public class ProjectNamPlugin extends AbstractPlugin {
                 for (Taxon taxon : geno.taxa()) {
                     //      if this is the first chromosome, create a taxon -> genotype byte array map
                     if (chrndx == 0) taxonGenotypeMap.put(taxon, new byte[numberOfSites]);
+                    byte[] myProjectedGenotype = taxonGenotypeMap.get(taxon);
 
                     //      create a range map with parent values, 0 = B73, 2 = non-B73, 1 = het
                     //TODO add ranges for start and end of chromosome unknown
@@ -154,19 +170,46 @@ public class ProjectNamPlugin extends AbstractPlugin {
                     else if (startGenotype == otherGenotype) taxonRangeMap.put(Range.closed(startPos, endPos), 2);
                     else if (startGenotype == het) taxonRangeMap.put(Range.closed(startPos, endPos), 1);
 
-
                     //      for each position in chromosome look up the value in the range map
-
                     //      set value in byte array
+                    int startSite = chrOffsets[chrndx];
+                    int endSite = numberOfSites;
+                    if (chrndx < 9) endSite = chrOffsets[chrndx + 1];
+                    for (int s = startSite; s < endSite; s++) {
+                        Integer genoval = taxonRangeMap.get(sitesToImpute.get(s).getPosition());
+                        if (genoval == null) {
+                            myProjectedGenotype[s] = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
+                        } else if (genoval == 0) {
+                            myProjectedGenotype[s] = parentGT.genotype(B73GtIndex, s);
+                        } else if (genoval == 2) {
+                            myProjectedGenotype[s] = parentGT.genotype(otherGtIndex, s);
+                        } else if (genoval == 1) {
+                            myProjectedGenotype[s] = heterozygote(parentGT.genotype(B73GtIndex, s), parentGT.genotype(otherGtIndex, s));
+                        } else {
+                            myProjectedGenotype[s] = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
+                        }
+                    }
                 }
 
             }
-            //add the taxa to the genotype builder
+            //add the taxa to the genotype builder from the taxonGenotypeMap
+            taxonGenotypeMap.entrySet().stream().filter(ent -> !ent.getKey().getName().startsWith("B73")).forEach(ent -> {
+                genoBuilder.addTaxon(ent.getKey(), ent.getValue());
+            });
         }
 
         //export GenotypeTable to a file
-
+        LoggingUtils.setupDebugLogging();
+        ExportUtils.writeToHapmap(genoBuilder.build(), progenyOutput.value());
         return null;
+    }
+
+    private byte heterozygote(byte g1, byte g2) {
+        if (g1 == g2) return g1;
+        if (g1 == GenotypeTable.UNKNOWN_DIPLOID_ALLELE || g2 == GenotypeTable.UNKNOWN_DIPLOID_ALLELE) return GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
+        if (GenotypeTableUtils.isHeterozygous(g1)) return g1;
+        if (GenotypeTableUtils.isHeterozygous(g1)) return g2;
+        else return GenotypeTableUtils.getUnphasedDiploidValue(GenotypeTableUtils.getDiploidValues(g1)[0], GenotypeTableUtils.getDiploidValues(g2)[0]);
     }
 
     private void createNamFilenames() {
@@ -267,7 +310,16 @@ public class ProjectNamPlugin extends AbstractPlugin {
     public static void main(String[] args) {
 //        LoggingUtils.setupDebugLogging();
         ProjectNamPlugin pnp = new ProjectNamPlugin();
-        pnp.createNamFilenames();
-        pnp.reportParentAlleleFrequencies();
+
+//        pnp.createNamFilenames();
+//        pnp.reportParentAlleleFrequencies();
+
+        projectData();
     }
+
+    public static void projectData() {
+        ProjectNamPlugin pnp = new ProjectNamPlugin();
+        pnp.performFunction(null);
+    }
+
 }
