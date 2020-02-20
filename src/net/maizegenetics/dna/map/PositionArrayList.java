@@ -112,7 +112,9 @@ final class PositionArrayList implements PositionList {
 
     @Override
     public int chromosomeSiteCount(Chromosome chromosome) {
-        return myChrOffPosTree.get(chromosome).position.length;
+        ChrOffPos chr = myChrOffPosTree.get(chromosome);
+        if (chr == null) return 0;
+        return chr.position.length;
     }
 
     @Override
@@ -221,7 +223,7 @@ final class PositionArrayList implements PositionList {
     public boolean isPositiveStrand(int site) {
         return (1==mySiteList.get(site).getStrand());
     }
-    
+
     // List methods
 
     @Override
