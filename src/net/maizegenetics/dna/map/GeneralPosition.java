@@ -28,16 +28,18 @@ import java.util.Arrays;
  *
  * @author Ed Buckler
  */
-public final class GeneralPosition implements Position {
+public class GeneralPosition implements Position {
+
+    private static final long UNKNOWN_ALLELES = 0xFFFFFFFFFFFFFFFFL;
 
     /**
      * Locus of the site (required)
      */
-    private final Chromosome myChromosome;
+    protected final Chromosome myChromosome;
     /**
      * Physical position of the site (required)
      */
-    private final int myPosition;
+    protected final int myPosition;
     /**
      * Insertion-position for any insertions relative to reference.
      */
@@ -304,6 +306,21 @@ public final class GeneralPosition implements Position {
         myMAF = builder.myMAF;
         mySiteCoverage = builder.mySiteCoverage;
         myAlleleValue = builder.myAllelesAsLong;
+    }
+
+    protected GeneralPosition(Chromosome chr, int position) {
+        myChromosome = chr;
+        myPosition = position;
+        myInsertionPosition = 0;
+        myStrand = Position.STRAND_PLUS;
+        mySNPIDAsBytes = null;
+        isNucleotide = true;
+        isIndel = false;
+        myVariantsAndAnno = GeneralAnnotationStorage.EMPTY_ANNOTATION_STORAGE;
+        hashCode = calcHashCode();
+        myMAF = Float.NaN;
+        mySiteCoverage = Float.NaN;
+        myAlleleValue = UNKNOWN_ALLELES;
     }
 
     @Override

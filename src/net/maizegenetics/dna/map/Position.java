@@ -29,7 +29,7 @@ public interface Position extends Comparable<Position> {
      * @return Position
      */
     public static Position of(int chromosomeNumber, int positionWithinChromosome) {
-        return new GeneralPosition.Builder(Chromosome.instance(chromosomeNumber), positionWithinChromosome).build();
+        return new SimplePosition(Chromosome.instance(chromosomeNumber), positionWithinChromosome);
     }
 
     /**
@@ -41,7 +41,7 @@ public interface Position extends Comparable<Position> {
      * @return Position
      */
     public static Position of(String chromosomeName, int positionWithinChromosome) {
-        return new GeneralPosition.Builder(Chromosome.instance(chromosomeName), positionWithinChromosome).build();
+        return new SimplePosition(Chromosome.instance(chromosomeName), positionWithinChromosome);
     }
 
     /**
@@ -53,7 +53,7 @@ public interface Position extends Comparable<Position> {
      * @return Position
      */
     public static Position of(Chromosome chromosome, int positionWithinChromosome) {
-        return new GeneralPosition.Builder(chromosome, positionWithinChromosome).build();
+        return new SimplePosition(chromosome, positionWithinChromosome);
     }
 
     /**
