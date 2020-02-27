@@ -34,6 +34,14 @@ public class ReadBedfile {
         // utility
     }
 
+    /**
+     * Function to parse the bedFile and create a List of BedFileRanges.
+     *
+     * The positions stored in BedFileRange are 1-based inclusive exclusive.
+     * This is done by adding 1 to both the start and end position from the BED file.
+     * @param bedFile
+     * @return
+     */
     public static List<BedFileRange> getRanges(String bedFile) {
 
         List<BedFileRange> result = new ArrayList<>();
@@ -96,18 +104,55 @@ public class ReadBedfile {
         return builder.build();
     }
 
+    /**
+     * Function that returns the 1-based Position ranges from a BED file as a RangeSet of Positions.
+     * NOTE: getRanges(bedFile) will be called which will shift the start and end positions in the BED file up by 1.
+     *       Because of this the ranges returned will be 1-based Closed-Open(Inclusive-Exclusive).
+     *       This is NOT returning ranges in BED specification(0-based Inclusive-Exclusive).
+     * @param bedfile
+     * @return
+     */
     public static RangeSet<Position> getRangesAsPositions(String bedfile) {
         return getRanges(bedfile).stream()
-                .map(bedFileRange -> Range.closed(Position.of(bedFileRange.myChrInt, bedFileRange.myStartPos),
-                        Position.of(bedFileRange.myChrInt, bedFileRange.myEndPos)))
+                //This needs to be closedOpen as we retain inclusive-exclusive.
+                //Also using bedFileRange.myChr instead of bedFileRange.myChrInt as converting a String -> Int -> String is lossy when the string is non-numeric.
+                .map(bedFileRange -> Range.closedOpen(Position.of(bedFileRange.myChr, bedFileRange.myStartPos),
+                        Position.of(bedFileRange.myChr, bedFileRange.myEndPos)))
                 .collect(collectingAndThen(Collectors.toSet(), TreeRangeSet::create));
     }
 
+    /**
+     * Function that returns the 1-based closed Position ranges from a BED file as a RangeSet of Positions.
+     * NOTE: getRanges(bedFile) will be called which will shift the start in the BED file up by 1.
+     *       Because of this the ranges returned will be 1-based Closed(Inclusive-Inclusive).
+     *       This is NOT returning ranges in BED specification(0-based Inclusive-Exclusive).
+     * @param bedfile
+     * @return
+     */
+    public static RangeSet<Position> getClosedRangesAsPositions(String bedfile) {
+        return getRanges(bedfile).stream()
+                //This needs to be closedOpen as we retain inclusive-exclusive.
+                //Also using bedFileRange.myChr instead of bedFileRange.myChrInt as converting a String -> Int -> String is lossy when the string is non-numeric.
+                .map(bedFileRange -> Range.closed(Position.of(bedFileRange.myChr, bedFileRange.myStartPos),
+                        Position.of(bedFileRange.myChr, bedFileRange.myEndPos-1)))
+                .collect(collectingAndThen(Collectors.toSet(), TreeRangeSet::create));
+    }
+
+    /**
+     * Function that returns the 1-based Position ranges from a BED file as a RangeMap of Positions to the annotated name of the region.
+     * NOTE: getRanges(bedFile) will be called which will shift the start and end positions in the BED file up by 1.
+     *       Because of this the ranges returned will be 1-based Closed-Open(Inclusive-Exclusive).
+     *       This is NOT returning ranges in BED specification(0-based Inclusive-Exclusive).
+     * @param bedfile
+     * @return
+     */
     public static RangeMap<Position, String> getRangesAsPositionMap(String bedfile) {
         TreeRangeMap<Position, String> positionNameRangeMap = TreeRangeMap.create();
         for (BedFileRange bedFileRange : getRanges(bedfile)) {
-            positionNameRangeMap.put(Range.closed(Position.of(bedFileRange.myChrInt, bedFileRange.myStartPos),
-                    Position.of(bedFileRange.myChrInt, bedFileRange.myEndPos)),
+            //This needs to be closedOpen as we retain inclusive-exclusive.
+            //Also using bedFileRange.myChr instead of bedFileRange.myChrInt as converting a String -> Int -> String is lossy when the string is non-numeric.
+            positionNameRangeMap.put(Range.closedOpen(Position.of(bedFileRange.myChr, bedFileRange.myStartPos),
+                    Position.of(bedFileRange.myChr, bedFileRange.myEndPos)),
                     bedFileRange.myName);
         }
         return positionNameRangeMap;

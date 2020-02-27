@@ -46,6 +46,7 @@ public class CreateTreePlugin extends AbstractPlugin {
             .build();
 
     private Datum myGenotypeTable = null;
+    private Datum myDistanceMatrix = null;
 
     /**
      * Creates a new instance of CreateTreePlugin
@@ -65,6 +66,12 @@ public class CreateTreePlugin extends AbstractPlugin {
             return;
         }
 
+        List<Datum> matrixList = input.getDataOfType(DistanceMatrix.class);
+        if (matrixList.size() >= 1) {
+            myDistanceMatrix = matrixList.get(0);
+            return;
+        }
+
         throw new IllegalArgumentException("CreateTreePlugin: Invalid selection.  Please select a Genotype Table.");
 
     }
@@ -78,6 +85,9 @@ public class CreateTreePlugin extends AbstractPlugin {
         if (myGenotypeTable != null) {
             datum = myGenotypeTable;
             distanceMatrix = IBSDistanceMatrix.getInstance((GenotypeTable) myGenotypeTable.getData(), this);
+        } else if (myDistanceMatrix != null) {
+            datum = myDistanceMatrix;
+            distanceMatrix = (DistanceMatrix) myDistanceMatrix.getData();
         } else {
             throw new IllegalArgumentException("CreateTreePlugin: Invalid selection.  Please select a Genotype Table or Distance Matrix.");
         }

@@ -110,8 +110,8 @@ import java.util.Map;
 public class TASSELMainFrame extends JFrame implements ActionListener {
 
     private static final Logger myLogger = Logger.getLogger(TASSELMainFrame.class);
-    public static final String version = "5.2.54";
-    public static final String versionDate = "July 25, 2019";
+    public static final String version = "5.2.60";
+    public static final String versionDate = "February 20, 2020";
     private DataTreePanel myDataTreePanel;
     //a variable to control when the progress bar was last updated
     private JFileChooser filerSave = new JFileChooser();
@@ -124,6 +124,7 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
     private JTextField myStatusTextField = new JTextField();
     private final ProgressPanel myProgressPanel = ProgressPanel.getInstance();
     private HashMap<JMenuItem, Plugin> myMenuItemHash = new HashMap<JMenuItem, Plugin>();
+    private PreferencesDialog myPreferences = null;
 
     public TASSELMainFrame() {
         try {
@@ -217,6 +218,10 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         reportProgressSplitPane.setDividerLocation((int) (getSize().height / 3.5));
     }
 
+    public void loadPreferences() {
+        myPreferences.processData(null);
+    }
+
     private void addMenuBar() {
 
         JMenuBar jMenuBar = new JMenuBar();
@@ -241,8 +246,8 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
     }
 
     /**
-     * This adds plugins to the TASSEL menu specified by files named tassel_menu.xml.
-     * This can be used in jars that implement TASSEL plugins to dynamically add a menu.
+     * This adds plugins to the TASSEL menu specified by files named tassel_menu.xml. This can be used in jars that
+     * implement TASSEL plugins to dynamically add a menu.
      *
      * @param jMenuBar TASSEL Menu Bar
      */
@@ -646,7 +651,8 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
             }
         }, -1));
 
-        fileMenu.add(createMenuItem(new PreferencesDialog(this, true), true));
+        myPreferences = new PreferencesDialog(this, true);
+        fileMenu.add(createMenuItem(myPreferences, true));
         fileMenu.add(createMenuItem(new ShowParameterCachePlugin(this, true), true));
 
         fileMenu.addSeparator();

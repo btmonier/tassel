@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.swing.ImageIcon;
 
+import net.maizegenetics.stats.linearmodels.*;
 import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.commons.math3.exception.OutOfRangeException;
 import org.apache.log4j.Logger;
@@ -33,10 +34,6 @@ import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.GeneratePluginCode;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.prefs.TasselPrefs;
-import net.maizegenetics.stats.linearmodels.CovariateModelEffect;
-import net.maizegenetics.stats.linearmodels.FactorModelEffect;
-import net.maizegenetics.stats.linearmodels.ModelEffect;
-import net.maizegenetics.stats.linearmodels.SolveByOrthogonalizing;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportBuilder;
 
@@ -404,7 +401,7 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
             double F = rvalue / (1 - rvalue) * errdf;
             double p;
             try {
-                p = 1 - Fdist.cumulativeProbability(F);
+                p = LinearModelUtils.Ftest(F, 1, errdf);
             } catch (Exception e) {
                 p = Double.NaN;
             }
