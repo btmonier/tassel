@@ -84,6 +84,10 @@ public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
                 // do nothing
             }
 
+            if (myAlignment.hasReferenceProbablity()) {
+                temp.add(RENDERING_TYPE.NumericGenotype);
+            }
+
             for (int i = 0; i < GENOTYPE_RENDERING_TYPES.length; i++) {
                 temp.add(GENOTYPE_RENDERING_TYPES[i]);
             }
@@ -100,10 +104,6 @@ public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
 
         if (myAlignment.hasDepth()) {
             temp.add(RENDERING_TYPE.Depth);
-        }
-
-        if (myAlignment.hasReferenceProbablity()) {
-            temp.add(RENDERING_TYPE.NumericGenotype);
         }
 
         mySupportedRenderingTypes = new RENDERING_TYPE[temp.size()];
