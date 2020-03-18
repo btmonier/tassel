@@ -6,16 +6,6 @@
  */
 package net.maizegenetics.analysis.data;
 
-import java.awt.Frame;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import javax.swing.*;
 import net.maizegenetics.analysis.avro.ExportAvro;
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.map.PositionListTableReport;
@@ -36,12 +26,24 @@ import net.maizegenetics.taxa.TaxaListTableReport;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.taxa.distance.DistanceMatrixUtils;
 import net.maizegenetics.taxa.distance.WriteDistanceMatrix;
+import net.maizegenetics.taxa.tree.NewickUtils;
 import net.maizegenetics.taxa.tree.SimpleTree;
-import net.maizegenetics.util.*;
+import net.maizegenetics.util.TableReport;
+import net.maizegenetics.util.TableReportUtils;
+import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
- *
  * @author Terry Casstevens
  */
 public class ExportPlugin extends AbstractPlugin {
@@ -64,16 +66,21 @@ public class ExportPlugin extends AbstractPlugin {
     private PluginParameter<Boolean> myKeepDepth = new PluginParameter.Builder<>("keepDepth", true, Boolean.class)
             .description("Whether to keep depth if format supports depth.")
             .dependentOnParameter(myFileType, new FileLoadPlugin.TasselFileType[]{FileLoadPlugin.TasselFileType.VCF,
-        FileLoadPlugin.TasselFileType.HDF5})
+                    FileLoadPlugin.TasselFileType.HDF5})
             .build();
 
     private PluginParameter<Boolean> myIncludeTaxaAnnotations = new PluginParameter.Builder<>("includeTaxaAnnotations", true, Boolean.class)
             .description("Whether to include taxa annotations if format supports taxa annotations.")
             .dependentOnParameter(myFileType, new FileLoadPlugin.TasselFileType[]{FileLoadPlugin.TasselFileType.VCF,
-        FileLoadPlugin.TasselFileType.HDF5,
-        FileLoadPlugin.TasselFileType.Hapmap,
-        FileLoadPlugin.TasselFileType.HapmapDiploid,
-        FileLoadPlugin.TasselFileType.HapmapLIX})
+                    FileLoadPlugin.TasselFileType.HDF5,
+                    FileLoadPlugin.TasselFileType.Hapmap,
+                    FileLoadPlugin.TasselFileType.HapmapDiploid,
+                    FileLoadPlugin.TasselFileType.HapmapLIX})
+            .build();
+
+    private PluginParameter<Boolean> myIncludeBranchLengths = new PluginParameter.Builder<>("includeBranchLengths", true, Boolean.class)
+            .description("Whether to include branch lengths for Newick formatted files.")
+            .dependentOnParameter(myFileType, new FileLoadPlugin.TasselFileType[]{FileLoadPlugin.TasselFileType.Newick})
             .build();
 
     /**
@@ -115,46 +122,46 @@ public class ExportPlugin extends AbstractPlugin {
         } else if (data instanceof Phenotype) {
             myFileType = new PluginParameter<>(myFileType,
                     Arrays.asList(new FileLoadPlugin.TasselFileType[]{
-                FileLoadPlugin.TasselFileType.Phenotype,
-                FileLoadPlugin.TasselFileType.PlinkPhenotype}));
+                            FileLoadPlugin.TasselFileType.Phenotype,
+                            FileLoadPlugin.TasselFileType.PlinkPhenotype}));
         } else if (data instanceof FilterList) {
             myFileType = new PluginParameter<>(myFileType,
                     Arrays.asList(new FileLoadPlugin.TasselFileType[]{FileLoadPlugin.TasselFileType.Filter}));
         } else if (data instanceof DistanceMatrix) {
             myFileType = new PluginParameter<>(myFileType,
                     Arrays.asList(new FileLoadPlugin.TasselFileType[]{
-                FileLoadPlugin.TasselFileType.SqrMatrix,
-                FileLoadPlugin.TasselFileType.SqrMatrixBin,
-                FileLoadPlugin.TasselFileType.SqrMatrixRaw,
-                FileLoadPlugin.TasselFileType.SqrMatrixDARwinDIS}));
+                            FileLoadPlugin.TasselFileType.SqrMatrix,
+                            FileLoadPlugin.TasselFileType.SqrMatrixBin,
+                            FileLoadPlugin.TasselFileType.SqrMatrixRaw,
+                            FileLoadPlugin.TasselFileType.SqrMatrixDARwinDIS}));
         } else if (data instanceof TaxaList) {
             myFileType = new PluginParameter<>(myFileType,
                     Arrays.asList(new FileLoadPlugin.TasselFileType[]{
-                FileLoadPlugin.TasselFileType.TaxaList,
-                FileLoadPlugin.TasselFileType.Table}));
+                            FileLoadPlugin.TasselFileType.TaxaList,
+                            FileLoadPlugin.TasselFileType.Table}));
         } else if (data instanceof TaxaListTableReport) {
             myFileType = new PluginParameter<>(myFileType,
                     Arrays.asList(new FileLoadPlugin.TasselFileType[]{
-                FileLoadPlugin.TasselFileType.TaxaList,
-                FileLoadPlugin.TasselFileType.Table}));
+                            FileLoadPlugin.TasselFileType.TaxaList,
+                            FileLoadPlugin.TasselFileType.Table}));
         } else if (data instanceof PositionList) {
             myFileType = new PluginParameter<>(myFileType,
                     Arrays.asList(new FileLoadPlugin.TasselFileType[]{
-                FileLoadPlugin.TasselFileType.PositionList,
-                FileLoadPlugin.TasselFileType.Table}));
+                            FileLoadPlugin.TasselFileType.PositionList,
+                            FileLoadPlugin.TasselFileType.Table}));
         } else if (data instanceof PositionListTableReport) {
             myFileType = new PluginParameter<>(myFileType,
                     Arrays.asList(new FileLoadPlugin.TasselFileType[]{
-                FileLoadPlugin.TasselFileType.PositionList,
-                FileLoadPlugin.TasselFileType.Table}));
+                            FileLoadPlugin.TasselFileType.PositionList,
+                            FileLoadPlugin.TasselFileType.Table}));
         } else if (data instanceof TableReport) {
             myFileType = new PluginParameter<>(myFileType,
                     Arrays.asList(new FileLoadPlugin.TasselFileType[]{FileLoadPlugin.TasselFileType.Table}));
         } else if (data instanceof SimpleTree) {
             myFileType = new PluginParameter<>(myFileType,
                     Arrays.asList(new FileLoadPlugin.TasselFileType[]{
-                FileLoadPlugin.TasselFileType.Report,
-                FileLoadPlugin.TasselFileType.Text}));
+                            FileLoadPlugin.TasselFileType.Newick,
+                            FileLoadPlugin.TasselFileType.Report}));
         } else {
             throw new IllegalStateException("Don't know how to export data type: " + data.getClass().getName());
         }
@@ -298,15 +305,12 @@ public class ExportPlugin extends AbstractPlugin {
 
     public String performFunctionForSimpleTree(SimpleTree input) {
 
-        String resultFile = Utils.addSuffixIfNeeded(saveFile(), ".txt");
-        if (fileType() == FileLoadPlugin.TasselFileType.Text) {
-            try (BufferedWriter writer = Utils.getBufferedWriter(resultFile)) {
-                writer.append(input.toString());
-            } catch (Exception e) {
-                myLogger.debug(e.getMessage(), e);
-                throw new IllegalStateException("ExportPlugin: performFunctionForReport: Problem writing file: " + resultFile);
-            }
+        String resultFile = null;
+        if (fileType() == FileLoadPlugin.TasselFileType.Newick) {
+            resultFile = Utils.addSuffixIfNeeded(saveFile(), FileLoadPlugin.FILE_EXT_NEWICK);
+            NewickUtils.write(resultFile, input, includeBranchLengths());
         } else {
+            resultFile = Utils.addSuffixIfNeeded(saveFile(), ".txt");
             try (PrintWriter writer = new PrintWriter(resultFile)) {
                 input.report(writer);
             } catch (Exception e) {
@@ -482,6 +486,29 @@ public class ExportPlugin extends AbstractPlugin {
      */
     public ExportPlugin includeTaxaAnnotations(Boolean value) {
         myIncludeTaxaAnnotations = new PluginParameter<>(myIncludeTaxaAnnotations, value);
+        return this;
+    }
+
+    /**
+     * Whether to include branch lengths for Newick formatted
+     * files.
+     *
+     * @return Include Branch Lengths
+     */
+    public Boolean includeBranchLengths() {
+        return myIncludeBranchLengths.value();
+    }
+
+    /**
+     * Set Include Branch Lengths. Whether to include branch
+     * lengths for Newick formatted files.
+     *
+     * @param value Include Branch Lengths
+     *
+     * @return this plugin
+     */
+    public ExportPlugin includeBranchLengths(Boolean value) {
+        myIncludeBranchLengths = new PluginParameter<>(myIncludeBranchLengths, value);
         return this;
     }
 
