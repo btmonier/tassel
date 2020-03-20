@@ -2,6 +2,7 @@
 
 package net.maizegenetics.taxa.tree
 
+import net.maizegenetics.taxa.TaxaList
 import org.apache.log4j.Logger
 import java.io.BufferedWriter
 import java.io.File
@@ -125,7 +126,7 @@ private fun write(node: Node, writer: BufferedWriter, includeBranchLengths: Bool
 
     if (includeBranchLengths && node.branchLength != 0.0) {
         writer.append(":")
-        writer.append(node.branchLength.toString())
+        writer.append("%.7f".format(node.branchLength))
     }
 
 }
@@ -212,5 +213,52 @@ private fun addChildren(nodes: MutableList<Node>, node: Node) {
         nodes.add(node.getChild(i))
         addChildren(nodes, node.getChild(i))
     }
+
+}
+
+fun subsetTree(tree: Tree, taxaList: TaxaList): Tree {
+    val nameList = taxaList.map { it.name }
+    return subsetTree(tree, nameList)
+}
+
+fun subsetTree(tree: Tree, namesToKeep: List<String>): Tree {
+    return SimpleTree(keepNode(tree.root, namesToKeep))
+}
+
+private fun keepNode(node: Node, namesToKeep: List<String>): Node? {
+
+    if (node.isLeaf) {
+        node.identifier?.name?.let {
+            if (namesToKeep.contains(it)) {
+                return SimpleNode(node.identifier?.name, node.branchLength)
+            }
+        }
+    } else {
+
+        val childNodesToKeep = mutableListOf<Node>()
+        for (i in 0 until node.childCount) {
+            keepNode(node.getChild(i), namesToKeep)?.let {
+                childNodesToKeep.add(it)
+            }
+        }
+
+        when (childNodesToKeep.size) {
+            0 -> return null
+            1 -> {
+                childNodesToKeep[0].branchLength += node.branchLength
+                return childNodesToKeep[0]
+            }
+            else -> {
+                val parent = SimpleNode(node.identifier?.name, node.branchLength)
+                childNodesToKeep.forEach {
+                    parent.addChild(it)
+                }
+                return parent
+            }
+        }
+
+    }
+
+    return null
 
 }
