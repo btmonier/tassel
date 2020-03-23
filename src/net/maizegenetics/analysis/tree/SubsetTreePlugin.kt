@@ -30,11 +30,8 @@ class SubsetTreePlugin(parentFrame: Frame? = null, isInteractive: Boolean = fals
     }
 
     override fun processData(input: DataSet?): DataSet? {
-
         val tree = input!!.getDataOfType(Tree::class.java).get(0).data as Tree
-
         return DataSet(Datum("Subset Tree", subsetTree(tree, nameList()), null), this)
-
     }
 
     /**

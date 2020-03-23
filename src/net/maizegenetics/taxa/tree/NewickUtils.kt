@@ -262,3 +262,49 @@ private fun keepNode(node: Node, namesToKeep: List<String>): Node? {
     return null
 
 }
+
+fun removeBranchLengths(tree: Tree): Tree {
+    return SimpleTree(removeBranchLengths(tree.root))
+}
+
+private fun removeBranchLengths(node: Node): Node {
+
+    val result = SimpleNode(node.identifier?.name, 0.0)
+
+    for (i in 0 until node.childCount) {
+        result.addChild(removeBranchLengths(node.getChild(i)))
+    }
+
+    return result
+
+}
+
+fun convertNames(tree: Tree, filename: String): Tree {
+
+    val conversions = mutableMapOf<String, String>()
+
+    File(filename).bufferedReader().lines().forEach {
+        val temp = it.split("\t")
+        if (temp.size != 2) {
+            throw IllegalArgumentException("NewickUtils: convertNames: each line of file: $filename should have two names separated by a tab.")
+        }
+        conversions[temp[0]] = temp[1]
+    }
+
+    return SimpleTree(convertNames(tree.root, conversions))
+
+}
+
+private fun convertNames(node: Node, conversions: Map<String, String>): Node {
+
+    val name = conversions[node.identifier?.name] ?: node.identifier?.name
+
+    val result = SimpleNode(name, 0.0)
+
+    for (i in 0 until node.childCount) {
+        result.addChild(convertNames(node.getChild(i), conversions))
+    }
+
+    return result
+
+}
