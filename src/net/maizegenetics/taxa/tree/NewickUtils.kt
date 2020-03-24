@@ -42,12 +42,17 @@ fun read(filename: String): Tree {
 private fun makeNode(newick: String): Node {
 
     val nameBranchLength = newick.substringAfterLast(')')
+
+    // The node name comes before the :. If no : present, this is the name
     val name = nameBranchLength.substringBefore(':').replace("'", "").let {
         try {
+            // Names that are numbers are changed to empty string
+            // These are support values from 0-100, that can be ignored for our purposes
             Double.parseDouble(it)
             ""
         } catch (ne: NumberFormatException) {
-            it.replace("_", "")
+            // Newick format considers underscores to be spaces
+            it.replace("_", " ")
         }
     }
     val branchLength = if (nameBranchLength.contains(':')) nameBranchLength.substringAfter(':').toDouble() else 0.0
@@ -105,6 +110,9 @@ fun write(filename: String, tree: Tree, includeBranchLengths: Boolean = true) {
 
 }
 
+/**
+ * Recursively writes nodes are it's children to a file
+ */
 private fun write(node: Node, writer: BufferedWriter, includeBranchLengths: Boolean) {
 
     if (!node.isLeaf) {
@@ -133,6 +141,10 @@ private fun write(node: Node, writer: BufferedWriter, includeBranchLengths: Bool
 
 private const val MERGE_ROOT_NODE = "MERGE_ROOT_NODE"
 
+/**
+ * This merges two or more trees into one tree.
+ * Nodes are merged when the names are the same.
+ */
 fun mergeTrees(trees: List<Tree>): Tree {
 
     if (trees.size < 2) {
@@ -198,6 +210,9 @@ fun mergeTrees(trees: List<Tree>): Tree {
 
 }
 
+/**
+ * Extension function that returns all nodes of the tree
+ */
 fun Tree.nodes(): List<Node> {
 
     val result = mutableListOf<Node>()
@@ -207,6 +222,9 @@ fun Tree.nodes(): List<Node> {
 
 }
 
+/**
+ * Recursively adds children to the list
+ */
 private fun addChildren(nodes: MutableList<Node>, node: Node) {
 
     for (i in 0 until node.childCount) {
@@ -216,15 +234,27 @@ private fun addChildren(nodes: MutableList<Node>, node: Node) {
 
 }
 
+/**
+ * Returns a tree that is a subset of the
+ * original containing only the taxa specified.
+ */
 fun subsetTree(tree: Tree, taxaList: TaxaList): Tree {
     val nameList = taxaList.map { it.name }
     return subsetTree(tree, nameList)
 }
 
+/**
+ * Returns a tree that is a subset of the
+ * original containing only the names specified.
+ */
 fun subsetTree(tree: Tree, namesToKeep: List<String>): Tree {
     return SimpleTree(keepNode(tree.root, namesToKeep))
 }
 
+/**
+ * Recursively iterates over the tree looking for nodes
+ * that are specified by the list of names.
+ */
 private fun keepNode(node: Node, namesToKeep: List<String>): Node? {
 
     if (node.isLeaf) {
@@ -263,10 +293,18 @@ private fun keepNode(node: Node, namesToKeep: List<String>): Node? {
 
 }
 
+/**
+ * This removes the branch lengths from
+ * the given tree
+ */
 fun removeBranchLengths(tree: Tree): Tree {
     return SimpleTree(removeBranchLengths(tree.root))
 }
 
+/**
+ * Recursively iterates over the tree removing
+ * branch lengths.
+ */
 private fun removeBranchLengths(node: Node): Node {
 
     val result = SimpleNode(node.identifier?.name, 0.0)
@@ -279,6 +317,10 @@ private fun removeBranchLengths(node: Node): Node {
 
 }
 
+/**
+ * This converts tree node names based on the
+ * conversion file specified.
+ */
 fun convertNames(tree: Tree, filename: String): Tree {
 
     val conversions = mutableMapOf<String, String>()
@@ -295,6 +337,10 @@ fun convertNames(tree: Tree, filename: String): Tree {
 
 }
 
+/**
+ * Recursively iterates over the tree changing node names
+ * that are specified in the map
+ */
 private fun convertNames(node: Node, conversions: Map<String, String>): Node {
 
     val name = conversions[node.identifier?.name] ?: node.identifier?.name
