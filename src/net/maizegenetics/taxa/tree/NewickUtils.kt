@@ -111,7 +111,7 @@ fun write(filename: String, tree: Tree, includeBranchLengths: Boolean = true) {
 }
 
 /**
- * Recursively writes nodes are it's children to a file
+ * Recursively writes nodes and its children to a file
  */
 private fun write(node: Node, writer: BufferedWriter, includeBranchLengths: Boolean) {
 
