@@ -144,6 +144,13 @@ private const val MERGE_ROOT_NODE = "MERGE_ROOT_NODE"
 /**
  * This merges two or more trees into one tree.
  * Nodes are merged when the names are the same.
+ *
+ * Example:
+ * (AA:2,BB:2,CC:2);
+ * merged with
+ * (XX:2,YY:2,ZZ:2)AA;
+ * produces
+ * (('XX':2.0000000,'YY':2.0000000,'ZZ':2.0000000)'AA':2.0000000,'BB':2.0000000,'CC':2.0000000);
  */
 fun mergeTrees(trees: List<Tree>): Tree {
 
