@@ -534,7 +534,7 @@ public class GenerateRCode {
 
     }
 
-    public static Map<String, Object> fastAssociation(GenotypePhenotype genoPheno) {
+    public static Map<String, Object> fastAssociation(GenotypePhenotype genoPheno, Double maxp, Integer maxThreads) {
 
         String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
         myLogger.info("Starting fastAssociation: time: " + timeStr);
@@ -546,6 +546,10 @@ public class GenerateRCode {
             }
 
             FastMultithreadedAssociationPlugin plugin = new FastMultithreadedAssociationPlugin(null, false);
+
+            if (maxp != null) plugin.maxp(maxp);
+
+            if (maxThreads != null) plugin.maxThreads(maxThreads);
 
             DataSet input = DataSet.getDataSet(genoPheno);
 
