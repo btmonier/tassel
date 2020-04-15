@@ -13,24 +13,16 @@ import net.maizegenetics.dna.map.TOPMUtils;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.ImportUtils;
 import net.maizegenetics.dna.snp.ReadSequenceAlignmentUtils;
-import net.maizegenetics.dna.snp.io.BuilderFromHapMapLIX;
-import net.maizegenetics.dna.snp.io.FilterJSONUtils;
-import net.maizegenetics.dna.snp.io.JSONUtils;
-import net.maizegenetics.dna.snp.io.LineIndexBuilder;
-import net.maizegenetics.dna.snp.io.ReadNumericMarkerUtils;
+import net.maizegenetics.dna.snp.io.*;
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.phenotype.Phenotype;
 import net.maizegenetics.phenotype.PhenotypeBuilder;
-import net.maizegenetics.plugindef.AbstractPlugin;
-import net.maizegenetics.plugindef.DataSet;
-import net.maizegenetics.plugindef.Datum;
-import net.maizegenetics.plugindef.PluginEvent;
-import net.maizegenetics.plugindef.PluginListener;
-import net.maizegenetics.plugindef.PluginParameter;
+import net.maizegenetics.plugindef.*;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
 import net.maizegenetics.taxa.distance.DistanceMatrixUtils;
 import net.maizegenetics.taxa.distance.ReadDistanceMatrix;
+import net.maizegenetics.taxa.tree.NewickUtils;
 import net.maizegenetics.util.HDF5TableReport;
 import net.maizegenetics.util.HDF5Utils;
 import net.maizegenetics.util.TableReportUtils;
@@ -89,7 +81,7 @@ public class FileLoadPlugin extends AbstractPlugin {
         Plink("Plink"), Phenotype("Phenotype"), ProjectionAlignment("Projection Genotype"),
         ProjectPCsandRunModelSelection("Project PCs"),
         Phylip_Seq("Phylip (Sequential)"), Phylip_Inter("Phylip (Interleaved)"), Table("Table"),
-        Serial("Serial"), HapmapDiploid("Hapmap Diploid"), Text("Text"), VCF("VCF"),
+        Serial("Serial"), HapmapDiploid("Hapmap Diploid"), Newick("Newick"), VCF("VCF"),
         HDF5("HDF5"), TOPM("TOPM"), HDF5Schema("HDF5 Schema"), Filter("Filter"),
         NumericGenotype("Numeric Genotype"), TaxaList("Taxa List"), PositionList("Position List"),
         SqrMatrixRaw("Raw MultiBLUP Matrix"), SqrMatrixBin("Binary MultiBLUP Matrix"),
@@ -123,6 +115,7 @@ public class FileLoadPlugin extends AbstractPlugin {
     public static final String FILE_EXT_TOPM_TEXT = ".topm.txt";
     public static final String FILE_EXT_FASTA = ".fasta";
     public static final String FILE_EXT_PHYLIP = ".phy";
+    public static final String FILE_EXT_NEWICK = ".nwk";
 
     /**
      * Creates a new instance of FileLoadPlugin. This only used by TASSEL GUI to
@@ -167,12 +160,15 @@ public class FileLoadPlugin extends AbstractPlugin {
                 TasselFileType.Unknown,
                 TasselFileType.Hapmap,
                 TasselFileType.VCF,
+                TasselFileType.Flapjack,
                 TasselFileType.Plink,
                 TasselFileType.ProjectionAlignment,
                 TasselFileType.Sequence,
                 TasselFileType.Fasta,
+                TasselFileType.Phenotype,
                 TasselFileType.SqrMatrix,
                 TasselFileType.Table,
+                TasselFileType.Newick,
                 TasselFileType.TOPM,
                 TasselFileType.HDF5,
                 TasselFileType.HDF5Schema}));
@@ -337,6 +333,10 @@ public class FileLoadPlugin extends AbstractPlugin {
                     myLogger.info("guessAtUnknowns: type: " + TasselFileType.Fasta);
                     alreadyLoaded.add(myOpenFiles[i]);
                     tds = processDatum(myOpenFiles[i], TasselFileType.Fasta);
+                } else if (myOpenFiles[i].endsWith(FILE_EXT_NEWICK)) {
+                    myLogger.info("guessAtUnknowns: type: " + TasselFileType.Newick);
+                    alreadyLoaded.add(myOpenFiles[i]);
+                    tds = processDatum(myOpenFiles[i], TasselFileType.Newick);
                 } else {
                     alreadyLoaded.add(myOpenFiles[i]);
                     tds = guessAtUnknowns(myOpenFiles[i]);
@@ -587,6 +587,10 @@ public class FileLoadPlugin extends AbstractPlugin {
                 }
                 case Filter: {
                     result = FilterJSONUtils.importJSONToFilter(inFile);
+                    break;
+                }
+                case Newick: {
+                    result = NewickUtils.read(inFile);
                     break;
                 }
                 default: {
