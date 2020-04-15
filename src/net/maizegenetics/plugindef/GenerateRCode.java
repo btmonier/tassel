@@ -477,7 +477,7 @@ public class GenerateRCode {
     // 8        Q3 covariate     NumericAttribute     FALSE        TRUE covariate  fixed
     // 9         G  genotype             Genotype     FALSE        TRUE  genotype  fixed
 
-    public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno, int minClassSize, boolean biallelicOnly, boolean appendAddDom) {
+    public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno, int minClassSize, boolean biallelicOnly, boolean appendAddDom, boolean saveToFile, String siteFile, String alleleFile, double maxP) {
 
         String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
         myLogger.info("Starting association: time: " + timeStr);
@@ -496,6 +496,10 @@ public class GenerateRCode {
                 plugin.biallelicOnly(biallelicOnly);
                 plugin.minClassSize(minClassSize);
                 plugin.appendAddDom(appendAddDom);
+                plugin.saveAsFile(saveToFile);
+                plugin.siteReportFilename(siteFile);
+                plugin.alleleReportFilename(alleleFile);
+                plugin.maxPvalue(maxP);
 
                 DataSet input = null;
 
@@ -534,7 +538,7 @@ public class GenerateRCode {
 
     }
 
-    public static Map<String, Object> fastAssociation(GenotypePhenotype genoPheno, Double maxp, Integer maxThreads) {
+    public static Map<String, Object> fastAssociation(GenotypePhenotype genoPheno, Double maxp, Integer maxThreads, boolean writeToFile, String outputFile) {
 
         String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
         myLogger.info("Starting fastAssociation: time: " + timeStr);
@@ -550,6 +554,9 @@ public class GenerateRCode {
             if (maxp != null) plugin.maxp(maxp);
 
             if (maxThreads != null) plugin.maxThreads(maxThreads);
+
+            plugin.saveAsFile(writeToFile);
+            plugin.reportFilename(outputFile);
 
             DataSet input = DataSet.getDataSet(genoPheno);
 
