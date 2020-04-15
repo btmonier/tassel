@@ -3,6 +3,7 @@
 package net.maizegenetics.taxa.tree
 
 import net.maizegenetics.taxa.TaxaList
+import org.apache.commons.lang.StringUtils
 import org.apache.log4j.Logger
 import java.io.BufferedWriter
 import java.io.File
@@ -126,15 +127,19 @@ private fun write(node: Node, writer: BufferedWriter, includeBranchLengths: Bool
 
     node.identifier?.name?.let {
         if (it.isNotEmpty()) {
+            val name = it.replace(' ', '_')
             writer.append("'")
-            writer.append(it)
+            writer.append(name)
             writer.append("'")
         }
     }
 
     if (includeBranchLengths && node.branchLength != 0.0) {
         writer.append(":")
-        writer.append("%.7f".format(node.branchLength))
+        var lengthStr = "%.7f".format(node.branchLength)
+        lengthStr = StringUtils.stripEnd(lengthStr, "0")
+        lengthStr = StringUtils.stripEnd(lengthStr, ".")
+        writer.append(lengthStr)
     }
 
 }
@@ -335,9 +340,9 @@ fun convertNames(tree: Tree, filename: String): Tree {
     File(filename).bufferedReader().lines().forEach {
         val temp = it.split("\t")
         if (temp.size != 2) {
-            throw IllegalArgumentException("NewickUtils: convertNames: each line of file: $filename should have two names separated by a tab.")
+            throw IllegalArgumentException("NewickUtils: convertNames: each line of file: $filename should have two names separated by a tab.\nOffending line: $it")
         }
-        conversions[temp[0]] = temp[1]
+        conversions[temp[0].trim().replace('_', ' ')] = temp[1].trim().replace('_', ' ')
     }
 
     return SimpleTree(convertNames(tree.root, conversions))
