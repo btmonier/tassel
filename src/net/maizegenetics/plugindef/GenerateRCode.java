@@ -33,8 +33,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -574,6 +574,8 @@ public class GenerateRCode {
     private static Map<String, Object> tableReportsMap(DataSet output) {
 
         Map<String, Object> result = new HashMap<>();
+
+        if (output == null) return result;
 
         for (Datum temp : output.getDataOfType(TableReport.class)) {
             String name = temp.getName();
