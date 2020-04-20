@@ -56,7 +56,7 @@ public class TableReportBuilder {
         myColumnNames = columnNames;
         myNumColumns = columnNames.length;
         myData = null;
-        myFilename = filename;
+        myFilename = Utils.addSuffixIfNeeded(filename, ".txt");
         myWriter = Utils.getBufferedWriter(filename);
         myInMemory = false;
         try {

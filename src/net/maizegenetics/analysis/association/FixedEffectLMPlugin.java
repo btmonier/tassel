@@ -167,6 +167,7 @@ public class FixedEffectLMPlugin extends AbstractPlugin {
     	        if (saveAsFile()) {
                     TableReportUtils.saveDelimitedTableReport(plm.myBlues, new File(bluesReportFilename()));
                     TableReportUtils.saveDelimitedTableReport(plm.report(), new File(anovaReportFilename()));
+                    return null;
                 }
     	        return new DataSet(plm.datumList(), this);
     	    } else if (datumList.size() == 0) {
