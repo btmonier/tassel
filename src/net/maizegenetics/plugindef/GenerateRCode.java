@@ -477,7 +477,7 @@ public class GenerateRCode {
     // 8        Q3 covariate     NumericAttribute     FALSE        TRUE covariate  fixed
     // 9         G  genotype             Genotype     FALSE        TRUE  genotype  fixed
 
-    public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno, int minClassSize, boolean biallelicOnly, boolean appendAddDom, boolean saveToFile, String siteFile, String alleleFile, double maxP) {
+    public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno, int minClassSize, boolean biallelicOnly, boolean appendAddDom, boolean saveToFile, String outputFile, double maxP) {
 
         String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
         myLogger.info("Starting association: time: " + timeStr);
@@ -497,11 +497,13 @@ public class GenerateRCode {
                 plugin.minClassSize(minClassSize);
                 plugin.appendAddDom(appendAddDom);
                 plugin.saveAsFile(saveToFile);
-                plugin.siteReportFilename(siteFile);
-                plugin.alleleReportFilename(alleleFile);
+                plugin.siteReportFilename(outputFile + "_site");
+                plugin.alleleReportFilename(outputFile + "_allele");
+                plugin.bluesReportFilename(outputFile + "_blues");
+                plugin.anovaReportFilename(outputFile + "_anova");
                 plugin.maxPvalue(maxP);
 
-                DataSet input = null;
+                DataSet input;
 
                 if (genotype == null) {
                     plugin.phenotypeOnly(true);
@@ -520,6 +522,8 @@ public class GenerateRCode {
                 myLogger.info("association: running MLM");
 
                 MLMPlugin plugin = new MLMPlugin(null, false);
+                plugin.setWriteOutputToFile(saveToFile);
+                plugin.setOutputName(outputFile);
 
                 Datum genoDatum = new Datum("GenotypePhenotype", genoPheno, null);
                 Datum kinshipDatum = new Datum("Kinship", kinship, null);
