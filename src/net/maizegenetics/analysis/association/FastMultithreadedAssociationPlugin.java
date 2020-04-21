@@ -318,8 +318,12 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
         
         public void run() {
             try {
-            	Marker thisMarker = siteQueue.poll(4, TimeUnit.SECONDS);
-                
+                Marker thisMarker = siteQueue.poll(30, TimeUnit.SECONDS);
+                if (thisMarker == null) {
+                    //send end signal to reporter
+                    outQueue.put(new Object[0]);
+                    throw new RuntimeException("ERROR: The site tester timeout was exceeded.");
+                }
                 byte[] geno = thisMarker.geno;
                 while (geno.length > 0) {
                     byte major = thisMarker.major;
@@ -358,8 +362,14 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
                         
                         outputResult(r2values, thisMarker.myPosition);
                     }
-                    
-                    thisMarker = siteQueue.poll(1, TimeUnit.SECONDS);
+
+                    thisMarker = siteQueue.poll(2, TimeUnit.SECONDS);
+                    if (thisMarker == null) {
+                        //send end signal to reporter
+                        outQueue.put(new Object[0]);
+                        throw new RuntimeException("Error: The site tester timeout was exceeded.");
+                    }
+
                     geno = thisMarker.geno;
                 }
                 //send end signal to reporter
@@ -426,7 +436,10 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
             int numberOfFinishedThreads = 0;
             try {
                 do {
-                    Object[] reportRow = myReportQueue.poll(1, TimeUnit.HOURS);
+                    Object[] reportRow = myReportQueue.poll(30, TimeUnit.MINUTES);
+                    if (reportRow == null) {
+                        throw new IllegalStateException("ERROR: report queue timed out.");
+                    }
                     if (reportRow.length > 0) {
                         myReportBuilder.add(reportRow);
                     }
