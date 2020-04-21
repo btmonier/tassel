@@ -523,7 +523,7 @@ public class GenerateRCode {
 
                 MLMPlugin plugin = new MLMPlugin(null, false);
                 plugin.setWriteOutputToFile(saveToFile);
-                plugin.setOutputName(outputFile);
+                if (outputFile != null && !outputFile.isEmpty()) plugin.setOutputName(outputFile);
 
                 Datum genoDatum = new Datum("GenotypePhenotype", genoPheno, null);
                 Datum kinshipDatum = new Datum("Kinship", kinship, null);
