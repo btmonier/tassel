@@ -17,6 +17,8 @@ import org.apache.log4j.Logger;
  */
 public interface Plugin extends PluginListener, ProgressListener, Runnable {
 
+    enum PARAMETER_PROPERTIES {Plugin, Parameter, Required, Default, Description}
+
     /**
      * Returns menu that can be added to main menu bar.
      *
