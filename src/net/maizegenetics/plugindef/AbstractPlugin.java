@@ -676,6 +676,22 @@ abstract public class AbstractPlugin implements Plugin {
     }
 
     @Override
+    public Map<String, String> pluginParameters() {
+
+        Map<String, String> result = new HashMap<>();
+
+        for (PluginParameter<?> current : getParameterInstances()) {
+            if (current.parameterType() == PluginParameter.PARAMETER_TYPE.LABEL) {
+                continue;
+            }
+            result.put(current.cmdLineName(), current.value().toString());
+        }
+
+        return result;
+
+    }
+
+    @Override
     public Object getParameter(Enum key) {
         return getParameterInstance(key.toString()).value();
     }
