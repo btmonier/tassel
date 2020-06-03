@@ -684,7 +684,7 @@ abstract public class AbstractPlugin implements Plugin {
             if (current.parameterType() == PluginParameter.PARAMETER_TYPE.LABEL) {
                 continue;
             }
-            result.put(current.cmdLineName(), current.value().toString());
+            result.put(current.cmdLineName(), (current.value() == null)? null : current.value().toString());
         }
 
         return result;
