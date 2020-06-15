@@ -5,7 +5,7 @@
     <groupId>net.maizegenetics</groupId>
     <artifactId>tassel</artifactId>
     <packaging>jar</packaging>
-    <version>5.2.62</version>
+    <version>5.2.63</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>TASSEL is a software package to evaluate traits associations, evolutionary patterns, and linkage
         disequilibrium.
