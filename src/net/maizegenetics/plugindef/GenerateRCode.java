@@ -389,7 +389,11 @@ public class GenerateRCode {
             } else if (o instanceof Byte || o instanceof Short || o instanceof Integer || o instanceof Long) {
                 int[] result = new int[rows];
                 for (int row = 0; row < tableReport.getRowCount(); row++) {
-                    result[row] = ((Number) tableReport.getValueAt(row, column)).intValue();
+                    try {
+                        result[row] = ((Number) tableReport.getValueAt(row, column)).intValue();
+                    } catch (ClassCastException cce) {
+                        result[row] = Integer.MIN_VALUE;
+                    }
                 }
                 dataVector.add(result);
             } else {
