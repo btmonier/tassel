@@ -24,10 +24,9 @@ public class XYMultipleYToolTipGenerator extends AbstractXYItemLabelGenerator im
     @Override
     public String generateToolTip(XYDataset dataset, int series, int item) {
         TableReportManhattanDataset myDataset = (TableReportManhattanDataset) dataset;
-        String[] markers = myDataset.getMarkers();
         DecimalFormat df = new DecimalFormat("#0.000");
         StringBuilder sb = new StringBuilder("SNP ID: ");
-        sb.append(markers[item]);
+        sb.append(myDataset.getMarker(series, item));
         sb.append(", Chromosome: ");
         sb.append(myDataset.getSeriesName(series));
         sb.append(", -Log10(P-Value): ");
