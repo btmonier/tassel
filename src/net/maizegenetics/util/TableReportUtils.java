@@ -37,7 +37,8 @@ public class TableReportUtils {
      * @param saveFile file
      */
     public static void saveDelimitedTableReport(TableReport theTableSource, String delimit, File saveFile) {
-        try (BufferedWriter bw = Utils.getBufferedWriter(saveFile)) {
+        String filename = Utils.addSuffixIfNeeded(saveFile.getAbsolutePath(), ".txt");
+        try (BufferedWriter bw = Utils.getBufferedWriter(filename)) {
             saveDelimitedTableReport(theTableSource, delimit, bw, true);
         } catch (Exception e) {
             myLogger.debug(e.getMessage(), e);

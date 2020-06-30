@@ -33,8 +33,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -389,7 +389,11 @@ public class GenerateRCode {
             } else if (o instanceof Byte || o instanceof Short || o instanceof Integer || o instanceof Long) {
                 int[] result = new int[rows];
                 for (int row = 0; row < tableReport.getRowCount(); row++) {
-                    result[row] = ((Number) tableReport.getValueAt(row, column)).intValue();
+                    try {
+                        result[row] = ((Number) tableReport.getValueAt(row, column)).intValue();
+                    } catch (ClassCastException cce) {
+                        result[row] = Integer.MIN_VALUE;
+                    }
                 }
                 dataVector.add(result);
             } else {
@@ -477,7 +481,7 @@ public class GenerateRCode {
     // 8        Q3 covariate     NumericAttribute     FALSE        TRUE covariate  fixed
     // 9         G  genotype             Genotype     FALSE        TRUE  genotype  fixed
 
-    public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno, int minClassSize, boolean biallelicOnly, boolean appendAddDom) {
+    public static Map<String, Object> association(DistanceMatrix kinship, GenotypeTable genotype, Phenotype phenotype, GenotypePhenotype genoPheno, int minClassSize, boolean biallelicOnly, boolean appendAddDom, boolean saveToFile, String outputFile, double maxP) {
 
         String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
         myLogger.info("Starting association: time: " + timeStr);
@@ -496,8 +500,14 @@ public class GenerateRCode {
                 plugin.biallelicOnly(biallelicOnly);
                 plugin.minClassSize(minClassSize);
                 plugin.appendAddDom(appendAddDom);
+                plugin.saveAsFile(saveToFile);
+                plugin.siteReportFilename(outputFile + "_site");
+                plugin.alleleReportFilename(outputFile + "_allele");
+                plugin.bluesReportFilename(outputFile + "_blues");
+                plugin.anovaReportFilename(outputFile + "_anova");
+                plugin.maxPvalue(maxP);
 
-                DataSet input = null;
+                DataSet input;
 
                 if (genotype == null) {
                     plugin.phenotypeOnly(true);
@@ -516,6 +526,8 @@ public class GenerateRCode {
                 myLogger.info("association: running MLM");
 
                 MLMPlugin plugin = new MLMPlugin(null, false);
+                plugin.setWriteOutputToFile(saveToFile);
+                if (outputFile != null && !outputFile.isEmpty()) plugin.setOutputName(outputFile);
 
                 Datum genoDatum = new Datum("GenotypePhenotype", genoPheno, null);
                 Datum kinshipDatum = new Datum("Kinship", kinship, null);
@@ -534,7 +546,7 @@ public class GenerateRCode {
 
     }
 
-    public static Map<String, Object> fastAssociation(GenotypePhenotype genoPheno) {
+    public static Map<String, Object> fastAssociation(GenotypePhenotype genoPheno, Double maxp, Integer maxThreads, boolean writeToFile, String outputFile) {
 
         String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM d, uuuu H:mm:s"));
         myLogger.info("Starting fastAssociation: time: " + timeStr);
@@ -546,6 +558,13 @@ public class GenerateRCode {
             }
 
             FastMultithreadedAssociationPlugin plugin = new FastMultithreadedAssociationPlugin(null, false);
+
+            if (maxp != null) plugin.maxp(maxp);
+
+            if (maxThreads != null) plugin.maxThreads(maxThreads);
+
+            plugin.saveAsFile(writeToFile);
+            plugin.reportFilename(outputFile);
 
             DataSet input = DataSet.getDataSet(genoPheno);
 
@@ -563,6 +582,8 @@ public class GenerateRCode {
     private static Map<String, Object> tableReportsMap(DataSet output) {
 
         Map<String, Object> result = new HashMap<>();
+
+        if (output == null) return result;
 
         for (Datum temp : output.getDataOfType(TableReport.class)) {
             String name = temp.getName();

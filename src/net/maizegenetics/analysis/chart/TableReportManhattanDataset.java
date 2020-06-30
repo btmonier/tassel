@@ -230,8 +230,8 @@ public class TableReportManhattanDataset extends DefaultTableXYDataset {
         myTrait = (String) table.getValueAt(myStartIndex, myTraitColumnIndex);
     }
 
-    public String[] getMarkers() {
-        return myMarkers;
+    public String getMarker(int series, int item) {
+        return myMarkers[seriesOffsets[series] + item];
     }
 
     public String[] getChroms() {

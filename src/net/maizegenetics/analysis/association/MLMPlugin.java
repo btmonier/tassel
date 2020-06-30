@@ -87,7 +87,6 @@ public class MLMPlugin extends AbstractPlugin {
 
     @Override
     public DataSet processData(DataSet input) {
-    //public DataSet performFunction(DataSet input) {
         boolean hasGenotypePhenotype = true;
         try {
 
@@ -205,7 +204,7 @@ public class MLMPlugin extends AbstractPlugin {
             	myResults.addAll(theAnalysis.solve());
            }
 
-            if (myResults.size() > 0) {
+            if (myResults.size() > 0 && !writeOutputToFile) {
             	fireDataSetReturned(new DataSet(myResults, this));
             	return new DataSet(myResults, this);
             }
