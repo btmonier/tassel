@@ -322,7 +322,7 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
                 if (thisMarker == null) {
                     //send end signal to reporter
                     outQueue.put(new Object[0]);
-                    throw new RuntimeException("ERROR: The site tester timeout was exceeded.");
+                    throw new IllegalStateException("ERROR: The site tester timeout was exceeded.");
                 }
                 byte[] geno = thisMarker.geno;
                 while (geno.length > 0) {
@@ -367,7 +367,7 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
                     if (thisMarker == null) {
                         //send end signal to reporter
                         outQueue.put(new Object[0]);
-                        throw new RuntimeException("Error: The site tester timeout was exceeded.");
+                        throw new IllegalStateException("Error: The site tester timeout was exceeded.");
                     }
 
                     geno = thisMarker.geno;
