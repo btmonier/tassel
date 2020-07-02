@@ -1,6 +1,8 @@
 package net.maizegenetics.taxa.tree;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.TreeSet;
 
 import net.maizegenetics.taxa.Taxon;
 
@@ -60,7 +62,7 @@ public class TreeClusters {
                 }
             }
         }
-        return groups;
+        return zeroBasedGroupArray(groups);
     }
 
     /**
@@ -94,7 +96,7 @@ public class TreeClusters {
             }
         }
 
-        return groups;
+        return zeroBasedGroupArray(groups);
     }
 
     public void setNodeToGroup(Node aNode, int group, int[] groups) {
@@ -107,6 +109,29 @@ public class TreeClusters {
         for (int c = 0; c < nChildren; c++) {
             setNodeToGroup(aNode.getChild(c), group, groups);
         }
+    }
+
+    /**
+     * The group arrays are expected to be zero-based with no skipped indices. This is almost always the case. But for the
+     * rare instances when it is not, this method will make it so.
+     * @return
+     */
+    private int[] zeroBasedGroupArray(int[] originalGroups) {
+        //test number of groups - 1 = max group
+        //if not, re-index groups
+//        int maxGroup = Arrays.stream(originalGroups).max().getAsInt();
+//        Set<Integer> numberOfGroups = Arrays.stream(originalGroups).boxed().collect(Collectors.toSet());
+
+        TreeSet<Integer> indexSet = new TreeSet<>();
+        for (int ndx : originalGroups) indexSet.add(ndx);
+        if (indexSet.last() + 1 == indexSet.size() ) return originalGroups;
+        HashMap<Integer,Integer> indexMap = new HashMap<>();
+        int newIndex = 0;
+        for (Integer oldIndex : indexSet) indexMap.put(oldIndex, newIndex++);
+        int[] newGroups = new int[originalGroups.length];
+
+        for (int ndx = 0; ndx < originalGroups.length; ndx++) newGroups[ndx] = indexMap.get(originalGroups[ndx]);
+        return newGroups;
     }
 
 }
