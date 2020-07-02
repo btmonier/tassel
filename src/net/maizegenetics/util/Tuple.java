@@ -44,7 +44,8 @@ public class Tuple<X, Y> implements Comparable<Tuple<X, Y>> {
             return false;
         }
 
-        return compareTo((Tuple) obj) == 0;
+        Tuple other = (Tuple) obj;
+        return x.equals(other.x) && y.equals(other.y);
     }
 
     /**
