@@ -95,7 +95,7 @@ public class GetTagTaxaDistFromDBPlugin extends AbstractPlugin {
                     Tag tag = TagBuilder.instance(tagSeq).build();
                     myTags.add(tag);
                 }
-
+                tagFileReader.close();
             } else {
                 // Data will be provided for all tags in the database
                 myTags = tdw.getTags();
