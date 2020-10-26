@@ -238,26 +238,27 @@ public class GenerateRCode {
     }
 
     /**
-     * This converts a genotype table to a dosage integer array.
+     * This converts a genotype table to a double dimension dosage byte array.
      *
      * @param genotype genotype table
+     * @param useRef Use reference if true, and use major allele if false
      *
-     * @return int[] in column order with NA set to R approach
+     * @return byte[][] of dosage values.  First index is taxa and second index is site.
+     * Byte.MIN_VALUE is used for NA
      */
-    public static int[] genotypeTableToDosageIntArray(GenotypeTable genotype, boolean useRef) {
+    public static byte[][] genotypeTableToDosageByteArray(GenotypeTable genotype, boolean useRef) {
 
-        int[] result = new int[genotype.numberOfTaxa() * genotype.numberOfSites()];
+        // byte[][] result = new int[genotype.numberOfTaxa() * genotype.numberOfSites()];
+        byte[][] result = new byte[genotype.numberOfTaxa()][genotype.numberOfSites()];
 
-        int index = 0;
         PositionList posList = genotype.positions();
         for (int site = 0; site < genotype.numberOfSites(); site++) {
             byte[] siteGenotypes = genotype.genotypeAllTaxa(site);
             int[][] alleleCounts = AlleleFreqCache.allelesSortedByFrequencyNucleotide(siteGenotypes);
-            byte majorAllele = AlleleFreqCache.majorAllele(alleleCounts);
 
             // Use reference if available.  If not, use major allele
             Position posAtSite = posList.get(site);
-            byte refAllele = Byte.MAX_VALUE;
+            byte refAllele;
             if (useRef) {
                 myLogger.info("genotypeTableToDosageIntArray: using refAlle at sites");
                 refAllele = posAtSite.getAllele(WHICH_ALLELE.Reference);
@@ -269,15 +270,15 @@ public class GenerateRCode {
             // value assigned to site / taxon is the number of alleles
             // that do not match the major allele.
             for (int taxon = 0; taxon < genotype.numberOfTaxa(); taxon++) {
-                int value = 0;
+                byte value = 0;
                 byte[] alleles = GenotypeTableUtils.getDiploidValues(siteGenotypes[taxon]);
                 if (alleles[0] == GenotypeTable.UNKNOWN_ALLELE || alleles[1] == GenotypeTable.UNKNOWN_ALLELE) {
-                    value = Integer.MIN_VALUE;
+                    value = Byte.MIN_VALUE;
                 } else {
                     if (alleles[0] != refAllele) value++;
                     if (alleles[1] != refAllele) value++;
                 }
-                result[index++] = value;
+                result[taxon][site] = value;
             }
         }
         return result;
