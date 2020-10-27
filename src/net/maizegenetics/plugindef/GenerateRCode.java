@@ -248,27 +248,26 @@ public class GenerateRCode {
      */
     public static byte[][] genotypeTableToDosageByteArray(GenotypeTable genotype, boolean useRef) {
 
-        // byte[][] result = new int[genotype.numberOfTaxa() * genotype.numberOfSites()];
         byte[][] result = new byte[genotype.numberOfTaxa()][genotype.numberOfSites()];
 
         PositionList posList = genotype.positions();
         for (int site = 0; site < genotype.numberOfSites(); site++) {
             byte[] siteGenotypes = genotype.genotypeAllTaxa(site);
-            int[][] alleleCounts = AlleleFreqCache.allelesSortedByFrequencyNucleotide(siteGenotypes);
 
             // Use reference if available.  If not, use major allele
             Position posAtSite = posList.get(site);
             byte refAllele;
             if (useRef) {
-                myLogger.info("genotypeTableToDosageIntArray: using refAlle at sites");
+                myLogger.info("genotypeTableToDosageIntArray: using refAllele at sites");
                 refAllele = posAtSite.getAllele(WHICH_ALLELE.Reference);
             } else {
                 myLogger.info("genotypeTableToDosageIntArray: using majorAllele for ref at sites");
+                int[][] alleleCounts = AlleleFreqCache.allelesSortedByFrequencyNucleotide(siteGenotypes);
                 refAllele = AlleleFreqCache.majorAllele(alleleCounts);
             }
 
             // value assigned to site / taxon is the number of alleles
-            // that do not match the major allele.
+            // that do not match the ref allele / major allele.
             for (int taxon = 0; taxon < genotype.numberOfTaxa(); taxon++) {
                 byte value = 0;
                 byte[] alleles = GenotypeTableUtils.getDiploidValues(siteGenotypes[taxon]);
