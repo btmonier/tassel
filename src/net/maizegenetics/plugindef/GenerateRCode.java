@@ -702,13 +702,20 @@ public class GenerateRCode {
             }
 
             int startSite = input.siteOfPhysicalPosition(start[index], Chromosome.instance(seqName[index]));
+            // if startSite is negative, the position wasn't found and
+            // (-startSite - 1) is the insertion location.
             if (startSite < 0) {
                 startSite = -startSite - 1;
             }
+
             int endSite = input.siteOfPhysicalPosition(end[index], Chromosome.instance(seqName[index]));
+            // if endSite is negative, the positon wasn't found and
+            // (-endSite - 1) is the insertion location. Another 1 is subtracted
+            // to move back to the last site included in the range.
             if (endSite < 0) {
                 endSite = -endSite - 2;
             }
+            
             for (int i = startSite; i <= endSite; i++) {
                 sitesToInclude.fastSet(i);
             }
