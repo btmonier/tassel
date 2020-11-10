@@ -13,8 +13,10 @@ import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
 import net.maizegenetics.analysis.popgen.LinkageDisequilibrium;
 import net.maizegenetics.dna.WHICH_ALLELE;
+import net.maizegenetics.dna.map.Chromosome;
 import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.map.PositionList;
+import net.maizegenetics.dna.snp.FilterGenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.ImportUtils;
@@ -24,6 +26,8 @@ import net.maizegenetics.phenotype.*;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
+import net.maizegenetics.util.BitSet;
+import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
@@ -671,5 +675,63 @@ public class GenerateRCode {
 
     }
 
+    /**
+     * Filters given genotypes to only the ranges specified.
+     *
+     * @param input genotype table to be filtered
+     * @param seqName sequence names (i.e. chromosomes) for ranges
+     * @param start start positions for each range (inclusive)
+     * @param end end positions for each range (inclusive)
+     *
+     * @return filtered genotype table
+     */
+    public static GenotypeTable filterSitesByGRanges(GenotypeTable input, String[] seqName, int[] start, int[] end) {
+
+        int numOfRanges = seqName.length;
+
+        if (numOfRanges != start.length || numOfRanges != end.length) {
+            throw new IllegalArgumentException("GenerateRCode: filterSitesByGRanges: arrays seqName, start, and end must be same length");
+        }
+
+        int numSites = input.numberOfSites();
+        BitSet sitesToInclude = new OpenBitSet(numSites);
+        for (int index = 0; index < numOfRanges; index++) {
+
+            if (start[index] > end[index]) {
+                throw new IllegalArgumentException("GenerateRCode: filterSitesByGRanges: index: " + index + " start position: " + start[index] + " is greater than end position: " + end[index]);
+            }
+
+            int startSite = input.siteOfPhysicalPosition(start[index], Chromosome.instance(seqName[index]));
+            // if startSite is negative, the position wasn't found and
+            // (-startSite - 1) is the insertion location.
+            if (startSite < 0) {
+                startSite = -startSite - 1;
+            }
+
+            int endSite = input.siteOfPhysicalPosition(end[index], Chromosome.instance(seqName[index]));
+            // if endSite is negative, the positon wasn't found and
+            // (-endSite - 1) is the insertion location. Another 1 is subtracted
+            // to move back to the last site included in the range.
+            if (endSite < 0) {
+                endSite = -endSite - 2;
+            }
+            
+            for (int i = startSite; i <= endSite; i++) {
+                sitesToInclude.fastSet(i);
+            }
+        }
+
+        int numNewSites = (int) sitesToInclude.cardinality();
+        int[] result = new int[numNewSites];
+        int count = 0;
+        for (int s = 0; s < numSites; s++) {
+            if (sitesToInclude.fastGet(s)) {
+                result[count++] = s;
+            }
+        }
+
+        return FilterGenotypeTable.getInstance(input, result);
+
+    }
 
 }
