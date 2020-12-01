@@ -44,15 +44,8 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -258,6 +251,8 @@ abstract public class AbstractPlugin implements Plugin {
                 return (T) new Double(new BigDecimal(input).floatValue());
             } else if (outputClass.isAssignableFrom(List.class)) {
                 return (T) getListFromString(input);
+            } else if (outputClass.isAssignableFrom(SortedSet.class)) {
+                return (T) getSortedSet(input);
             } else if (outputClass.isAssignableFrom(PositionList.class)) {
                 String test = input.trim().substring(Math.max(0, input.length() - 8)).toLowerCase();
                 if ((test.endsWith(".bed")) || (test.endsWith(".bed.gz"))) {
@@ -281,7 +276,7 @@ abstract public class AbstractPlugin implements Plugin {
                     TaxaListBuilder builder = new TaxaListBuilder();
                     try (BufferedReader br = Utils.getBufferedReader(input)) {
                         String line = br.readLine();
-                        Pattern sep = Pattern.compile("\\s+");
+                        Pattern sep = Pattern.compile("[\\s,]+");
 
                         while (line != null) {
                             line = line.trim();
@@ -323,7 +318,7 @@ abstract public class AbstractPlugin implements Plugin {
 
     private static List<String> getListFromString(String str) {
 
-        if ((str == null) || (str.length() == 0)) {
+        if ((str == null) || (str.length() == 0) || str.equalsIgnoreCase("null")) {
             return null;
         }
         String[] tokens = str.split(",");
@@ -332,6 +327,23 @@ abstract public class AbstractPlugin implements Plugin {
             current = current.trim();
             if (current.length() != 0) {
                 result.add(current);
+            }
+        }
+        return result;
+
+    }
+
+    private static SortedSet<Integer> getSortedSet(String str) {
+
+        if ((str == null) || (str.length() == 0) || str.equalsIgnoreCase("null")) {
+            return null;
+        }
+        String[] tokens = str.split(",");
+        SortedSet<Integer> result = new TreeSet<>();
+        for (String current : tokens) {
+            current = current.trim();
+            if (current.length() != 0) {
+                result.add(Integer.valueOf(current));
             }
         }
         return result;
