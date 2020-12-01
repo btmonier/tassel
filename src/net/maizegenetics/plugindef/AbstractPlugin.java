@@ -276,7 +276,7 @@ abstract public class AbstractPlugin implements Plugin {
                     TaxaListBuilder builder = new TaxaListBuilder();
                     try (BufferedReader br = Utils.getBufferedReader(input)) {
                         String line = br.readLine();
-                        Pattern sep = Pattern.compile("\\s+");
+                        Pattern sep = Pattern.compile("[\\s,]+");
 
                         while (line != null) {
                             line = line.trim();
