@@ -66,7 +66,7 @@ public class EnzymeList {
                     map.put(s.trim().toUpperCase(), new Enzyme(name, initialCutSiteRemnant.split(","), likelyReadEnd.split(","), readEndCutSiteRemnantLength));
                 }
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.err.println("ERROR! Cannot load Enzyme List -- " + iniFile.getPath());
             return false;
         }
@@ -77,144 +77,253 @@ public class EnzymeList {
         if(map==null){
             map = new LinkedHashMap();
         }
-        map.put("APEKI", new Enzyme("ApeKI",
-                new String[]{"CAGC", "CTGC"},
-                new String[]{"GCAGC", "GCTGC", "GCAGAGAT", "GCTGAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                4
-        ));
-        map.put("PSTI", new Enzyme("PstI",
-                new String[]{"TGCAG"},
-                new String[]{"CTGCAG", "CTGCAAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                5));
-        
-        map.put("NSII", new Enzyme("NsiI",
-                new String[]{"TGCAA"},
-                new String[]{"CTGCAA", "CTGCAAGAA"}, // full cut site (from partial digest or chimera) or common adapter start
-                5));
-
-        map.put("ECOT22I", new Enzyme("EcoT22I",
-                new String[]{"TGCAT"},
-                new String[]{"ATGCAT", "ATGCAAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                5));
-
-        map.put("PASI", new Enzyme("PasI",
-                new String[]{"CAGGG", "CTGGG"},
-                new String[]{"CCCAGGG", "CCCTGGG", "CCCTGAGAT", "CCCAGAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                5));
-
-        map.put("HPAII", new Enzyme("HpaII",
-                new String[]{"CGG"},
-                new String[]{"CCGG", "CCGAGATCGG"}, // full cut site (from partial digest or chimera) or common adapter start
-                3));
-
-        map.put("MSPI", new Enzyme("MspI", // MspI and HpaII are isoschizomers (same recognition seq and overhang)
-                new String[]{"CGG"},
-                new String[]{"CCGG", "CCGAGATCGG"}, // full cut site (from partial digest or chimera) or common adapter start
-                3));
-
-        map.put("PSTI-ECOT22I", new Enzyme("PstI-EcoT22I",
-                new String[]{"TGCAG", "TGCAT"},
-                new String[]{"ATGCAT", "CTGCAG", "CTGCAAGAT", "ATGCAAGAT"}, // look for EcoT22I site, PstI site, or common adapter for PstI/EcoT22I
-                5));
-
-        map.put("PSTI-MSPI", new Enzyme("PstI-MspI",
-                new String[]{"TGCAG"},
-                // corrected, change from  CCGAGATC to CCGCTCAGG, as Y adapter was used for MspI  -QS
-                new String[]{"CCGG", "CTGCAG", "CCGCTCAGG"}, // look for MspI site, PstI site, or common adapter for MspI
-                3));
-        map.put("NSII-MSPI", new Enzyme("NsiI-MspI",
-                new String[]{"TGCAA"},
-                // corrected, change from  CCGAGATC to CCGCTCAGG, as Y adapter was used for MspI  -QS
-                new String[]{"CCGG", "CTGCAA", "CCGCTCAGG"}, // look for MspI site, PstI site, or common adapter for MspI
-                3));
-
-        map.put("PSTI-TAQI", new Enzyme("PstI-TaqI",
-                // corrected, change from  TCGAGATC to TCGCTCAGG, as Y adapter was used for TaqI  -QS
-                new String[]{"TGCAG"},
-                new String[]{"TCGA", "CTGCAG", "TCGCTCAGG"}, // look for TaqI site, PstI site, or common adapter for TaqI
-                3));
-
-        map.put("PAER7I-HHAI", new Enzyme("PaeR7I-HhaI",
-                // Requested by Ye, Songqing, use same Y adapter as Polland paper  -QS
-                new String[]{"TCGAG"},
-                new String[]{"GCGC", "CTCGAG", "GCGAGATC"}, // look for HhaI site, PaeR7I site, or common adapter for HhaI
-                3));
-
-        map.put("SBFI-MSPI", new Enzyme("SbfI-MspI",
-                new String[]{"TGCAGG"},
-                // corrected, change from  CCGAGATC to CCGCTCAGG, as Y adapter was used for MspI  -QS
-                new String[]{"CCGG", "CCTGCAGG", "CCGCTCAGG"}, // look for MspI site, SbfI site, or common adapter for MspI
-                3));
-
-        map.put("ASISI-MSPI", new Enzyme("AsiSI-MspI",
-                new String[]{"ATCGC"},
-                // likelyReadEnd for common adapter is CCGCTCAGG, as the Poland et al.(2012) Y adapter was used for MspI
-                new String[]{"CCGG", "GCGATCGC", "CCGCTCAGG"}, // look for MspI site, AsiSI site, or common adapter for MspI
-                3));
-
-        map.put("BSSHII-MSPI", new Enzyme("BssHII-MspI",
-                new String[]{"CGCGC"},
-                // likelyReadEnd for common adapter is CCGCTCAGG, as the Poland et al.(2012) Y adapter was used for MspI
-                new String[]{"CCGG", "GCGCGC", "CCGCTCAGG"}, // look for MspI site, BssHII site, or common adapter for MspI
-                3));
-
-        map.put("FSEI-MSPI", new Enzyme("FseI-MspI",
-                new String[]{"CCGGCC"},
-                // likelyReadEnd for common adapter is CCGCTCAGG, as the Poland et al.(2012) Y adapter was used for MspI
-                new String[]{"CCGG", "GGCCGGCC", "CCGCTCAGG"}, // look for MspI site, FseI site, or common adapter for MspI
-                3));
-
-        map.put("SALI-MSPI", new Enzyme("SalI-MspI",
-                new String[]{"TCGAC"},
-                // likelyReadEnd for common adapter is CCGCTCAGG, as the Poland et al.(2012) Y adapter was used for MspI
-                new String[]{"CCGG", "GTCGAC", "CCGCTCAGG"}, // look for MspI site, SalI site, or common adapter for MspI
-                3));
-
-        map.put("APOI", new Enzyme("ApoI",
-                new String[]{"AATTC", "AATTT"}, // corrected from {"AATTG","AATTC"} by Jeff Glaubitz on 2012/09/12
-                new String[]{"AAATTC", "AAATTT", "GAATTC", "GAATTT", "AAATTAGAT", "GAATTAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                5));
-
-        map.put("BAMHI", new Enzyme("BamHI",
-                new String[]{"GATCC"},
-                new String[]{"GGATCC", "GGATCAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                //            new String[]{"GGATCC", "AGATCGGAA", "AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAG"}, // <-- corrected from this by Jeff Glaubitz on 2012/09/12
-                5));
-
-        map.put("MSEI", new Enzyme("MseI",
-                new String[]{"TAA"},
-                new String[]{"TTAA", "TTAAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                3));
-
-        map.put("SAU3AI", new Enzyme("Sau3AI",
-                new String[]{"GATC"},
-                new String[]{"GATC", "GATCAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                4));
-
-        map.put("NDEI", new Enzyme("NdeI",
-                new String[]{"TATG"},
-                new String[]{"CATATG", "CATAAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                4));
-
-        map.put("HINPLI", new Enzyme("HinP1I",
-                new String[]{"CGC"},
-                new String[]{"GCGC", "GCGAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                3));
-
-        map.put("SBFI", new Enzyme("SbfI",
-                new String[]{"TGCAGG"},
-                new String[]{"CCTGCAGG", "CCTGCAAGAT"}, // full cut site (from partial digest or chimera) or common adapter start
-                6));
-
-        map.put("RBSTA", new Enzyme("RBSTA",
-                new String[]{"TA"},
-                new String[]{"TTAA", "GTAC", "CTAG", "TTAAGAT", "GTAAGAT", "CTAAGAT"}, // full cut site (from partial digest or chimera) of MseI, CVIQi, XspI or common adapter start
-                3));
-
-        map.put("RBSCG", new Enzyme("RBSCG",
-                new String[]{"CG"},
-                new String[]{"CCGC", "TCGA", "GCGC", "CCGG", "ACGT", "CCGAGAT", "TCGAGAT", "GCGAGAT", "ACGAGAT"}, // full cut site (from partial digest or chimera) of AciI, TaqaI, HinpI, HpaII, HpyCH4IV or common adapter start
-                3));
+        map.put("APEKI", new Enzyme("ApeKI"
+            ,new String[]{"CAGC", "CTGC"}
+            ,new String[]{"GCAGC", "GCTGC", "GCAGAGAT", "GCTGAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,4));
+        map.put("PSTI", new Enzyme("PstI"
+            ,new String[]{"TGCAG"}
+            ,new String[]{"CTGCAG", "CTGCAAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("ECOT22I", new Enzyme("EcoT22I"
+            ,new String[]{"TGCAT"}
+            ,new String[]{"ATGCAT", "ATGCAAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("PASI", new Enzyme("PasI"
+            ,new String[]{"CAGGG", "CTGGG"}
+            ,new String[]{"CCCAGGG", "CCCTGGG", "CCCTGAGAT", "CCCAGAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("HPAII", new Enzyme("HpaII"
+            ,new String[]{"CGG"}
+            ,new String[]{"CCGG", "CCGAGATCGG"} // full cut site (from partial digest or chimera) or common adapter start
+            ,3));
+        map.put("MSPI", new Enzyme("MspI"  // MspI and HpaII are isoschizomers (same recognition seq and overhang)
+            ,new String[]{"CGG"}
+            ,new String[]{"CCGG", "CCGAGATCGG"} // full cut site (from partial digest or chimera) or common adapter start
+            ,3));
+        map.put("PSTI-APEKI", new Enzyme("PstI-ApeKI"
+            ,new String[]{"TGCAG"}
+            ,new String[]{"GCAGC", "GCTGC", "CTGCAG", "GCAGAGAT", "GCTGAGAT"} // look for ApeKI site, PstI site, or common adapter for ApeKI
+            ,4));
+        map.put("PSTI-BFAI", new Enzyme("PstI-BfaI"  //  PstI: CTGCA^G  BfaI: C^TAG
+            ,new String[]{"TGCAG"}
+            ,new String[]{"CTGCAG", "CTAG", "CTAAGATC"} // look for PstI site, BfaI site, or common adapter start for BfaI
+            ,3));
+        map.put("PSTI-ECOT22I", new Enzyme("PstI-EcoT22I"
+            ,new String[]{"TGCAG", "TGCAT"}
+            ,new String[]{"ATGCAT", "CTGCAG", "CTGCAAGAT", "ATGCAAGAT"} // look for EcoT22I site, PstI site, or common adapter for PstI/EcoT22I
+            ,5));
+        map.put("PSTI-MSPI", new Enzyme("PstI-MspI"
+            ,new String[]{"TGCAG"}
+            ,new String[]{"CCGG", "CTGCAG", "CCGAGATC"} // look for MspI site, PstI site, or common adapter for MspI
+            ,3));
+        map.put("PSTI-MSPI-GDF-CUSTOM", new Enzyme("PstI-MspI-GDFcustom"
+            ,new String[]{"TGCAG"}
+            // changed from  CCGAGAT to CCGCTCAGG, as IGD/GDF used a custom Y adapter for MspI
+            ,new String[]{"CCGG", "CTGCAG", "CCGCTCAGG"} // look for MspI site, PstI site, or GDF custom common adapter for MspI
+            ,3));
+        map.put("PSTI-TAQI", new Enzyme("PstI-TaqI"
+            ,new String[]{"TGCAG"}
+            ,new String[]{"TCGA", "CTGCAG", "TCGAGATC"} // look for TaqI site, PstI site, or common adapter for TaqI
+            ,3));
+        map.put("NSII-MSPI", new Enzyme("NsiI-MspI"  //  ATGCA^T   C^CGG
+            ,new String[]{"TGCAT"}
+            ,new String[]{"CCGG", "ATGCAT", "CCGAGATC"} // look for MspI site, NsiI site, or common adapter for MspI
+            ,3));
+        map.put("PAER7I-HHAI", new Enzyme("PaeR7I-HhaI"
+            // Requested by Ye, Songqing, use same Y adapter as Polland paper  -QS
+            ,new String[]{"TCGAG"}
+            ,new String[]{"GCGC", "CTCGAG", "GCGAGATC"} // look for HhaI site, PaeR7I site, or common adapter for HhaI
+            ,3));
+        map.put("SBFI-MSPI", new Enzyme("SbfI-MspI"  // CCTGCA^GG  C^CGG
+            ,new String[]{"TGCAGG"}
+            ,new String[]{"CCGG", "CCTGCAGG", "CCGAGATC"} // look for MspI site, SbfI site, or common adapter for MspI
+            ,3));
+        map.put("SBFI-HPAII", new Enzyme("SbfI-HpaII"  // CCTGCA^GG  C^CGG  Nb: HpaII is an isoschizomer of MspI
+            ,new String[]{"TGCAGG"}
+            ,new String[]{"CCGG", "CCTGCAGG", "CCGAGATC"} // look for HpaII site, SbfI site, or common adapter for HpaII
+            ,3));
+        map.put("SBFI-BFAI", new Enzyme("SbfI-BfaI"  // CCTGCA^GG  C^TAG
+            ,new String[]{"TGCAGG"}
+            ,new String[]{"CTAG", "CCTGCAGG", "CTAAGATC"} // look for BfaI site, SbfI site, or common adapter for BfaI
+            ,3));
+        map.put("SPHI-ECORI", new Enzyme("SphI-EcoRI"  // GCATG^C  G^AATTC
+            ,new String[]{"CATGC"}  // SphI overhang from the genomic DNA fragment (top strand)
+            ,new String[]{"GCATGC", "GAATTC", "GAATTAGATC"} // look for SphI site, EcoRI site, or common adapter for EcoRI
+            ,5));
+        map.put("ASISI-MSPI", new Enzyme("AsiSI-MspI"
+            ,new String[]{"ATCGC"}
+            ,new String[]{"CCGG", "GCGATCGC", "CCGAGATC"} // look for MspI site, AsiSI site, or common adapter for MspI
+            ,3));
+        map.put("BSSHII-MSPI", new Enzyme("BssHII-MspI"
+            ,new String[]{"CGCGC"}
+            ,new String[]{"CCGG", "GCGCGC", "CCGAGATC"} // look for MspI site, BssHII site, or common adapter for MspI
+            ,3));
+        map.put("FSEI-MSPI", new Enzyme("FseI-MspI"
+            ,new String[]{"CCGGCC"}
+            ,new String[]{"CCGG", "GGCCGGCC", "CCGAGATC"} // look for MspI site, FseI site, or common adapter for MspI
+            ,3));
+        map.put("SALI-MSPI", new Enzyme("SalI-MspI"
+            ,new String[]{"TCGAC"}
+            ,new String[]{"CCGG", "GTCGAC", "CCGAGATC"} // look for MspI site, SalI site, or common adapter for MspI
+            ,3));
+        map.put("ECORI-MSPI", new Enzyme("EcoRI-MspI"   //  G^AATTC  C^CGG
+            ,new String[]{"AATTC"}
+            ,new String[]{"CCGG", "GAATTC", "CCGAGATC"} // look for MspI site, EcoRI site, or Poland et al. 2012 Y-adapter for MspI
+            ,3));
+        map.put("HINDIII-MSPI", new Enzyme("HindIII-MspI" // A^AGCTT   C^CGG
+            ,new String[]{"AGCTT"}
+            ,new String[]{"CCGG", "AAGCTT", "CCGAGATC"} // look for MspI site, HindIII site, or Poland et al. 2012 Y-adapter for MspI
+            ,3));
+        map.put("HINDIII-NLAIII", new Enzyme("HindIII-NlaIII" // A^AGCTT   ^CATG (not blunt)
+            ,new String[]{"AGCTT"}
+            ,new String[]{"CATG", "AAGCTT", "CATGAGATC"} // look for NlaIII site, HindIII site, or Poland et al. 2012 Y-adapter for Nla3
+            ,4));
+        map.put("SEXAI-SAU3AI", new Enzyme("SexAI-Sau3AI"  // A^CCWGGT   ^GATC (not blunt)
+            ,new String[]{"CCAGGT", "CCTGGT"}
+            ,new String[]{"GATC", "ACCAGGT", "ACCTGGT", "GATCAGATC"} // look for SexAI site, Sau3AI site, or Poland et al. 2012 Y-adapter for Sau3AI
+            ,4));
+        map.put("BAMHI-MLUCI", new Enzyme("BamHI-MluCI"  // G^GATCC   ^AATT (not blunt)
+            ,new String[]{"GATCC"}
+            ,new String[]{"AATT", "GGATCC", "AATTAGATC"} // look for MluCI site, BamHI site, or Poland et al. 2012 Y-adapter for MluCI
+            ,4));
+        map.put("PSTI-MLUCI", new Enzyme("PstI-MluCI"  // CTGCA^G   ^AATT (not blunt)
+            ,new String[]{"TGCAG"}
+            ,new String[]{"AATT", "CTGCAG", "AATTAGATC"} // look for MluCI site, PstI site, or Poland et al. 2012 Y-adapter for MluCI
+            ,4));
+        map.put("PSTI-MSEI", new Enzyme("PstI-MseI" // CTGCA^G   T^TAA
+            ,new String[]{"TGCAG"}
+            ,new String[]{"TTAA", "CTGCAG", "TTAAGATC"} // look for MseI site, PstI site, or Poland et al. 2012 Y-adapter for MseI
+            ,3));
+        map.put("AVAII-MSEI", new Enzyme("AvaII-MseI" // G^GWCC   T^TAA  W=AorT
+            ,new String[]{"GACC", "GTCC"}
+            ,new String[]{"TTAA", "GGACC", "GGTCC", "TTAAGATC"} // look for MseI site, AvaII site, or Poland et al. 2012 Y-adapter for MseI
+            ,3));
+        map.put("ECORI-MSEI", new Enzyme("EcoRI-MseI" // G^AATTC   T^TAA
+            ,new String[]{"AATTC"}
+            ,new String[]{"TTAA", "GAATTC", "TTAAGATC"} // look for MseI site, EcoRI site, or Poland et al. 2012 Y-adapter for MseI
+            ,3));
+        map.put("ECORI-AVAII", new Enzyme("EcoRI-AvaII" // G^AATTC   G^GWCC
+            ,new String[]{"AATTC"}
+            ,new String[]{"GGACC", "GGTCC", "GAATTC", "GGACAGATC", "GGTCAGATC"} // look for AvaII site, EcoRI site, or Poland et al. 2012 Y-adapter for AvaII
+            ,4));
+        map.put("ECORI-HINFI", new Enzyme("EcoRI-HinfI" // G^AATTC   G^ANTC
+            ,new String[]{"AATTC"}
+            ,new String[]{"GAATC", "GACTC", "GAGTC", "GATTC", "GAATTC", "GAATAGATC", "GACTAGATC", "GAGTAGATC", "GATTAGATC"} // look for HinfI site, EcoRI site, or Poland et al. 2012 Y-adapter for HinfI
+            ,4));
+        map.put("BBVCI-MSPI", new Enzyme("BbvCI-MspI" // CCTCAGC (-5/-2)   C^CGG
+            ,new String[]{"TCAGC"}
+            ,new String[]{"CCGG", "CCTCAGC", "CCGAGATC"} // look for MspI site, BbvCI site, or Poland et al. 2012 Y-adapter for MspI
+            ,3));
+        map.put("MSPI-APEKI", new Enzyme("MspI-ApeKI"  // C^CGG  G^CWGC
+            ,new String[]{"CGG", "CAGC", "CTGC"}
+            ,new String[]{"CCGG", "GCAGC", "GCTGC", "CCGAGATCGG", "GCAGAGAT", "GCTGAGAT"} 
+            ,3 ));
+        map.put("APOI", new Enzyme("ApoI"
+            ,new String[]{"AATTC","AATTT"}
+            ,new String[]{"AAATTC","AAATTT","GAATTC","GAATTT","AAATTAGAT","GAATTAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("BAMHI", new Enzyme("BamHI"
+            ,new String[]{"GATCC"}
+            ,new String[]{"GGATCC", "GGATCAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            // ,new String[]{"GGATCC", "AGATCGGAA", "AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAG"} // <-- corrected from this by Jeff Glaubitz on 2012/09/12
+            ,5));
+        map.put("MSEI", new Enzyme("MseI"
+            ,new String[]{"TAA"}
+            ,new String[]{"TTAA", "TTAAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,3));
+        map.put("SAU3AI", new Enzyme("Sau3AI"
+            ,new String[]{"GATC"}
+            ,new String[]{"GATC","GATCAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,4));
+        map.put("NDEI", new Enzyme("NdeI"
+            ,new String[]{"TATG"}
+            ,new String[]{"CATATG","CATAAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,4));
+        map.put("HINP1I", new Enzyme("HinP1I"
+            ,new String[]{"CGC"}
+            ,new String[]{"GCGC","GCGAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,3));
+        map.put("SBFI", new Enzyme("SbfI"
+            ,new String[]{"TGCAGG"}
+            ,new String[]{"CCTGCAGG","CCTGCAAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,6));
+        map.put("HINDIII", new Enzyme("HindIII" // A^AGCTT
+            ,new String[]{"AGCTT"}
+            ,new String[]{"AAGCTT","AAGCTAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("ECORI", new Enzyme("EcoRI"  // G^AATTC
+            ,new String[]{"AATTC"}
+            ,new String[]{"GAATTC","GAATTAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("CVI1I", new Enzyme("CviQI"  // CviQI and Csp6I are isoschizomers (same recognition seq and overhang)
+            ,new String[]{"TAC"}
+            ,new String[]{"GTAC","GTAAGATCGG"} // full cut site (from partial digest or chimera) or common adapter start
+            ,3));
+        map.put("CSP6I", new Enzyme("Csp6I"  // Csp6I and CviQI are isoschizomers (same recognition seq and overhang)
+            ,new String[]{"TAC"}
+            ,new String[]{"GTAC","GTAAGATCGG"} // full cut site (from partial digest or chimera) or common adapter start
+            ,3));
+        map.put("NLAIII", new Enzyme("NlaIII" // CATG^
+            ,new String[]{"CATG"}
+            ,new String[]{"CATG","CATGAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,4));
+        map.put("SPHI", new Enzyme("SphI"  // GCATG^C
+            ,new String[]{"CATGC"}
+            ,new String[]{"GCATGC","GCATGAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("NSPI", new Enzyme("NspI"  // RCATG^Y
+            ,new String[]{"CATGC","CATGT"}
+            ,new String[]{"ACATGT","GCATGC","ACATGAGAT","GCATGAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("KPNI", new Enzyme("KpnI"  // GGTAC^C
+            ,new String[]{"GTACC"}
+            ,new String[]{"GGTACC","GGTACAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("STYI", new Enzyme("StyI"  // C^CWWGG
+            ,new String[]{"CAAGG","CATGG","CTAGG","CTTGG"}
+            ,new String[]{"CCAAGG","CCATGG","CCTAGG","CCTTGG","CCAAGAGAT","CCATGAGAT","CCTAGAGAT","CCTTGAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,5));
+        map.put("STYI-MSEI", new Enzyme("StyI-MseI"  // C^CWWGG & T^TAA
+            ,new String[]{"CAAGG","CATGG","CTAGG","CTTGG"}
+            ,new String[]{"TTAA","CCAAGG","CCATGG","CCTAGG","CCTTGG","TTAAGAT"} // full cut site (from partial digest or chimera) or common adapter start
+            ,3));
+        map.put("FSEI", new Enzyme("FseI"  // GGCCGG^CC
+            ,new String[]{"CCGGCC"}
+            ,new String[]{"GGCCGGCC","AGATCGGAAG"} // full cut site (from partial digest or chimera) or Morishige et al (BMC Genomics, 2013) T adapter start
+            ,0));  // assumes that common T adapter is far more likely than a second full cut site));
+        map.put("NgoMIV", new Enzyme("NgoMIV"  // G^CCGGC
+            ,new String[]{"CCGGC"}
+            ,new String[]{"GCCGGC","AGATCGGAAG"} // full cut site (from partial digest or chimera) or Morishige et al (BMC Genomics, 2013) T adapter start
+            ,0));  // assumes that common T adapter is far more likely than a second full cut site));
+        map.put("MSLI", new Enzyme("MslI"  // CAYNN^NNRTG  -- has 32 different cut sites (assuming constrained to palindromic YNN -- 32^2 otherwise)
+            ,new String[]{""}
+            ,new String[]{"AGATCGGA"} // common adapter start only (too many possible cut sites!)
+            ,0  ));
+        map.put("ASEI", new Enzyme("AseI"  // AT^TAAT
+            ,new String[]{"TAAT"}
+            ,new String[]{"ATTAAT","ATTAAGAT"}  // full cut site (from partial digest or chimera) or common adapter start
+            ,4  ));
+        map.put("AVAII", new Enzyme("AvaII"  // G^GWCC
+            ,new String[]{"GACC","GTCC"}
+            ,new String[]{"GGACC","GGTCC","GGACAGAT","GGTCAGAT"}  // full cut site (from partial digest or chimera) or common adapter start
+            ,4  ));
+        map.put("KPNI-MSPI", new Enzyme("KpnI-MspI"  //  KpnI: GGTAC^C  MspI: C^CGG
+            ,new String[]{"GTACC"}
+            ,new String[]{"CCGG", "GGTACC", "CCGAGATC"} // look for MspI site, KpnI site, or common adapter start for MspI
+            ,3));
+        map.put("RBSTA", new Enzyme("RBSTA"
+            ,new String[]{"TA"}
+            ,new String[]{"TTAA", "GTAC", "CTAG", "TTAAGAT", "GTAAGAT", "CTAAGAT"} // full cut site (from partial digest or chimera) of MseI, CVIQi, XspI or common adapter start
+            ,3));
+        map.put("RBSCG", new Enzyme("RBSCG"
+            ,new String[]{"CG"}
+            ,new String[]{"CCGC", "TCGA", "GCGC", "CCGG", "ACGT", "CCGAGAT", "TCGAGAT", "GCGAGAT", "ACGAGAT"} // full cut site (from partial digest or chimera) of AciI, TaqaI, HinpI, HpaII, HpyCH4IV or common adapter start
+            ,3));
+        map.put("IGNORE", new Enzyme("unspecified"  // can be used for new enzymes -- only looks for barcodes and common adapter starts
+            ,new String[]{""}
+            ,new String[]{"AGATCGGA"} // common adapter start only
+            ,0));
     }
 
     /**
@@ -224,7 +333,7 @@ public class EnzymeList {
      * @param clazz class to find
      * @return the location of the jar
      */
-        static File getJarPath(Class clazz) {
+    static File getJarPath(Class clazz) {
         try {
             URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
             File f = new File(location.toURI().getPath());
@@ -256,12 +365,18 @@ public class EnzymeList {
     }
     
     /**
-     * Add enzyme to a a configuration file
+     * Add Enzyme to a configuration file
      * @param ini the config file 
      * @param e The enzyme to add
+     * @param key The name of the key/section. Uses Enzyme.name if Empty or null.
      */
-    static void add(Ini ini,Enzyme e) {
-        String key = e.name.trim().toUpperCase();
+    static void add(Ini ini,Enzyme e, String key) {
+        //key should be upper case and no leading or trailing whitespace
+        if(key == null){
+            key = e.name.trim().toUpperCase();
+        }else{
+            key = key.trim().toUpperCase();
+        }
         Profile.Section section = ini.containsKey(key) ? (Profile.Section) ini.get(key) : ini.add(key);
         section.put("name", e.name);
         //initialCutSiteRemnant
@@ -287,18 +402,23 @@ public class EnzymeList {
      * @throws IOException 
      */
     public void printEnzymes(PrintStream print) throws IOException{
-        Ini ini = new Ini();
+        Ini ini = new Ini(); //using the Ini object format the output
         ini.getConfig().setLineSeparator("\n");
         if(this.map==null){
             loadDefaults();
         }
         for(String key : this.map.keySet()){
             Enzyme e = this.map.get(key);
-            add(ini,e);
+            add(ini,e,key);
         }
         ini.store(print);
     }
     
+    /**
+     * Prints default enzyme list and exists
+     * @param args
+     * @throws IOException 
+     */
     public static void main(String[] args) throws IOException{
         new EnzymeList().printEnzymes(System.out);
     }
