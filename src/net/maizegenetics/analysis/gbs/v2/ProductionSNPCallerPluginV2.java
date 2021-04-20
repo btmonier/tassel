@@ -170,10 +170,10 @@ public class ProductionSNPCallerPluginV2 extends AbstractPlugin {
         }
         if (!myEnzyme.isEmpty()) {
             // Add likelyReadEnds to the ahoCorasick trie
-            GBSEnzyme enzyme = new GBSEnzyme(enzyme());
+            EnzymeList.Enzyme enzyme = EnzymeList.defaultCache.getEnzyme(enzyme()); 
  
-            likelyReadEndStrings = enzyme.likelyReadEnd(); // for removeSecondCutSiteIndexOf()
-            readEndCutSiteRemnantLength = enzyme.readEndCutSiteRemnantLength();
+            likelyReadEndStrings = enzyme.likelyReadEnd; // for removeSecondCutSiteIndexOf()
+            readEndCutSiteRemnantLength = enzyme.readEndCutSiteRemnantLength;
 //            // the junit test runs about a second faster average 15.5 vs 16.5) without Trie().removeOverlaps();
 //            String[] likelyReadEnd = enzyme.likelyReadEnd();
 //            ahoCorasickTrie = new Trie(); // adding caseInsensitive causes nothing to be found
@@ -322,7 +322,7 @@ public class ProductionSNPCallerPluginV2 extends AbstractPlugin {
     private void processFastQFile(TaxaList masterTaxaList, Path keyPath, Path fastQPath, String enzymeName,
             Map<Tag,Tag> canonicalTags, int preferredTagLength, int minQual) throws StringIndexOutOfBoundsException{
         ArrayList<Taxon> tl=GBSUtils.getLaneAnnotatedTaxaList(keyPath, fastQPath);
-        BarcodeTrie barcodeTrie=GBSUtils.initializeBarcodeTrie(tl, masterTaxaList, new GBSEnzyme(enzymeName));
+        BarcodeTrie barcodeTrie=GBSUtils.initializeBarcodeTrie(tl, masterTaxaList, EnzymeList.defaultCache.getEnzyme(enzymeName));
         try {
             processFastQ(fastQPath,barcodeTrie,canonicalTags,preferredTagLength, minQual);
         } catch (StringIndexOutOfBoundsException oobe) {

@@ -146,9 +146,9 @@ public class GBSSeqToTagDBPlugin extends AbstractPlugin {
 
         if (!myEnzyme.isEmpty()) {
             // Add likelyReadEnds for later processing
-            GBSEnzyme enzyme = new GBSEnzyme(enzyme()); 
-            likelyReadEndStrings = enzyme.likelyReadEnd(); // for removeSecondCutSiteIndexOf()
-            readEndCutSiteRemnantLength = enzyme.readEndCutSiteRemnantLength();
+            EnzymeList.Enzyme enzyme = EnzymeList.defaultCache.getEnzyme(enzyme()); 
+            likelyReadEndStrings = enzyme.likelyReadEnd; // for removeSecondCutSiteIndexOf()
+            readEndCutSiteRemnantLength = enzyme.readEndCutSiteRemnantLength;
         }
         
     }
@@ -289,7 +289,7 @@ public class GBSSeqToTagDBPlugin extends AbstractPlugin {
                      int minQuality, TagDistributionMap masterTagTaxaMap, int preferredTagLength) throws StringIndexOutOfBoundsException {
     	ArrayList<Taxon> tl=GBSUtils.getLaneAnnotatedTaxaList(keyPath, fastQPath);
     	if (tl.size() == 0) return; 
-        BarcodeTrie barcodeTrie=GBSUtils.initializeBarcodeTrie(tl, masterTaxaList, new GBSEnzyme(enzymeName));
+        BarcodeTrie barcodeTrie=GBSUtils.initializeBarcodeTrie(tl, masterTaxaList, EnzymeList.defaultCache.getEnzyme(enzymeName));
         try {
         	processFastQ(fastQPath,barcodeTrie,masterTaxaList,masterTagTaxaMap,preferredTagLength,minQuality);
         } catch (StringIndexOutOfBoundsException oobe) {
@@ -403,10 +403,10 @@ public class GBSSeqToTagDBPlugin extends AbstractPlugin {
     }
     
     // THis method now obsolete, replaced with removeSecondCutSiteAhoC
-    private void removeSecondCutSitesFromMap(GBSEnzyme enzyme) {
+    private void removeSecondCutSitesFromMap(EnzymeList.Enzyme enzyme) {
         //this is a little tricky as you cannot add entries at the same time as removing entries to a map
         System.out.println("GBSSeqToTagDBPlugin.removeSecondCutSitesFromMap started Initial Size:"+tagCntMap.size());
-        String[] likelyReadEnd=enzyme.likelyReadEnd();
+        String[] likelyReadEnd=enzyme.likelyReadEnd;
         long time=System.nanoTime();
 
         Map<Tag,TaxaDistribution> shortTags=new HashMap<>(tagCntMap.size()/5);

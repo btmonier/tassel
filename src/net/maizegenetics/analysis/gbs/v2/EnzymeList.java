@@ -7,14 +7,22 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Set;
+import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
 
 /**
- *
+ * This class contains a list of all the enzymes supported for GBS.
  * @author dpavelec
  */
 public class EnzymeList {
+    
+    private static final Logger myLogger = Logger.getLogger(EnzymeList.class);
+    /**
+     * This is the application level default that will initiate using the EnzymeList 
+     * default constructor.
+     */
+    public static final EnzymeList defaultCache = new EnzymeList();
     
     /**
      * Looks for "enzymes.ini" config file in the lib path. 
@@ -52,22 +60,22 @@ public class EnzymeList {
             //List<Profile.Section> all = ini.getAll(ini);
             Set<String> keySet = ini.keySet();
             String empty = null;
-            for(String s : keySet){
-                Profile.Section e = (Profile.Section) ini.get(s);
-                String name = e.get("name", empty);
-                String initialCutSiteRemnant = e.get("initialCutSiteRemnant", empty);
-                String likelyReadEnd = e.get("likelyReadEnd", empty);
-                String readLenString = e.get("readEndCutSiteRemnantLength", "-1");
+            for(String key : keySet){
+                Profile.Section section = (Profile.Section) ini.get(key);
+                String name = section.get("name", empty);
+                String initialCutSiteRemnant = section.get("initialCutSiteRemnant", empty);
+                String likelyReadEnd = section.get("likelyReadEnd", empty);
+                String readLenString = section.get("readEndCutSiteRemnantLength", "-1");
                 int readEndCutSiteRemnantLength = Integer.parseInt(readLenString);
                 if(name==null|initialCutSiteRemnant==null|likelyReadEnd==null|readEndCutSiteRemnantLength<0){
-                    System.err.println("WARNING! Cannot load Enzyme " + s);
+                    myLogger.warn("WARNING! Cannot load Enzyme section" + key);
                     continue;
                 }else{
-                    map.put(s.trim().toUpperCase(), new Enzyme(name, initialCutSiteRemnant.split(","), likelyReadEnd.split(","), readEndCutSiteRemnantLength));
+                    map.put(key.trim().toUpperCase(), new Enzyme(name, initialCutSiteRemnant.split(","), likelyReadEnd.split(","), readEndCutSiteRemnantLength));
                 }
             }
         } catch (Exception ex) {
-            System.err.println("ERROR! Cannot load Enzyme List -- " + iniFile.getPath());
+            myLogger.warn("ERROR! Cannot load Enzyme List -- " + iniFile.getPath());
             return false;
         }
         return true;
@@ -353,47 +361,48 @@ public class EnzymeList {
     }
 
     /**
+     * Get the Enzyme by the section name <br>
      * Replaces the previous new GBSEnzyme(String enzyme)
-     * @param name name of the enzyme
-     * @return 
+     * @param key The section name specified the enzyme configuration file
+     * @return Enzyme
      */
-    public synchronized Enzyme getEnzyme(String name) {
+    public synchronized Enzyme getEnzyme(String key) {
         if(map==null){
             loadDefaults();
         }
-        return map.get(name.trim().toUpperCase());
+        return map.get(key.trim().toUpperCase());
     }
     
     /**
      * Add Enzyme to a configuration file
      * @param ini the config file 
-     * @param e The enzyme to add
+     * @param enzyme The enzyme to add
      * @param key The name of the key/section. Uses Enzyme.name if Empty or null.
      */
-    static void add(Ini ini,Enzyme e, String key) {
+    static void add(Ini ini,Enzyme enzyme, String key) {
         //key should be upper case and no leading or trailing whitespace
         if(key == null){
-            key = e.name.trim().toUpperCase();
+            key = enzyme.name.trim().toUpperCase();
         }else{
             key = key.trim().toUpperCase();
         }
         Profile.Section section = ini.containsKey(key) ? (Profile.Section) ini.get(key) : ini.add(key);
-        section.put("name", e.name);
+        section.put("name", enzyme.name);
         //initialCutSiteRemnant
-        StringBuilder builder = new StringBuilder(e.initialCutSiteRemnant[0]);
-        for (int i = 1; i < e.initialCutSiteRemnant.length; ++i) {
+        StringBuilder builder = new StringBuilder(enzyme.initialCutSiteRemnant[0]);
+        for (int i = 1; i < enzyme.initialCutSiteRemnant.length; ++i) {
             builder.append(",");
-            builder.append(e.initialCutSiteRemnant[i]);
+            builder.append(enzyme.initialCutSiteRemnant[i]);
         }
         section.put("initialCutSiteRemnant", builder.toString());
         //likelyReadEnd
-        builder = new StringBuilder(e.likelyReadEnd[0]);
-        for (int i = 1; i < e.likelyReadEnd.length; ++i) {
+        builder = new StringBuilder(enzyme.likelyReadEnd[0]);
+        for (int i = 1; i < enzyme.likelyReadEnd.length; ++i) {
             builder.append(",");
-            builder.append(e.likelyReadEnd[i]);
+            builder.append(enzyme.likelyReadEnd[i]);
         }
         section.put("likelyReadEnd", builder.toString());
-        section.put("readEndCutSiteRemnantLength", e.readEndCutSiteRemnantLength);
+        section.put("readEndCutSiteRemnantLength", enzyme.readEndCutSiteRemnantLength);
     }
     
     /**
@@ -408,8 +417,8 @@ public class EnzymeList {
             loadDefaults();
         }
         for(String key : this.map.keySet()){
-            Enzyme e = this.map.get(key);
-            add(ini,e,key);
+            Enzyme enzyme = this.map.get(key);
+            add(ini,enzyme,key);
         }
         ini.store(print);
     }
@@ -420,7 +429,7 @@ public class EnzymeList {
      * @throws IOException 
      */
     public static void main(String[] args) throws IOException{
-        new EnzymeList().printEnzymes(System.out);
+        EnzymeList.defaultCache.printEnzymes(System.out);
     }
 
     private LinkedHashMap<String, Enzyme> map;
