@@ -18,7 +18,7 @@ import javax.swing.ImageIcon;
 
 import net.maizegenetics.analysis.gbs.Barcode;
 import net.maizegenetics.analysis.gbs.v2.BarcodeTrie;
-import net.maizegenetics.analysis.gbs.v2.GBSEnzyme;
+import net.maizegenetics.analysis.gbs.v2.EnzymeList;
 import net.maizegenetics.analysis.gbs.v2.GBSUtils;
 import net.maizegenetics.dna.BaseEncoder;
 import net.maizegenetics.dna.tag.Tag;
@@ -186,7 +186,7 @@ public class RNADeMultiPlexSeqToDBPlugin extends AbstractPlugin{
         // with a specific number of underscores.
         ArrayList<Taxon> tl=TaxaListIOUtils.readTaxaAnnotationFileAL(keyPath.toAbsolutePath().toString(), GBSUtils.sampleNameField, new HashMap<>());
         if (tl.size() == 0) return; 
-        BarcodeTrie barcodeTrie=GBSUtils.initializeBarcodeTrie(tl, masterTaxaList, new GBSEnzyme(enzymeName));
+        BarcodeTrie barcodeTrie=GBSUtils.initializeBarcodeTrie(tl, masterTaxaList, EnzymeList.defaultCache.getEnzyme(enzymeName));
         try {
                 processFastQ(fastQPath,barcodeTrie,masterTaxaList,masterTagTaxaMap,
                         minQuality, minKmerLen);
