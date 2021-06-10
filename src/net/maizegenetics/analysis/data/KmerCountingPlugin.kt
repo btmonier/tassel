@@ -8,6 +8,7 @@ import org.apache.log4j.Logger
 import java.awt.Frame
 import java.io.File
 import javax.swing.ImageIcon
+import kotlin.math.ceil
 
 /**
  * @author Terry Casstevens
@@ -16,7 +17,7 @@ import javax.swing.ImageIcon
 
 private const val NUM_BASES_PER_HASH = 14
 
-class KmerCountingPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin(parentFrame, isInteractive) {
+class KmerCountingPlugin(parentFrame: Frame? = null, isInteractive: Boolean = false) : AbstractPlugin(parentFrame, isInteractive) {
 
     private val myLogger = Logger.getLogger(KmerCountingPlugin::class.java)
 
@@ -30,11 +31,11 @@ class KmerCountingPlugin(parentFrame: Frame?, isInteractive: Boolean) : Abstract
             .description("Length of Kmer")
             .build()
 
-    private fun numHashes() = { Math.ceil(kmerLength() / NUM_BASES_PER_HASH.toDouble()).toInt() }.invoke()
+    private fun numHashes() = { ceil(kmerLength() / NUM_BASES_PER_HASH.toDouble()).toInt() }.invoke()
 
     override fun processData(input: DataSet?): DataSet? {
 
-        val countFunction: (String) -> Unit = if (numHashes() == 1) (::countSingle) else (::countTree)
+        val countFunction = if (numHashes() == 1) ::countSingle else ::countTree
 
         FastqReader(File(fastqFile())).use { reader ->
 
@@ -80,9 +81,9 @@ class KmerCountingPlugin(parentFrame: Frame?, isInteractive: Boolean) : Abstract
             currentMap[seqNextToLast] = counts
         }
 
-        val seqLast = kmer.substring((numHashes() - 1) * NUM_BASES_PER_HASH, Math.min((numHashes() - 1) * NUM_BASES_PER_HASH + NUM_BASES_PER_HASH, kmer.length))
+        val seqLast = kmer.substring((numHashes() - 1) * NUM_BASES_PER_HASH, ((numHashes() - 1) * NUM_BASES_PER_HASH + NUM_BASES_PER_HASH).coerceAtMost(kmer.length))
         val count = currentMap[seqLast]
-        if (count == null) currentMap.put(kmer, 1) else currentMap.put(kmer, count as Int + 1)
+        if (count == null) currentMap[kmer] = 1 else currentMap[kmer] = count as Int + 1
 
     }
 
@@ -90,7 +91,7 @@ class KmerCountingPlugin(parentFrame: Frame?, isInteractive: Boolean) : Abstract
 
         return Array(numHashes()) { i ->
             val startIndex = start + NUM_BASES_PER_HASH * i
-            seq.substring(startIndex, Math.min(startIndex + NUM_BASES_PER_HASH, start + kmerLength()))
+            seq.substring(startIndex, (startIndex + NUM_BASES_PER_HASH).coerceAtMost(start + kmerLength()))
         }
 
     }
