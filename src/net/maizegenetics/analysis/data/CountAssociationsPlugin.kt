@@ -13,15 +13,16 @@ import org.apache.log4j.Logger
 import java.awt.Frame
 import javax.swing.ImageIcon
 
-class CountAssociationsPlugin (parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin(parentFrame, isInteractive){
-    private val myLogger = Logger.getLogger(CountAssociationsPlugin::class.java)
+class CountAssociationsPlugin(parentFrame: Frame? = null, isInteractive: Boolean = false) : AbstractPlugin(parentFrame, isInteractive) {
 
+    private val myLogger = Logger.getLogger(CountAssociationsPlugin::class.java)
 
     private var intervalFile = PluginParameter.Builder("intervals", null, String::class.java)
             .description("Interval File.")
             .inFile()
             .required(true)
             .build()
+
     private var gwasResults = PluginParameter.Builder("gwasResults", null, String::class.java)
             .description("GWAS Result File.")
             .inFile()
@@ -41,7 +42,7 @@ class CountAssociationsPlugin (parentFrame: Frame?, isInteractive: Boolean) : Ab
         val intervalMap = loadInIntervalFile(intervalFile())
 
         //Map<IntervalName, Map<TraitName, count>>
-        val outputMap = mutableMapOf<String, MutableMap<String,Int>>()
+        val outputMap = mutableMapOf<String, MutableMap<String, Int>>()
 
         val traitSet = mutableSetOf<String>()
         val intervalSet = intervalMap.asMapOfRanges().map { it.value }.toSortedSet()
@@ -68,7 +69,7 @@ class CountAssociationsPlugin (parentFrame: Frame?, isInteractive: Boolean) : Ab
                 val intervalHit = intervalMap.get(pos)
 
 
-                if(intervalHit==null) {
+                if (intervalHit == null) {
                     currLine = reader.readLine()
                     continue
                 }
@@ -94,10 +95,10 @@ class CountAssociationsPlugin (parentFrame: Frame?, isInteractive: Boolean) : Ab
             val sortedTraits = traitSet.sorted()
             output.write("Interval\t${sortedTraits.joinToString("\t")}\n")
 
-            for(interval in intervalSet) {
+            for (interval in intervalSet) {
                 val countMap = outputMap[interval]
                 val countList = mutableListOf<Int>()
-                for(trait in sortedTraits) {
+                for (trait in sortedTraits) {
                     if (countMap == null) {
                         countList.add(0)
                     } else {
@@ -112,12 +113,12 @@ class CountAssociationsPlugin (parentFrame: Frame?, isInteractive: Boolean) : Ab
         return null
     }
 
-    fun loadInIntervalFile(intervalFile : String) : RangeMap<Position, String> {
-        val intervalMapBuilder = ImmutableRangeMap.Builder<Position,String>()
+    fun loadInIntervalFile(intervalFile: String): RangeMap<Position, String> {
+        val intervalMapBuilder = ImmutableRangeMap.Builder<Position, String>()
         Utils.getBufferedReader(intervalFile).readLines()
                 .filter { !it.startsWith("seqnames") }
                 .map { it.split(",") }
-                .map { Pair(Range.closed(Position.of(it[0],it[1].toInt()), Position.of(it[0],it[2].toInt())),it[3]) }
+                .map { Pair(Range.closed(Position.of(it[0], it[1].toInt()), Position.of(it[0], it[2].toInt())), it[3]) }
                 .forEach { intervalMapBuilder.put(it.first, it.second) }
         return intervalMapBuilder.build()
     }
@@ -127,11 +128,11 @@ class CountAssociationsPlugin (parentFrame: Frame?, isInteractive: Boolean) : Ab
     }
 
     override fun getButtonName(): String {
-        return("Count Associations")
+        return ("Count Associations")
     }
 
     override fun getToolTipText(): String {
-        return("Create a count file For Associations")
+        return ("Create a count file For Associations")
     }
 
     /**
