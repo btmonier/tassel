@@ -49,7 +49,7 @@ class MeanR2FromLDPlugin(parentFrame: Frame? = null, isInteractive: Boolean = fa
                     }
                 }
 
-        Utils.getBufferedWriter(output()).let { writer ->
+        Utils.getBufferedWriter(output()).use { writer ->
             writer.write("seqid,start,end,rr_id,average_r2_ld\n")
             intervalMap.asMapOfRanges()
                     .map { it.value }
