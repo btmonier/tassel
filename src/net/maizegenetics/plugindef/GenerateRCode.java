@@ -26,6 +26,7 @@ import net.maizegenetics.phenotype.*;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
+import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
 import net.maizegenetics.util.BitSet;
 import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.TableReport;
@@ -48,6 +49,7 @@ import static net.maizegenetics.dna.map.Position.STRAND_PLUS;
 /**
  * @author Terry Casstevens
  * @author Ed Buckler
+ * @author Brandon Monier
  */
 public class GenerateRCode {
 
@@ -732,6 +734,30 @@ public class GenerateRCode {
 
         return FilterGenotypeTable.getInstance(input, result);
 
+    }
+
+    /**
+     * Convert an R matrix to a DistanceMatrix object
+     *
+     * @param m A numeric R matrix passed as a 2d array of doubles
+     * @param taxa A String array of taxa IDs
+     *
+     * @return DistanceMatrix object
+     */
+    public static DistanceMatrix asTasselDistanceMatrix(double[][] m, String[] taxa) {
+
+        if (taxa.length != m.length) {
+            throw new IllegalArgumentException("GenerateRCode: Number of taxa does not equal dimensions of matrix.");
+        }
+
+        DistanceMatrixBuilder distBuilder = DistanceMatrixBuilder.getInstance(m.length);
+        for (int i = 0; i < m.length; i++) {
+            for (int j = 0; j < m[0].length; j++) {
+                distBuilder.set(j, i, m[i][j]);
+            }
+            distBuilder.addTaxon(new Taxon(taxa[i]));
+        }
+        return distBuilder.build();
     }
 
 }
