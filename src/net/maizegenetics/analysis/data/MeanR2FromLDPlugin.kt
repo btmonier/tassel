@@ -39,9 +39,10 @@ class MeanR2FromLDPlugin(parentFrame: Frame? = null, isInteractive: Boolean = fa
         val intervalMap = intervalMap(intervalFile())
 
         Utils.getBufferedReader(ldResultFile()).readLines()
-                .drop(1)
-                .map { it.split("\t") }
-                .map { Pair(Position.of(it[0], it[1].toInt()), it[13].toDouble()) }
+            .drop(1)
+            .map { it.split("\t") }
+            .map { Pair(Position.of(it[0], it[1].toInt()), it[13].toDouble()) }
+            .filter { !it.second.isNaN() }
                 .forEach {
                     intervalMap[it.first]?.let { accumulateR2 ->
                         accumulateR2.r2Total += it.second
