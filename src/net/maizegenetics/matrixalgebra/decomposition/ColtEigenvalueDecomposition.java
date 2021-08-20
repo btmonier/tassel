@@ -1,7 +1,5 @@
 package net.maizegenetics.matrixalgebra.decomposition;
 
-import org.ejml.data.DenseMatrix64F;
-
 import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix2D;
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix;
@@ -22,12 +20,12 @@ public class ColtEigenvalueDecomposition implements EigenvalueDecomposition {
 		myDecomposition = new cern.colt.matrix.linalg.EigenvalueDecomposition(matrix);
 	}
 	
-	public ColtEigenvalueDecomposition(DenseMatrix64F dm) {
-		int nrows = dm.numRows;
-		DoubleMatrix2D matrix = DoubleFactory2D.dense.make(dm.data, nrows);
-		myDecomposition = new cern.colt.matrix.linalg.EigenvalueDecomposition(matrix);
-	}
-
+//	public ColtEigenvalueDecomposition(DenseMatrix64F dm) {
+//		int nrows = dm.numRows;
+//		DoubleMatrix2D matrix = DoubleFactory2D.dense.make(dm.data, nrows);
+//		myDecomposition = new cern.colt.matrix.linalg.EigenvalueDecomposition(matrix);
+//	}
+//
 	public ColtEigenvalueDecomposition(DoubleMatrix2D matrix) {
 		myDecomposition = new cern.colt.matrix.linalg.EigenvalueDecomposition(matrix);
 	}

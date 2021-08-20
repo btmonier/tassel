@@ -375,9 +375,14 @@
             <version>3.2</version>
         </dependency>
         <dependency>
-            <groupId>com.googlecode.efficient-java-matrix-library</groupId>
-            <artifactId>ejml</artifactId>
-            <version>0.23</version>
+            <groupId>org.ejml</groupId>
+            <artifactId>ejml-kotlin</artifactId>
+            <version>0.41</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ejml</groupId>
+            <artifactId>ejml-all</artifactId>
+            <version>0.41</version>
         </dependency>
         <dependency>
             <groupId>net.sf.trove4j</groupId>

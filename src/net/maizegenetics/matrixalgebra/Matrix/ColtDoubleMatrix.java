@@ -135,8 +135,9 @@ public class ColtDoubleMatrix implements DoubleMatrix {
 	}
 
 	@Override
-	public void invert() {
+	public boolean invert() {
 		myMatrix = Algebra.DEFAULT.inverse(myMatrix);
+		return true;
 	}
 
 	@Override
