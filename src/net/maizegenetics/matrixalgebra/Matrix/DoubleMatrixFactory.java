@@ -20,11 +20,9 @@ public class DoubleMatrixFactory {
 			DEFAULT = new DoubleMatrixFactory(FactoryType.blas);
 			myLogger.info("Using BLAS/LAPACK for DoubleMatrix operations");
 		} catch (UnsatisfiedLinkError err) {
-			//err.printStackTrace();
 			DEFAULT = new DoubleMatrixFactory(FactoryType.ejml);
 			myLogger.info("TasselBlas library for system-specific BLAS/LAPACK not found. Using system-independent EJML for DoubleMatrix operations.");
 		} catch (SecurityException se) {
-			//se.printStackTrace();
 			DEFAULT = new DoubleMatrixFactory(FactoryType.ejml);
 			myLogger.info("No permission to load blasDoubleMatrix library. Using EJML for DoubleMatrix operations.");
 		}

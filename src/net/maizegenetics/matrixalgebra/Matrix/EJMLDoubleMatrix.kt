@@ -291,8 +291,10 @@ class EJMLDoubleMatrix: DoubleMatrix {
         CommonOps_DDRM.scale(s, myMatrix)
     }
 
-    override fun getSelection(rows: IntArray, columns: IntArray): DoubleMatrix {
-        return EJMLDoubleMatrix(CommonOps_DDRM.extract(myMatrix, rows, rows.size, columns, columns.size, null))
+    override fun getSelection(rows: IntArray?, columns: IntArray?): DoubleMatrix {
+        val selectedRows = if (rows == null) IntArray(myMatrix.numRows) { it } else rows
+        val selectedColumns = if (columns == null) IntArray(myMatrix.numCols) { it } else columns
+        return EJMLDoubleMatrix(CommonOps_DDRM.extract(myMatrix, selectedRows, selectedRows.size, selectedColumns, selectedColumns.size, null))
     }
 
     override fun rowSum(row: Int): Double {
