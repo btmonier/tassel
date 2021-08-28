@@ -68,8 +68,7 @@ import net.maizegenetics.analysis.numericaltransform.TransformDataPlugin;
 import net.maizegenetics.analysis.popgen.LinkageDiseqDisplayPlugin;
 import net.maizegenetics.analysis.popgen.LinkageDisequilibriumPlugin;
 import net.maizegenetics.analysis.popgen.SequenceDiversityPlugin;
-import net.maizegenetics.analysis.tree.ArchaeopteryxPlugin;
-import net.maizegenetics.analysis.tree.CreateTreePlugin;
+import net.maizegenetics.analysis.tree.*;
 import net.maizegenetics.analysis.workflow.WorkflowPlugin;
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.gui.PrintHeapAction;
@@ -110,8 +109,8 @@ import java.util.Map;
 public class TASSELMainFrame extends JFrame implements ActionListener {
 
     private static final Logger myLogger = Logger.getLogger(TASSELMainFrame.class);
-    public static final String version = "5.2.52";
-    public static final String versionDate = "March 21, 2019";
+    public static final String version = "5.2.73";
+    public static final String versionDate = "June 23, 2021";
     private DataTreePanel myDataTreePanel;
     //a variable to control when the progress bar was last updated
     private JFileChooser filerSave = new JFileChooser();
@@ -124,6 +123,7 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
     private JTextField myStatusTextField = new JTextField();
     private final ProgressPanel myProgressPanel = ProgressPanel.getInstance();
     private HashMap<JMenuItem, Plugin> myMenuItemHash = new HashMap<JMenuItem, Plugin>();
+    private PreferencesDialog myPreferences = null;
 
     public TASSELMainFrame() {
         try {
@@ -217,6 +217,10 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         reportProgressSplitPane.setDividerLocation((int) (getSize().height / 3.5));
     }
 
+    public void loadPreferences() {
+        myPreferences.processData(null);
+    }
+
     private void addMenuBar() {
 
         JMenuBar jMenuBar = new JMenuBar();
@@ -241,8 +245,8 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
     }
 
     /**
-     * This adds plugins to the TASSEL menu specified by files named tassel_menu.xml.
-     * This can be used in jars that implement TASSEL plugins to dynamically add a menu.
+     * This adds plugins to the TASSEL menu specified by files named tassel_menu.xml. This can be used in jars that
+     * implement TASSEL plugins to dynamically add a menu.
      *
      * @param jMenuBar TASSEL Menu Bar
      */
@@ -568,6 +572,10 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
         result.add(createMenuItem(new DistanceMatrixPlugin(this, true)));
         result.add(createMenuItem(new KinshipPlugin(this, true)));
         result.add(createMenuItem(new CreateTreePlugin(this, true)));
+        result.add(createMenuItem(new MergeTreesPlugin(this, true)));
+        result.add(createMenuItem(new SubsetTreePlugin(this, true)));
+        result.add(createMenuItem(new RemoveBranchLengthsPlugin(this, true)));
+        result.add(createMenuItem(new ConvertTreeNamesPlugin(this, true)));
         result.add(createMenuItem(new AMatrixPlugin(this, true)));
         result.add(createMenuItem(new HMatrixPlugin(this, true)));
         result.add(createMenuItem(new MultiDimensionalScalingPlugin(this, true)));
@@ -646,7 +654,8 @@ public class TASSELMainFrame extends JFrame implements ActionListener {
             }
         }, -1));
 
-        fileMenu.add(createMenuItem(new PreferencesDialog(this, true), true));
+        myPreferences = new PreferencesDialog(this, true);
+        fileMenu.add(createMenuItem(myPreferences, true));
         fileMenu.add(createMenuItem(new ShowParameterCachePlugin(this, true), true));
 
         fileMenu.addSeparator();

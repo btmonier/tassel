@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMap;
 
 import net.maizegenetics.analysis.gbs.Barcode;
 import net.maizegenetics.analysis.gbs.v2.BarcodeTrie;
-import net.maizegenetics.analysis.gbs.v2.GBSEnzyme;
+import net.maizegenetics.analysis.gbs.v2.EnzymeList;
 import net.maizegenetics.analysis.gbs.v2.GBSUtils;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
@@ -107,9 +107,9 @@ public class ConvertOldFastqToModernFormatPlugin extends AbstractPlugin {
         }
         if (!myEnzyme.isEmpty()) {
             // Add likelyReadEnds for later processing
-            GBSEnzyme enzyme = new GBSEnzyme(enzyme()); 
-            likelyReadEndStrings = enzyme.likelyReadEnd(); // for removeSecondCutSiteIndexOf()
-            readEndCutSiteRemnantLength = enzyme.readEndCutSiteRemnantLength();
+            EnzymeList.Enzyme enzyme = EnzymeList.defaultCache.getEnzyme(enzyme()); 
+            likelyReadEndStrings = enzyme.likelyReadEnd; // for removeSecondCutSiteIndexOf()
+            readEndCutSiteRemnantLength = enzyme.readEndCutSiteRemnantLength;
         }
     }
     
@@ -345,7 +345,7 @@ public class ConvertOldFastqToModernFormatPlugin extends AbstractPlugin {
             nameToTaxon.put(name, taxon);
         }
         if (tl.size() == 0) return;
-        BarcodeTrie barcodeTrie=GBSUtils.initializeBarcodeTrie(tl, masterTaxaList, new GBSEnzyme(enzymeName));
+        BarcodeTrie barcodeTrie=GBSUtils.initializeBarcodeTrie(tl, masterTaxaList, EnzymeList.defaultCache.getEnzyme(enzymeName));
 
         String[] seqAndQual;
         BufferedReader br = Utils.getBufferedReader(fastQPath.toString(), 1 << 22);

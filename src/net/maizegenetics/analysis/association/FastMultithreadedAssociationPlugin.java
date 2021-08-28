@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.swing.ImageIcon;
 
+import net.maizegenetics.stats.linearmodels.*;
 import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.commons.math3.exception.OutOfRangeException;
 import org.apache.log4j.Logger;
@@ -33,10 +34,6 @@ import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.GeneratePluginCode;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.prefs.TasselPrefs;
-import net.maizegenetics.stats.linearmodels.CovariateModelEffect;
-import net.maizegenetics.stats.linearmodels.FactorModelEffect;
-import net.maizegenetics.stats.linearmodels.ModelEffect;
-import net.maizegenetics.stats.linearmodels.SolveByOrthogonalizing;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportBuilder;
 
@@ -321,8 +318,12 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
         
         public void run() {
             try {
-            	Marker thisMarker = siteQueue.poll(4, TimeUnit.SECONDS);
-                
+                Marker thisMarker = siteQueue.poll(30, TimeUnit.SECONDS);
+                if (thisMarker == null) {
+                    //send end signal to reporter
+                    outQueue.put(new Object[0]);
+                    throw new IllegalStateException("ERROR: The site tester timeout was exceeded.");
+                }
                 byte[] geno = thisMarker.geno;
                 while (geno.length > 0) {
                     byte major = thisMarker.major;
@@ -361,8 +362,14 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
                         
                         outputResult(r2values, thisMarker.myPosition);
                     }
-                    
-                    thisMarker = siteQueue.poll(1, TimeUnit.SECONDS);
+
+                    thisMarker = siteQueue.poll(2, TimeUnit.SECONDS);
+                    if (thisMarker == null) {
+                        //send end signal to reporter
+                        outQueue.put(new Object[0]);
+                        throw new IllegalStateException("Error: The site tester timeout was exceeded.");
+                    }
+
                     geno = thisMarker.geno;
                 }
                 //send end signal to reporter
@@ -404,7 +411,7 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
             double F = rvalue / (1 - rvalue) * errdf;
             double p;
             try {
-                p = 1 - Fdist.cumulativeProbability(F);
+                p = LinearModelUtils.Ftest(F, 1, errdf);
             } catch (Exception e) {
                 p = Double.NaN;
             }
@@ -429,7 +436,10 @@ public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
             int numberOfFinishedThreads = 0;
             try {
                 do {
-                    Object[] reportRow = myReportQueue.poll(1, TimeUnit.HOURS);
+                    Object[] reportRow = myReportQueue.poll(30, TimeUnit.MINUTES);
+                    if (reportRow == null) {
+                        throw new IllegalStateException("ERROR: report queue timed out.");
+                    }
                     if (reportRow.length > 0) {
                         myReportBuilder.add(reportRow);
                     }

@@ -32,7 +32,7 @@ public class CorePhenotype implements Phenotype {
 	protected final String name;
 	protected final TaxaAttribute myTaxaAttribute;
 	
-	CorePhenotype(List<PhenotypeAttribute> attributes, List<ATTRIBUTE_TYPE> types, String name) {
+	public CorePhenotype(List<PhenotypeAttribute> attributes, List<ATTRIBUTE_TYPE> types, String name) {
 		myAttributeList = new ArrayList<PhenotypeAttribute>(attributes);
 		myAttributeTypeList = new ArrayList<ATTRIBUTE_TYPE>(types);
 		this.name = name;
