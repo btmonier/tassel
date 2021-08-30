@@ -35,9 +35,9 @@ import kotlin.math.roundToInt
  * Created June 24, 2019
  */
 
-class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin(parentFrame, isInteractive) {
+class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin(parentFrame, isInteractive) {
 
-    private val myLogger = Logger.getLogger(ManovaPlugin::class.java)
+    private val myLogger = Logger.getLogger(mvStepwisePlugin::class.java)
 
     private var usePermutations = PluginParameter.Builder("usePerm", false, Boolean::class.javaObjectType)
             .description("Should permutations be used to set the enter and exit limits for stepwise regression? A permutation test will be used to determine the enter limit. The exit limit will be set to 2 times the enter limit.")
@@ -269,7 +269,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         if (createStep.value()) {
             val outputStep = stepsReportBuilder.build()
-            datumList.add(Datum("Steps", outputStep, "Multi-trait Stepwise regression results:\n" + "Model fitting steps\n"))
+            datumList.add(Datum("Steps", outputStep, "Multivariate Stepwise regression results:\n" + "Model fitting steps\n"))
 
             if (writeFiles.value()) {
                 val filenameStep = outputName.value() + "_steps.txt"
@@ -279,7 +279,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 
         if (createManova.value()) {
             val outputMan = manovaReportBuilder.build()
-            datumList.add(Datum("Manova", outputMan, "Multi-trait Stepwise regression results:\\n Manova for the final model \\n"))
+            datumList.add(Datum("Manova", outputMan, "Multivariate Stepwise regression results:\\n Manova for the final model \\n"))
 
             if (writeFiles.value()) {
                 val filenameMan = outputName.value() + "_Manova.txt"
@@ -624,15 +624,15 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
     }
 
     override fun getButtonName(): String {
-        return "Multi-trait Stepwise"
+        return "Multivariate Stepwise"
     }
 
     override fun getToolTipText(): String {
-        return "Multi-trait Stepwise"
+        return "Multivariate Stepwise"
     }
 
     override fun getCitation(): String {
-        return "reference..."
+        return "Fernandes, SB; Casstevens, TM; Bradbury, PJ; and Lipka, AE. ... 2021"
     }
 
     override fun pluginUserManualURL(): String {
@@ -663,7 +663,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun usePermutations(value: Boolean): ManovaPlugin {
+    fun usePermutations(value: Boolean): mvStepwisePlugin {
         usePermutations = PluginParameter(usePermutations, value)
         return this
     }
@@ -686,7 +686,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun numberOfPermutations(value: Int): ManovaPlugin {
+    fun numberOfPermutations(value: Int): mvStepwisePlugin {
         numberOfPermutations = PluginParameter(numberOfPermutations, value)
         return this
     }
@@ -708,7 +708,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun permutationAlpha(value: Double?): ManovaPlugin {
+    fun permutationAlpha(value: Double?): mvStepwisePlugin {
         permutationAlpha = PluginParameter(permutationAlpha, value)
         return this
     }
@@ -736,7 +736,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun enterLimit(value: Double): ManovaPlugin {
+    fun enterLimit(value: Double): mvStepwisePlugin {
         enterLimit = PluginParameter(enterLimit, value)
         return this
     }
@@ -763,7 +763,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun exitLimit(value: Double): ManovaPlugin {
+    fun exitLimit(value: Double): mvStepwisePlugin {
         exitLimit = PluginParameter(exitLimit, value)
         return this
     }
@@ -786,7 +786,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun isNested(value: Boolean): ManovaPlugin {
+    fun isNested(value: Boolean): mvStepwisePlugin {
         isNested = PluginParameter(isNested, value)
         return this
     }
@@ -811,7 +811,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun nestingFactor(value: String): ManovaPlugin {
+    fun nestingFactor(value: String): mvStepwisePlugin {
         nestingFactor = PluginParameter(nestingFactor, value)
         return this
     }
@@ -835,7 +835,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun genotypeTable(value: GenotypeTable.GENOTYPE_TABLE_COMPONENT): ManovaPlugin {
+    fun genotypeTable(value: GenotypeTable.GENOTYPE_TABLE_COMPONENT): mvStepwisePlugin {
         myGenotypeTable = PluginParameter(myGenotypeTable, value)
         return this
     }
@@ -857,7 +857,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun createManova(value: Boolean): ManovaPlugin {
+    fun createManova(value: Boolean): mvStepwisePlugin {
         createManova = PluginParameter(createManova, value)
         return this
     }
@@ -883,7 +883,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      * @return this plugin
      */
 /*
-    fun createEffects(value: Boolean): ManovaPlugin {
+    fun createEffects(value: Boolean): mvStepwisePlugin {
         createEffects = PluginParameter(createEffects, value)
         return this
     }
@@ -907,7 +907,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun createStep(value: Boolean): ManovaPlugin {
+    fun createStep(value: Boolean): mvStepwisePlugin {
         createStep = PluginParameter(createStep, value)
         return this
     }
@@ -937,7 +937,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      * @return this plugin
      */
 /*
-    fun createResiduals(value: Boolean): ManovaPlugin {
+    fun createResiduals(value: Boolean): mvStepwisePlugin {
         createResiduals = PluginParameter(createResiduals, value)
         return this
     }
@@ -960,7 +960,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun writeFiles(value: Boolean): ManovaPlugin {
+    fun writeFiles(value: Boolean): mvStepwisePlugin {
         writeFiles = PluginParameter(writeFiles, value)
         return this
     }
@@ -984,7 +984,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun outputName(value: String): ManovaPlugin {
+    fun outputName(value: String): mvStepwisePlugin {
         outputName = PluginParameter(outputName, value)
         return this
     }
@@ -1006,7 +1006,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun maximumNumberOfVariantsInModel(value: Int): ManovaPlugin {
+    fun maximumNumberOfVariantsInModel(value: Int): mvStepwisePlugin {
         maximumNumberOfVariantsInModel = PluginParameter(maximumNumberOfVariantsInModel, value)
         return this
     }
@@ -1027,7 +1027,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun runParallel(value: Boolean?): ManovaPlugin {
+    fun runParallel(value: Boolean?): mvStepwisePlugin {
         runParallel = PluginParameter(runParallel, value)
         return this
     }
@@ -1048,7 +1048,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
      *
      * @return this plugin
      */
-    fun maxThreads(value: Int?): ManovaPlugin {
+    fun maxThreads(value: Int?): mvStepwisePlugin {
         maxThreads = PluginParameter(maxThreads, value)
         return this
     }
@@ -1056,7 +1056,7 @@ class ManovaPlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin
 }
 
 /*fun main(args : Array<String>) {
-    generate(ManovaPlugin::class.java)
+    generate(mvStepwisePlugin::class.java)
 }*/
 
 data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
