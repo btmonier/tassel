@@ -9,6 +9,8 @@ import net.maizegenetics.util.ProgressListener;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Constructor;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -16,6 +18,8 @@ import org.apache.log4j.Logger;
  * @author Terry Casstevens
  */
 public interface Plugin extends PluginListener, ProgressListener, Runnable {
+
+    enum PARAMETER_PROPERTIES {Plugin, Parameter, Required, Default, Description}
 
     /**
      * Returns menu that can be added to main menu bar.
@@ -96,6 +100,14 @@ public interface Plugin extends PluginListener, ProgressListener, Runnable {
      * Sets all parameter values to default.
      */
     public void setParametersToDefault();
+
+    /**
+     * Get map of plugin parameters. Key is command line name
+     * and value is current value.
+     *
+     * @return map of parameter values
+     */
+    public Map<String, String> pluginParameters();
 
     /**
      * Sets up this plugin to receive input from another plugin.

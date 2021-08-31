@@ -92,7 +92,7 @@ public class ExportMultiplePlugin extends AbstractPlugin {
             }
 
             if ((myFileTypes == null) || (myFileTypes.length == 0)) {
-                // do nothing
+                myExportPlugin.fileType(null);
             } else if (myFileTypes.length == 1) {
                 myExportPlugin.fileType(myFileTypes[0]);
             } else {

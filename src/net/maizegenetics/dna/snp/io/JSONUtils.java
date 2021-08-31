@@ -416,7 +416,7 @@ public class JSONUtils {
             }
             current = parser.next();
         }
-        return new Chromosome(name, length, anno);
+        return Chromosome.instance(name, length, anno);
     }
 
 }

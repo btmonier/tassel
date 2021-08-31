@@ -39,6 +39,24 @@ public class GeneratePluginCode {
             }
         }
     }
+    public static void generateKotlin(Class currentMatch) {
+        try {
+            Constructor constructor = currentMatch.getConstructor(Frame.class);
+            generate((AbstractPlugin) constructor.newInstance((Frame) null));
+        } catch (Exception ex) {
+            try {
+                Constructor constructor = currentMatch.getConstructor(Frame.class, boolean.class);
+                generateKotlin((AbstractPlugin) constructor.newInstance(null, false));
+            } catch (NoSuchMethodException nsme) {
+                myLogger.warn("Self-describing Plugins should implement this constructor: " + currentMatch.getClass().getName());
+                myLogger.warn("public Plugin(Frame parentFrame, boolean isInteractive) {");
+                myLogger.warn("   super(parentFrame, isInteractive);");
+                myLogger.warn("}");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private static void generate(AbstractPlugin plugin) {
         String clazz = Utils.getBasename(plugin.getClass().getName());
@@ -91,6 +109,54 @@ public class GeneratePluginCode {
             System.out.println("    public " + clazz + " " + methodName + "(" + current.valueType().getSimpleName() + " value) {");
             System.out.println("        " + field.getName() + " = new PluginParameter<>(" + field.getName() + ", value);");
             System.out.println("        return this;");
+            System.out.println("    }\n");
+        }
+    }
+
+    private static void generateKotlin(AbstractPlugin plugin) {
+        String clazz = Utils.getBasename(plugin.getClass().getName());
+
+        System.out.println("    // The following getters and setters were auto-generated.");
+        System.out.println("    // Please use this method to re-generate.");
+        System.out.println("    //");
+        System.out.println("    // fun main(args: Array<String>) {");
+        System.out.println("    //     GeneratePluginCode.generateKotlin("+ clazz + "::class.java)");
+        System.out.println("    // }");
+        System.out.println("");
+
+
+        for (Field field : plugin.getParameterFields()) {
+            PluginParameter<?> current = null;
+            try {
+                current = (PluginParameter) field.get(plugin);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+            //String guiNameAsCamelCase = stringToCamelCase(current.guiName());
+            String methodName = removeMyFromString(field.getName());
+
+            //Getter
+            System.out.println("    /**");
+            System.out.println(createDescription(current.description()));
+            System.out.println("     *");
+            System.out.println("     * @return " + current.guiName());
+            System.out.println("     */");
+            System.out.println("    fun " + methodName + "(): "+current.valueType().getSimpleName() +" {");
+            System.out.println("        return " + field.getName() + ".value()");
+            System.out.println("    }\n");
+
+            // Setter
+            System.out.println("    /**");
+            System.out.println(createDescription("Set " + current.guiName() + ". " + current.description()));
+            System.out.println("     *");
+            System.out.println("     * @param value " + current.guiName());
+            System.out.println("     *");
+            System.out.println("     * @return this plugin");
+            System.out.println("     */");
+            System.out.println("    fun " + methodName + "(value: "+current.valueType().getSimpleName()+"): " + clazz +" {");
+            System.out.println("        " + field.getName() + " = PluginParameter<"+current.valueType().getSimpleName()+">(" + field.getName() + ", value)");
+            System.out.println("        return this");
             System.out.println("    }\n");
         }
     }

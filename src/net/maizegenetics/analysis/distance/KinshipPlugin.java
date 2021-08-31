@@ -174,17 +174,18 @@ public class KinshipPlugin extends AbstractPlugin {
         return "Calculate kinship from marker data";
     }
 
-    // The following getters and setters were auto-generated.
-    // Please use this method to re-generate.
-    //
-    // public static void main(String[] args) {
-    //     GeneratePluginCode.generate(KinshipPlugin.class);
-    // }
     /**
      * Convenience method to run plugin with one return object.
      */
     public DistanceMatrix runPlugin(DataSet input) {
         return (DistanceMatrix) performFunction(input).getData(0).getData();
+    }
+
+    /**
+     * Convenience method to run plugin with one return object.
+     */
+    public DistanceMatrix runPlugin(GenotypeTable input) {
+        return (DistanceMatrix) performFunction(DataSet.getDataSet(input)).getData(0).getData();
     }
 
     /**

@@ -8,7 +8,9 @@ package net.maizegenetics.plugindef;
 
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.dna.snp.GenotypeTable;
+import net.maizegenetics.dna.snp.ImportUtils;
 import net.maizegenetics.dna.snp.io.JSONUtils;
+import net.maizegenetics.dna.snp.io.ReadBedfile;
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.gui.SelectFromAvailableDialog;
 import net.maizegenetics.gui.SiteNamesAvailableListModel;
@@ -37,19 +39,13 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -219,6 +215,14 @@ abstract public class AbstractPlugin implements Plugin {
         }
     }
 
+    public boolean isPluginParameter(String key) {
+        if (getParameterInstance(key) == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     public static <T> T convert(String input, Class<T> outputClass) {
         try {
             if ((input == null) || (input.length() == 0)) {
@@ -230,15 +234,40 @@ abstract public class AbstractPlugin implements Plugin {
             } else if (outputClass.isAssignableFrom(Integer.class)) {
                 char groupingSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getGroupingSeparator();
                 input = input.replace(String.valueOf(groupingSeparator), "");
+                char decimalSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getDecimalSeparator();
+                input = input.replace(String.valueOf(decimalSeparator), ".");
                 return (T) new Integer(new BigDecimal(input).intValueExact());
             } else if (outputClass.isAssignableFrom(Double.class)) {
                 char groupingSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getGroupingSeparator();
                 input = input.replace(String.valueOf(groupingSeparator), "");
+                char decimalSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getDecimalSeparator();
+                input = input.replace(String.valueOf(decimalSeparator), ".");
                 return (T) new Double(new BigDecimal(input).doubleValue());
+            } else if (outputClass.isAssignableFrom(Float.class)) {
+                char groupingSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getGroupingSeparator();
+                input = input.replace(String.valueOf(groupingSeparator), "");
+                char decimalSeparator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getDecimalSeparator();
+                input = input.replace(String.valueOf(decimalSeparator), ".");
+                return (T) new Double(new BigDecimal(input).floatValue());
             } else if (outputClass.isAssignableFrom(List.class)) {
                 return (T) getListFromString(input);
+            } else if (outputClass.isAssignableFrom(SortedSet.class)) {
+                return (T) getSortedSet(input);
             } else if (outputClass.isAssignableFrom(PositionList.class)) {
-                return (T) JSONUtils.importPositionListFromJSON(input);
+                String test = input.trim().substring(Math.max(0, input.length() - 8)).toLowerCase();
+                if ((test.endsWith(".bed")) || (test.endsWith(".bed.gz"))) {
+                    return (T) ReadBedfile.getPositionList(input);
+                } else if (test.endsWith(".json") || test.endsWith(".json.gz")) {
+                    return (T) JSONUtils.importPositionListFromJSON(input);
+                } else {
+                    try {
+                        GenotypeTable temp = ImportUtils.read(input);
+                        return (T) temp.positions();
+                    } catch (Exception e) {
+                        myLogger.debug(e.getMessage(), e);
+                        throw new IllegalArgumentException("AbstractPlugin: convert: don't know who to covert: " + input + " to postion list");
+                    }
+                }
             } else if (outputClass.isAssignableFrom(TaxaList.class)) {
                 String test = input.trim().substring(Math.max(0, input.length() - 8)).toLowerCase();
                 if (test.endsWith(".json") || test.endsWith(".json.gz")) {
@@ -247,7 +276,7 @@ abstract public class AbstractPlugin implements Plugin {
                     TaxaListBuilder builder = new TaxaListBuilder();
                     try (BufferedReader br = Utils.getBufferedReader(input)) {
                         String line = br.readLine();
-                        Pattern sep = Pattern.compile("\\s+");
+                        Pattern sep = Pattern.compile("[\\s,]+");
 
                         while (line != null) {
                             line = line.trim();
@@ -289,7 +318,7 @@ abstract public class AbstractPlugin implements Plugin {
 
     private static List<String> getListFromString(String str) {
 
-        if ((str == null) || (str.length() == 0)) {
+        if ((str == null) || (str.length() == 0) || str.equalsIgnoreCase("null")) {
             return null;
         }
         String[] tokens = str.split(",");
@@ -298,6 +327,23 @@ abstract public class AbstractPlugin implements Plugin {
             current = current.trim();
             if (current.length() != 0) {
                 result.add(current);
+            }
+        }
+        return result;
+
+    }
+
+    private static SortedSet<Integer> getSortedSet(String str) {
+
+        if ((str == null) || (str.length() == 0) || str.equalsIgnoreCase("null")) {
+            return null;
+        }
+        String[] tokens = str.split(",");
+        SortedSet<Integer> result = new TreeSet<>();
+        for (String current : tokens) {
+            current = current.trim();
+            if (current.length() != 0) {
+                result.add(Integer.valueOf(current));
             }
         }
         return result;
@@ -622,6 +668,41 @@ abstract public class AbstractPlugin implements Plugin {
         return builder.toString();
     }
 
+    public Map<String, Map<PARAMETER_PROPERTIES, String>> usageParameters() {
+
+        Map<String, Map<PARAMETER_PROPERTIES, String>> result = new HashMap<>();
+        for (PluginParameter<?> current : getParameterInstances()) {
+            if (current.parameterType() == PluginParameter.PARAMETER_TYPE.LABEL) {
+                continue;
+            }
+            Map<PARAMETER_PROPERTIES, String> temp = new HashMap<>();
+            temp.put(PARAMETER_PROPERTIES.Required, Boolean.toString(current.required()));
+            String defaultValue = (current.defaultValue() == null) ? null : current.defaultValue().toString();
+            temp.put(PARAMETER_PROPERTIES.Default, defaultValue);
+            temp.put(PARAMETER_PROPERTIES.Description, current.description());
+            result.put(current.cmdLineName(), temp);
+        }
+
+        return result;
+
+    }
+
+    @Override
+    public Map<String, String> pluginParameters() {
+
+        Map<String, String> result = new HashMap<>();
+
+        for (PluginParameter<?> current : getParameterInstances()) {
+            if (current.parameterType() == PluginParameter.PARAMETER_TYPE.LABEL) {
+                continue;
+            }
+            result.put(current.cmdLineName(), (current.value() == null)? null : current.value().toString());
+        }
+
+        return result;
+
+    }
+
     @Override
     public Object getParameter(Enum key) {
         return getParameterInstance(key.toString()).value();
@@ -741,7 +822,7 @@ abstract public class AbstractPlugin implements Plugin {
                             if (input != null) {
                                 setParameter(current.cmdLineName(), input.myObj);
                             }
-                        } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.POSITION_LIST) {
+                        } else if (PositionList.class.isAssignableFrom(current.valueType())) {
                             if (component instanceof JComboBox) {
                                 Object temp = ((JComboBox) component).getSelectedItem();
                                 if (temp == POSITION_LIST_NONE) {
@@ -900,7 +981,7 @@ abstract public class AbstractPlugin implements Plugin {
                 temp.setToolTipText(getToolTip(current));
                 panel.add(temp);
                 parameterFields.put(current.cmdLineName(), menu);
-            } else if (current.parameterType() == PluginParameter.PARAMETER_TYPE.POSITION_LIST) {
+            } else if (PositionList.class.isAssignableFrom(current.valueType())) {
                 Datum datum = getPositionList();
                 if (datum != null) {
                     JComboBox menu = new JComboBox();
@@ -1053,11 +1134,7 @@ abstract public class AbstractPlugin implements Plugin {
                 }
 
                 if (current.value() != null) {
-                    if (Integer.class.isAssignableFrom(current.valueType())) {
-                        field.setText(NumberFormat.getInstance().format(current.value()));
-                    } else {
-                        field.setText(current.value().toString());
-                    }
+                    setFieldToValue(field, current, current.value());
                 }
 
                 field.addFocusListener(new FocusAdapter() {
@@ -1065,17 +1142,12 @@ abstract public class AbstractPlugin implements Plugin {
                     public void focusLost(FocusEvent e) {
                         String input = field.getText().trim();
                         try {
+                            PluginParameter parameter = getParameterInstance(current.cmdLineName());
                             if (!current.acceptsValue(input)) {
                                 JOptionPane.showMessageDialog(dialog, current.guiName() + " range: " + current.rangeToString());
-                                field.setText(getParameterInstance(current.cmdLineName()).value().toString());
-                            }
-                            if (Integer.class.isAssignableFrom(current.valueType())) {
-                                Integer temp = convert(field.getText(), Integer.class);
-                                if (temp == null) {
-                                    field.setText(null);
-                                } else {
-                                    field.setText(NumberFormat.getInstance().format(temp.intValue()));
-                                }
+                                setFieldToValue(field, parameter, parameter.value());
+                            } else {
+                                setFieldToValue(field, parameter, convert(input, parameter.valueType()));
                             }
                         } catch (Exception ex) {
                             myLogger.debug(ex.getMessage(), ex);
@@ -1156,6 +1228,30 @@ abstract public class AbstractPlugin implements Plugin {
 
     }
 
+    /**
+     * This sets the GUI field text to appropriate formatting for integers, doubles, floats, strings, etc. for the
+     * user's default locale.
+     *
+     * @param field text field
+     * @param parameter associated plugin parameter
+     * @param value value to format
+     */
+    private void setFieldToValue(JTextField field, PluginParameter<?> parameter, Object value) {
+        if (value == null) {
+            field.setText(null);
+        } else if (Integer.class.isAssignableFrom(parameter.valueType())) {
+            field.setText(NumberFormat.getInstance().format(value));
+        } else if ((Double.class.isAssignableFrom(parameter.valueType())) ||
+                (Float.class.isAssignableFrom(parameter.valueType()))) {
+            DecimalFormat temp = new DecimalFormat();
+            temp.setMaximumFractionDigits(5);
+            temp.setMinimumFractionDigits(1);
+            field.setText(temp.format(value));
+        } else {
+            field.setText(value.toString());
+        }
+    }
+
     private void setFieldsToDefault(Map<String, JComponent> parameterFields) {
 
         final List<PluginParameter<?>> parameterInstances = getParameterInstances();
@@ -1173,11 +1269,7 @@ abstract public class AbstractPlugin implements Plugin {
     private void setFieldToDefault(JComponent component, PluginParameter<?> current) {
         if (component instanceof JTextField) {
             Object defaultValue = current.defaultValue();
-            if (defaultValue == null) {
-                ((JTextField) component).setText(null);
-            } else {
-                ((JTextField) component).setText(defaultValue.toString());
-            }
+            setFieldToValue((JTextField) component, current, defaultValue);
             setParameter(current.cmdLineName(), defaultValue);
         } else if (component instanceof JCheckBox) {
             Boolean value = (Boolean) current.defaultValue();

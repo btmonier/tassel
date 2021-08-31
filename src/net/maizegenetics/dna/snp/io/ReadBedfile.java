@@ -1,26 +1,29 @@
 /*
  *  ReadBedfile
- * 
+ *
  *  Created on Feb 15, 2017
  */
 package net.maizegenetics.dna.snp.io;
 
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeMap;
+import com.google.common.collect.TreeRangeSet;
+import net.maizegenetics.dna.map.Position;
+import net.maizegenetics.dna.map.PositionList;
+import net.maizegenetics.dna.map.PositionListBuilder;
+import net.maizegenetics.util.Utils;
+import org.apache.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.google.common.collect.*;
-import net.maizegenetics.dna.map.Position;
-import net.maizegenetics.util.Tuple;
-import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
 
 import static java.util.stream.Collectors.collectingAndThen;
 
 /**
- *
  * @author Terry Casstevens
  */
 public class ReadBedfile {
@@ -31,7 +34,14 @@ public class ReadBedfile {
         // utility
     }
 
-
+    /**
+     * Function to parse the bedFile and create a List of BedFileRanges.
+     *
+     * The positions stored in BedFileRange are 1-based inclusive exclusive.
+     * This is done by adding 1 to both the start and end position from the BED file.
+     * @param bedFile
+     * @return
+     */
     public static List<BedFileRange> getRanges(String bedFile) {
 
         List<BedFileRange> result = new ArrayList<>();
@@ -79,24 +89,74 @@ public class ReadBedfile {
 
     }
 
+    /**
+     * Gets position list from specified bed file.
+     *
+     * @return position list
+     */
+    public static PositionList getPositionList(String bedfile) {
+        PositionListBuilder builder = new PositionListBuilder();
+        getRanges(bedfile).stream().forEach(range -> {
+            for (int pos = range.start(); pos < range.end(); pos++) {
+                builder.add(Position.of(range.chr(), pos));
+            }
+        });
+        return builder.build();
+    }
 
+    /**
+     * Function that returns the 1-based Position ranges from a BED file as a RangeSet of Positions.
+     * NOTE: getRanges(bedFile) will be called which will shift the start and end positions in the BED file up by 1.
+     *       Because of this the ranges returned will be 1-based Closed-Open(Inclusive-Exclusive).
+     *       This is NOT returning ranges in BED specification(0-based Inclusive-Exclusive).
+     * @param bedfile
+     * @return
+     */
     public static RangeSet<Position> getRangesAsPositions(String bedfile) {
         return getRanges(bedfile).stream()
-                .map(bedFileRange -> Range.closed(Position.of(bedFileRange.myChrInt, bedFileRange.myStartPos),
-                        Position.of(bedFileRange.myChrInt, bedFileRange.myEndPos)))
+                //This needs to be closedOpen as we retain inclusive-exclusive.
+                //Also using bedFileRange.myChr instead of bedFileRange.myChrInt as converting a String -> Int -> String is lossy when the string is non-numeric.
+                .map(bedFileRange -> Range.closedOpen(Position.of(bedFileRange.myChr, bedFileRange.myStartPos),
+                        Position.of(bedFileRange.myChr, bedFileRange.myEndPos)))
                 .collect(collectingAndThen(Collectors.toSet(), TreeRangeSet::create));
     }
 
-    public static RangeMap<Position,String> getRangesAsPositionMap(String bedfile) {
-        TreeRangeMap<Position,String> positionNameRangeMap=TreeRangeMap.create();
+    /**
+     * Function that returns the 1-based closed Position ranges from a BED file as a RangeSet of Positions.
+     * NOTE: getRanges(bedFile) will be called which will shift the start in the BED file up by 1.
+     *       Because of this the ranges returned will be 1-based Closed(Inclusive-Inclusive).
+     *       This is NOT returning ranges in BED specification(0-based Inclusive-Exclusive).
+     * @param bedfile
+     * @return
+     */
+    public static RangeSet<Position> getClosedRangesAsPositions(String bedfile) {
+        return getRanges(bedfile).stream()
+                //This needs to be closedOpen as we retain inclusive-exclusive.
+                //Also using bedFileRange.myChr instead of bedFileRange.myChrInt as converting a String -> Int -> String is lossy when the string is non-numeric.
+                .map(bedFileRange -> Range.closed(Position.of(bedFileRange.myChr, bedFileRange.myStartPos),
+                        Position.of(bedFileRange.myChr, bedFileRange.myEndPos-1)))
+                .collect(collectingAndThen(Collectors.toSet(), TreeRangeSet::create));
+    }
+
+    /**
+     * Function that returns the 1-based Position ranges from a BED file as a RangeMap of Positions to the annotated name of the region.
+     * NOTE: getRanges(bedFile) will be called which will shift the start and end positions in the BED file up by 1.
+     *       Because of this the ranges returned will be 1-based Closed-Open(Inclusive-Exclusive).
+     *       This is NOT returning ranges in BED specification(0-based Inclusive-Exclusive).
+     * @param bedfile
+     * @return
+     */
+    public static RangeMap<Position, String> getRangesAsPositionMap(String bedfile) {
+        TreeRangeMap<Position, String> positionNameRangeMap = TreeRangeMap.create();
         for (BedFileRange bedFileRange : getRanges(bedfile)) {
-            positionNameRangeMap.put(Range.closed(Position.of(bedFileRange.myChrInt, bedFileRange.myStartPos),
-                    Position.of(bedFileRange.myChrInt, bedFileRange.myEndPos)),
+            //This needs to be closedOpen as we retain inclusive-exclusive.
+            //Also using bedFileRange.myChr instead of bedFileRange.myChrInt as converting a String -> Int -> String is lossy when the string is non-numeric.
+            positionNameRangeMap.put(Range.closedOpen(Position.of(bedFileRange.myChr, bedFileRange.myStartPos),
+                    Position.of(bedFileRange.myChr, bedFileRange.myEndPos)),
                     bedFileRange.myName);
         }
         return positionNameRangeMap;
     }
-
 
     public static class BedFileRange implements Comparable<BedFileRange> {
 

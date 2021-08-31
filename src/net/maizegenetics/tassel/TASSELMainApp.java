@@ -18,7 +18,9 @@
 // Author:     Ed Buckler
 package net.maizegenetics.tassel;
 
+import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.pipeline.TasselPipeline;
+import net.maizegenetics.plugindef.ParameterCache;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.util.LoggingUtils;
 
@@ -32,15 +34,18 @@ public class TASSELMainApp {
     }
 
     public static void main(String[] args) {
+        TASSELMainFrame frame = null;
         try {
 
             TasselPrefs.setPersistPreferences(true);
             LoggingUtils.setupLogging();
 
-            TASSELMainFrame frame = new TASSELMainFrame();
+            frame = new TASSELMainFrame();
             frame.validate();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
+
+            ParameterCache.load(TasselPrefs.getConfigFile());
 
             if (args.length > 0) {
                 new TasselPipeline(args, frame);
@@ -59,7 +64,8 @@ public class TASSELMainApp {
             builder.append(" Included with tassel standalone zip.");
             myLogger.error(builder.toString());
         } catch (Exception e) {
-            e.printStackTrace();
+            myLogger.error(e.getMessage(), e);
+            DialogUtils.showError(e.getMessage() + "\n", frame);
         }
     }
 }

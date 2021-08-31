@@ -453,9 +453,9 @@ public final class Utils {
             }
         } catch (Exception e) {
             myLogger.error("getBufferedReader: Error getting reader for: " + inSourceName);
-            e.printStackTrace();
+            throw new IllegalStateException("Utils: getBufferedReader: problem getting reader: " + e.getMessage());
         }
-        return null;
+        
     }
 
     public static BufferedReader getBufferedReader(File file, int bufSize) {
