@@ -26,9 +26,9 @@ class TaxaArrayList implements TaxaList {
         myTaxaList = new ArrayList<>(myNumTaxa);
         myNameToIndex = new Object2IntOpenHashMap(myNumTaxa);
         int index = 0;
-        for (Taxon Taxon : srcList) {
-            myTaxaList.add(Taxon);
-            myNameToIndex.put(Taxon.getName(), index);
+        for (Taxon taxon : srcList) {
+            myTaxaList.add(taxon);
+            myNameToIndex.put(taxon.getName(), index);
             index++;
         }
     }
@@ -71,7 +71,13 @@ class TaxaArrayList implements TaxaList {
             Integer index = myNameToIndex.get((String) o);
             if (index == null) return false;
             else return true;
-        } else return false;
+        } else if (o instanceof Taxon) {
+            Integer index = myNameToIndex.get(((Taxon) o).getName());
+            if (index == null) return false;
+            else return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
