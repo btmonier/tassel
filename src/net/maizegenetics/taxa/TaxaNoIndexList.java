@@ -1,6 +1,5 @@
 package net.maizegenetics.taxa;
 
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -14,22 +13,17 @@ import java.util.*;
  * @author Ed Buckler
  * @author Terry Casstevens
  */
-class TaxaArrayList implements TaxaList {
+class TaxaNoIndexList implements TaxaList {
 
-    private static final Logger myLogger = Logger.getLogger(TaxaArrayList.class);
+    private static final Logger myLogger = Logger.getLogger(TaxaNoIndexList.class);
     private final List<Taxon> myTaxaList;
     private final int myNumTaxa;
-    private final Map<String, Integer> myNameToIndex;
 
-    TaxaArrayList(List<Taxon> srcList) {
+    TaxaNoIndexList(List<Taxon> srcList) {
         myNumTaxa = srcList.size();
         myTaxaList = new ArrayList<>(myNumTaxa);
-        myNameToIndex = new Object2IntOpenHashMap(myNumTaxa);
-        int index = 0;
-        for (Taxon Taxon : srcList) {
-            myTaxaList.add(Taxon);
-            myNameToIndex.put(Taxon.getName(), index);
-            index++;
+        for (int i = 0; i < myNumTaxa; i++) {
+            myTaxaList.add(srcList.get(i));
         }
     }
 
@@ -50,9 +44,7 @@ class TaxaArrayList implements TaxaList {
 
     @Override
     public int indexOf(String name) {
-        Integer index = myNameToIndex.get(name);
-        if (index == null) return -1;
-        return index;
+        return myTaxaList.indexOf(name);
     }
 
     @Override
@@ -67,11 +59,7 @@ class TaxaArrayList implements TaxaList {
 
     @Override
     public boolean contains(Object o) {
-        if (o instanceof String) {
-            Integer index = myNameToIndex.get((String) o);
-            if (index == null) return false;
-            else return true;
-        } else return false;
+        return myTaxaList.contains(o);
     }
 
     @Override
@@ -220,11 +208,11 @@ class TaxaArrayList implements TaxaList {
         Iterator<Taxon> myIter = myTaxaList.iterator();
         Iterator<Taxon> otherIter = otherTaxa.iterator();
         while (myIter.hasNext()) {
-            if ( !(myIter.next().equals(otherIter.next())) ) {
+            if (!(myIter.next().equals(otherIter.next()))) {
                 return false;
             }
         }
-        
+
         return true;
     }
 }
