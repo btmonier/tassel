@@ -18,6 +18,7 @@ import net.maizegenetics.plugindef.GeneratePluginCode;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.TableReport;
 
+import net.maizegenetics.util.TableReportUtils;
 import org.apache.log4j.Logger;
 
 import com.google.common.collect.Range;
@@ -54,6 +55,18 @@ public class FixedEffectLMPlugin extends AbstractPlugin {
     		.description("The name of the file to which these results will be saved.")
     		.guiName("Genotype Effect File")
     		.build();
+    private PluginParameter<String> bluesReportFilename = new PluginParameter.Builder<>("bluesFile", null, String.class)
+            .description("Name of file to which BLUEs values will be saved")
+            .outFile()
+            .dependentOnParameter(phenotypeOnly)
+            .guiName("BLUEs File")
+            .build();
+    private PluginParameter<String> anovaReportFilename = new PluginParameter.Builder<>("anovaFile", null, String.class)
+            .description("Name of file to which ANOVA report will be saved")
+            .outFile()
+            .dependentOnParameter(phenotypeOnly)
+            .guiName("ANOVA File")
+            .build();
     private PluginParameter<Double> maxPvalue = new PluginParameter.Builder<>("maxP", 1.0, Double.class)
     		.description("Only results with p <= maxPvalue will be reported. Default = 1.0.")
     		.dependentOnParameter(phenotypeOnly, false)
@@ -151,6 +164,11 @@ public class FixedEffectLMPlugin extends AbstractPlugin {
     	    if (datumList.size() == 1) {
     	        Datum myDatum = datumList.get(0);
     	        PhenotypeLM plm = new PhenotypeLM(myDatum);
+    	        if (saveAsFile()) {
+                    TableReportUtils.saveDelimitedTableReport(plm.myBlues, new File(bluesReportFilename()));
+                    TableReportUtils.saveDelimitedTableReport(plm.report(), new File(anovaReportFilename()));
+                    return null;
+                }
     	        return new DataSet(plm.datumList(), this);
     	    } else if (datumList.size() == 0) {
     	        throw new IllegalArgumentException("The phenotype only option was selected, but no phenotype data set was provided as input.");
@@ -529,8 +547,49 @@ public class FixedEffectLMPlugin extends AbstractPlugin {
         return this;
     }
 
+    /**
+     * Name of file to which BLUEs values will be saved
+     *
+     * @return BLUEs File
+     */
+    public String bluesReportFilename() {
+        return bluesReportFilename.value();
+    }
 
+    /**
+     * Set BLUEs File. Name of file to which BLUEs values
+     * will be saved
+     *
+     * @param value BLUEs File
+     *
+     * @return this plugin
+     */
+    public FixedEffectLMPlugin bluesReportFilename(String value) {
+        bluesReportFilename = new PluginParameter<>(bluesReportFilename, value);
+        return this;
+    }
 
+    /**
+     * Name of file to which ANOVA report will be saved
+     *
+     * @return ANOVA File
+     */
+    public String anovaReportFilename() {
+        return anovaReportFilename.value();
+    }
+
+    /**
+     * Set ANOVA File. Name of file to which ANOVA report
+     * will be saved
+     *
+     * @param value ANOVA File
+     *
+     * @return this plugin
+     */
+    public FixedEffectLMPlugin anovaReportFilename(String value) {
+        anovaReportFilename = new PluginParameter<>(anovaReportFilename, value);
+        return this;
+    }
 }
 
 

@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 
 import javax.swing.ImageIcon;
 
+import net.maizegenetics.stats.linearmodels.*;
 import org.apache.commons.math3.distribution.FDistribution;
 
 import net.maizegenetics.dna.map.Position;
@@ -25,10 +26,6 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
-import net.maizegenetics.stats.linearmodels.CovariateModelEffect;
-import net.maizegenetics.stats.linearmodels.FactorModelEffect;
-import net.maizegenetics.stats.linearmodels.ModelEffect;
-import net.maizegenetics.stats.linearmodels.SolveByOrthogonalizing;
 import net.maizegenetics.stats.linearmodels.SolveByOrthogonalizing.Marker;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportBuilder;
@@ -186,7 +183,7 @@ public class EqtlAssociationPlugin extends AbstractPlugin {
         double F = rvalue / (1 - rvalue) * errordf / markerdf;
         double p;
         try {
-            p = 1 - Fdist[markerdf - 1].cumulativeProbability(F);
+            p = LinearModelUtils.Ftest(F, markerdf, errordf);
         } catch (Exception e) {
             p = Double.NaN;
         }

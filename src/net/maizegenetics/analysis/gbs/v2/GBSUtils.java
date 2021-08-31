@@ -148,7 +148,7 @@ public class GBSUtils {
      */
 
     public static BarcodeTrie initializeBarcodeTrie(ArrayList<Taxon> taxaList, TaxaList masterTaxaList, 
-             GBSEnzyme myEnzyme){
+             EnzymeList.Enzyme myEnzyme){
         BarcodeTrie aTrie=new BarcodeTrie();
         for (Taxon taxon : taxaList) {
             int masterIndex=masterTaxaList.indexOf(taxon.getName());
@@ -165,7 +165,7 @@ public class GBSUtils {
     
     // THis one sends in a  tissue list - is called from the RNASeq pipeline
     public static BarcodeTrie initializeBarcodeTrie(ArrayList<Taxon> taxaList, TaxaList masterTaxaList, 
-            ArrayList masterTissueList, GBSEnzyme myEnzyme){
+            ArrayList masterTissueList, EnzymeList.Enzyme myEnzyme){
         BarcodeTrie aTrie=new BarcodeTrie();
         for (Taxon taxon : taxaList) {
             int masterIndex=masterTaxaList.indexOf(taxon.getName());

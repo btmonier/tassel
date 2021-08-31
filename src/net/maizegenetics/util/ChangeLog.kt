@@ -26,6 +26,8 @@ object ChangeLog {
     @JvmStatic
     fun main(args: Array<String>) {
 
+        LoggingUtils.setupDebugLogging()
+
         // <h3>(V5.2.14) August 27, 2015</h3>
         // <ul>
         try {
@@ -77,7 +79,7 @@ object ChangeLog {
 
     fun getLogs(): BufferedReader? {
         try {
-            val proc = ProcessBuilder("/bin/sh", "-c", """git log --since='June 1, 2018' --full-history | grep -v -e '^commit ' -e '^Author:' -e '^Date:'""")
+            val proc = ProcessBuilder("/bin/sh", "-c", """git log --since='June 1, 2019' --full-history | grep -v -e '^commit ' -e '^Author:' -e '^Date:'""")
                     .redirectOutput(ProcessBuilder.Redirect.PIPE)
                     .redirectError(ProcessBuilder.Redirect.PIPE)
                     .start()
@@ -95,6 +97,7 @@ object ChangeLog {
         if (!str.contains("Merge branch")
                 && !str.contains("Merge: ")
                 && !str.contains("Merged in ")
+                && !str.contains("Merged master ")
                 && !str.contains("Conflicts: ")
                 && !str.contains("Approved-by: ")
                 && !str.contains("Merge remote-tracking branch")

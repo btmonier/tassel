@@ -2,7 +2,6 @@ package net.maizegenetics.analysis.rna;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
-import net.maizegenetics.analysis.gbs.v2.GBSEnzyme;
 import net.maizegenetics.analysis.gbs.v2.GBSUtils;
 import net.maizegenetics.analysis.gbs.v2.ProductionSNPCallerPluginV2;
 import net.maizegenetics.dna.BaseEncoder;
@@ -23,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import net.maizegenetics.analysis.gbs.v2.EnzymeList;
 
 
 public class RNADeMultiplexProductionPlugin extends AbstractPlugin {
@@ -72,8 +72,8 @@ public class RNADeMultiplexProductionPlugin extends AbstractPlugin {
 
     @Override
     public void postProcessParameters() {
-        GBSEnzyme enzyme = new GBSEnzyme(myEnzyme);
-        readEndCutSiteRemnantLength = enzyme.readEndCutSiteRemnantLength();
+        EnzymeList.Enzyme enzyme = EnzymeList.defaultCache.getEnzyme(myEnzyme);
+        readEndCutSiteRemnantLength = enzyme.readEndCutSiteRemnantLength;
     }
 
     @Override

@@ -114,7 +114,7 @@ public final class GeneralPosition implements Position {
         }
 
         public Builder(Chromosome chr, int position, GeneralAnnotationStorage.Builder annotationBuilder) {
-            myChromosome = Chromosome.getCanonicalChromosome(chr);
+            myChromosome = chr;
             myPosition = position;
             Arrays.fill(myAlleles, GenotypeTable.UNKNOWN_ALLELE);
             myAnnotations = annotationBuilder;

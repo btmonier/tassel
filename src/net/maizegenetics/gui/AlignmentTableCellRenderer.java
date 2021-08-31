@@ -23,7 +23,6 @@ import net.maizegenetics.dna.snp.genotypecall.ProjectionGenotypeCallTable;
 import org.apache.log4j.Logger;
 
 /**
- *
  * @author Terry Casstevens
  */
 public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
@@ -40,6 +39,7 @@ public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
         NUCLEOTIDE_COLORS[NucleotideAlignmentConstants.GAP_ALLELE] = 0xFFF68F;
         NUCLEOTIDE_COLORS[NucleotideAlignmentConstants.INSERT_ALLELE] = 0xFF8C00;
     }
+
     private static final Color MAJOR_ALLELE_COLOR = new Color(0xe6cf45);
     private static final Color MINOR_ALLELE_COLOR = new Color(0x45a1e6);
     private static final Color HETEROZYGOUS_COLOR = new Color(0xe64545);
@@ -47,15 +47,16 @@ public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
     private static final Color[] COLORS_256 = generateColors(256);
     private static final Map<String, Color> COLORS_NUCLEOTIDES = generateNucleotideColors();
 
-    public static enum RENDERING_TYPE {
+    public enum RENDERING_TYPE {
 
         Nucleotide, NucleotideHeterozygous, MajorAllele, MinorAllele, MajorMinorAllele,
         Heterozygous, ReferenceMasks, GeneticDistanceMasks, Depth, None, TOPM, SNPs,
         NumericGenotype, Projection
-    };
+    }
+
     private static final RENDERING_TYPE[] GENOTYPE_RENDERING_TYPES = new RENDERING_TYPE[]{RENDERING_TYPE.MajorMinorAllele,
-        RENDERING_TYPE.MajorAllele, RENDERING_TYPE.MinorAllele, RENDERING_TYPE.Heterozygous,
-        RENDERING_TYPE.ReferenceMasks, RENDERING_TYPE.GeneticDistanceMasks, RENDERING_TYPE.None};
+            RENDERING_TYPE.MajorAllele, RENDERING_TYPE.MinorAllele, RENDERING_TYPE.Heterozygous,
+            RENDERING_TYPE.ReferenceMasks, RENDERING_TYPE.GeneticDistanceMasks, RENDERING_TYPE.None};
     protected final AlignmentTableModel myAlignmentTableModel;
     private final GenotypeTable myAlignment;
     private GenotypeTableMask[] myMasks;
@@ -73,6 +74,10 @@ public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
         myMasks = masks;
 
         List<RENDERING_TYPE> temp = new ArrayList<>();
+
+        if (myAlignment.hasReferenceProbablity()) {
+            temp.add(RENDERING_TYPE.NumericGenotype);
+        }
 
         if (myAlignment.hasGenotype()) {
 
@@ -100,10 +105,6 @@ public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
 
         if (myAlignment.hasDepth()) {
             temp.add(RENDERING_TYPE.Depth);
-        }
-
-        if (myAlignment.hasReferenceProbablity()) {
-            temp.add(RENDERING_TYPE.NumericGenotype);
         }
 
         mySupportedRenderingTypes = new RENDERING_TYPE[temp.size()];

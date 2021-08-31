@@ -7,18 +7,30 @@ package net.maizegenetics.analysis.gbs.v2;
  * The enzyme pair "PstI-EcoT22I" uses the Elshire common adapter while
  * PstI-MspI, PstI-TaqI, and SbfI-MspI use a Y adapter (Poland et al. 2012)
  *
- *
+ * @deprecated use EnzymeList.Enzyme.
  */
 public class GBSEnzyme {
     private final String theEnzyme;
     private final String[] initialCutSiteRemnant;
     private final String[] likelyReadEnd;
     private final int readEndCutSiteRemnantLength;
-
+    
     /**
      * @param enzyme The name of the enzyme (case insensitive)
+     * @deprecated use EnzymeList.getEnzyme(enzyme)
      */
     public GBSEnzyme(String enzyme) {
+        EnzymeList list = new EnzymeList();
+        EnzymeList.Enzyme e = list.getEnzyme(enzyme);
+        if (e != null) {
+            theEnzyme = e.name;
+            initialCutSiteRemnant = e.initialCutSiteRemnant;
+            likelyReadEnd = e.likelyReadEnd; // full cut site (from partial digest or chimera) or common adapter start
+            readEndCutSiteRemnantLength = e.readEndCutSiteRemnantLength;
+            return;
+        }
+        //leaving the original code as a failsafe, but it is redundant with the defaults in the EnzymeList class
+
         // Check for case-insensitive (?i) match to a known enzyme
         // The common adapter is: [readEndCutSiteRemnant]AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAG
         if (enzyme.matches("(?i)apek[i1]")) {

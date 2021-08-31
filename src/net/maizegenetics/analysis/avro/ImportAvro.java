@@ -82,7 +82,7 @@ public class ImportAvro {
         String name = chromosome.get(AvroConstants.CHROMOSOME_INDICES.name.name()).toString();
         Chromosome result = CHROMOSOMES.get(name);
         if (result == null) {
-            result = new Chromosome(name,
+            result = Chromosome.instance(name,
                     -1,
                     annotations((Map<Utf8, Utf8>) chromosome.get(AvroConstants.CHROMOSOME_INDICES.annotations.name())));
             CHROMOSOMES.put(name, result);

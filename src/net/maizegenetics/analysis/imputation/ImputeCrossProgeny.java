@@ -1,22 +1,15 @@
 package net.maizegenetics.analysis.imputation;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import net.maizegenetics.dna.map.GeneralPosition;
+import net.maizegenetics.dna.map.Position;
+import net.maizegenetics.dna.map.PositionList;
 import org.apache.log4j.Logger;
 
 import net.maizegenetics.analysis.data.FileLoadPlugin;
@@ -45,6 +38,7 @@ public class ImputeCrossProgeny {
 	private static final byte GG = NucleotideAlignmentConstants.getNucleotideDiploidByte("G");
 	private static final byte TT = NucleotideAlignmentConstants.getNucleotideDiploidByte("T");
 	private static final byte[] stateNucleotide = new byte[]{AA, CC, GG, TT,NN};
+	private static final byte[] ACGT = new byte[]{AA, CC, GG, TT};
 
 	private List<String[]> plotList;
 	private Map<String, byte[][]> haplotypeMap;
@@ -653,6 +647,120 @@ public class ImputeCrossProgeny {
 	public void setPhasedParentOutFilename(String phasedParentOutFilename) {
 		this.phasedParentOutFilename = phasedParentOutFilename;
 	}
+
+	public void writeBreakpointFile(GenotypeTable imputedGenotypes, String outFilename) {
+		//call setParentage() to import the parentage file
+
+		//get a list of parents
+		//index the parent haplotypes
+
+		//first get a set of parent haplotypes
+		Set<String> haplotypeSet = new TreeSet<>();
+		for (String[] record : plotList) {
+			haplotypeSet.add(record[1] + "_0");
+			haplotypeSet.add(record[1] + "_1");
+			haplotypeSet.add(record[2] + "_0");
+			haplotypeSet.add(record[2] + "_1");
+		}
+
+		//index the parent haplotypes
+		Map<String, Integer> haplotypeMap = new HashMap<>();
+		int ndx = 0;
+		for (String haplotype : haplotypeSet) haplotypeMap.put(haplotype, ndx++);
+
+		Map<String, int[]> progenyMap = new HashMap<>();
+		for (String[] record : plotList) {
+			int[] progenyParents = new int[4];
+			progenyParents[0] = haplotypeMap.get(record[1] + "_0");
+			progenyParents[1] = haplotypeMap.get(record[1] + "_1");
+			progenyParents[2] = haplotypeMap.get(record[2] + "_0");
+			progenyParents[3] = haplotypeMap.get(record[2] + "_1");
+			progenyMap.put(record[0], progenyParents);
+		}
+
+		//write breakpoint file header
+		//write index
+		try (PrintWriter pwbp = new PrintWriter(outFilename)) {
+			int numberOfParents = haplotypeMap.size();
+			int numberOfProgeny = imputedGenotypes.numberOfTaxa();
+			pwbp.printf("%d\t%d%n", numberOfParents, numberOfProgeny);
+			pwbp.println("#indexed parents");
+			for (Map.Entry<String, Integer> entry : haplotypeMap.entrySet()) pwbp.printf("%d\t%s%n", entry.getValue(), entry.getKey());
+			pwbp.println("#progeny breakpoints");
+
+			//for each of the progeny, create a list of breakpoints using the parental haplotype indices
+			PositionList myPositions = imputedGenotypes.positions();
+			List<String> bpRecords = new ArrayList<>();
+			for (int taxonIndex = 0; taxonIndex < imputedGenotypes.numberOfTaxa(); taxonIndex++) {
+				Position hapStartPos = null;
+				Position hapEndPos = null;
+				String taxonName = imputedGenotypes.taxaName(taxonIndex);
+				StringBuilder bpRecordBuilder = new StringBuilder(taxonName);
+				int[] myParents = progenyMap.get(taxonName);
+				byte previousGeno = GenotypeTable.RARE_DIPLOID_ALLELE;
+				for (int siteIndex = 0; siteIndex < imputedGenotypes.numberOfSites(); siteIndex++) {
+					byte currentGeno = imputedGenotypes.genotype(taxonIndex, siteIndex);
+					Position currentPos = imputedGenotypes.positions().get(siteIndex);
+
+					//if hapStartPos = null and currentGeno in [ACGT]
+					//   set hapStartPos = hapStartEnd = current, previousGeno = current
+					//else if current chromosome != hapEndPos chromosome, output a breakpoint record
+					//  and if currentGeno in [ACGT], set hapEndPos = hapStartPos = current and previousGeno= current
+					//  else set hapStartPos = null, hapEndPos = null
+					//else if currentGeno = previousGeno set hapEndPos = current
+					//else if currentGeno in [ACGT]
+					//   output breakpoint, set hapStartPos = hapEndPos = current, previousGeno = current
+					//else do nothing
+
+					if (hapStartPos == null && inACGT(currentGeno)) {
+						hapStartPos = hapEndPos = currentPos;
+						previousGeno = currentGeno;
+					} else if (!currentPos.getChromosome().equals(hapEndPos.getChromosome())) {
+						appendBreakpointRecord(bpRecordBuilder, hapStartPos, hapEndPos, myParents, previousGeno);
+						if (inACGT(currentGeno)) {
+							hapEndPos = hapStartPos = currentPos;
+							previousGeno = currentGeno;
+						} else hapEndPos = hapStartPos = null;
+					} else if (currentGeno == previousGeno) {
+						hapEndPos = currentPos;
+					} else if (inACGT(currentGeno)) {
+						appendBreakpointRecord(bpRecordBuilder, hapStartPos, hapEndPos, myParents, previousGeno);
+						hapEndPos = hapStartPos = currentPos;
+						previousGeno = currentGeno;
+					}
+				}
+				//write to file
+				pwbp.println(bpRecordBuilder.toString());
+			}
+
+		} catch(FileNotFoundException e ) {
+			throw new IllegalArgumentException("Cannot open " + outFilename + " for writing.");
+		}
+
+	}
+
+	private boolean inACGT(byte diploidGenotype) {
+		for (byte geno : ACGT) if (diploidGenotype == geno) return true;
+		return false;
+	}
+
+	private void appendBreakpointRecord(StringBuilder bp, Position start, Position end, int[] parents, byte geno) {
+		if (!inACGT(geno) || start == null || end == null) return;
+		bp.append(" ").append(start.getChromosome().getName()).append(":")
+				.append(start.getPosition()).append(":").append(end.getPosition()).append(":");
+
+//		from the parent calls:
+//		A = mom, chr 0: dad, chr 0
+//		C = mom, chr 0: dad, chr 1
+//		G = mom, chr 1: dad, chr 0
+//		T = mom, chr 1: dad, chr 1
+
+		if (geno == AA) bp.append(parents[0]).append(":").append(parents[2]);
+		if (geno == CC) bp.append(parents[0]).append(":").append(parents[3]);
+		if (geno == GG) bp.append(parents[1]).append(":").append(parents[2]);
+		if (geno == TT) bp.append(parents[1]).append(":").append(parents[3]);
+	}
+
 
 
 }

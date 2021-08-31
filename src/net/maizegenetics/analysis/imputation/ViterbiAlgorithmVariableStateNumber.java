@@ -24,7 +24,7 @@ public class ViterbiAlgorithmVariableStateNumber {
 	TransitionProbability myTransitionMatrix;
 	EmissionProbability probObservationGivenState;
 	byte[] obs;
-	ArrayList<byte[]> history;
+	ArrayList<int[]> history;
 	double[] distance;
 	double[] probTrueStates; //ln of probabilities
 	int numberOfObs;
@@ -100,7 +100,7 @@ public class ViterbiAlgorithmVariableStateNumber {
 
 		//update distance and history
 		distance = new double[numberOfCurrentNodeStates];
-		byte[] nodeHistory = new byte[numberOfCurrentNodeStates];
+		int[] nodeHistory = new int[numberOfCurrentNodeStates];
 		history.add(nodeHistory);
 		for (int j = 0; j < numberOfCurrentNodeStates; j++) {
 			distance[j] = candidateDistance[max[j]][j];
@@ -137,10 +137,13 @@ public class ViterbiAlgorithmVariableStateNumber {
 			}
 		}
 	}
-	
-	//decode the most probable state sequence
-	public byte[] getMostProbableStateSequence() {
-		byte[] seq = new byte[numberOfObs];
+
+	/**
+	 *
+	 * @return	an int array representing the sequence of most likely states given the data
+	 */
+	public int[] getMostProbableIntegerStateSequence() {
+		int[] seq = new int[numberOfObs];
 		byte finalState = 0;
 		
 		for (int i = 1; i < distance.length; i++) {
@@ -154,7 +157,31 @@ public class ViterbiAlgorithmVariableStateNumber {
 		}
 		return seq;
 	}
-		
+
+	/**
+	 *
+	 * @return	a byte array representing the sequence of most likely states given the data
+	 *
+	 * @deprecated Using this method when the number of states at a position > 127 will yield
+	 * in unpredictable results. Replace with {@link #getMostProbableIntegerStateSequence()}
+	 */
+	@Deprecated
+	public byte[] getMostProbableStateSequence() {
+		byte[] seq = new byte[numberOfObs];
+		byte finalState = 0;
+
+		for (int i = 1; i < distance.length; i++) {
+			if (distance[i] > distance[finalState]) finalState = (byte) i;
+		}
+
+		//S(t) = h(t+1, S(t+1)), to decode best sequence
+		seq[numberOfObs - 1] = finalState;
+		for (int i = numberOfObs - 2; i >= 0; i--) {
+			seq[i] = (byte) history.get(i)[seq[i + 1]];
+		}
+		return seq;
+	}
+
 	public void setStateProbability(double[] probTrueState) {
 		int n = probTrueState.length;
 		probTrueStates = new double[n];

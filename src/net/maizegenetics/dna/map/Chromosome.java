@@ -1,16 +1,13 @@
 package net.maizegenetics.dna.map;
 
 import net.maizegenetics.util.GeneralAnnotation;
-import net.maizegenetics.util.GeneralAnnotationStorage;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Defines the chromosome structure and length. The name and length recorded for
- * each chromosome.
+ * Defines the chromosome structure and length. The name and length recorded for each chromosome.
  *
  * @author Terry Casstevens and Ed Buckler
  */
@@ -26,20 +23,8 @@ public class Chromosome implements Comparable<Chromosome> {
     private final GeneralAnnotation myGA;
     private final int hashCode;
 
-    // since there are numerous redundant chromosome, this class use a hash, so that
-    // only the pointers are stored.
-    private static final ConcurrentMap<Chromosome, Chromosome> CHR_HASH = new ConcurrentHashMap<>(50);
-
     // this is chromosome cache for when only name is specified
     private static final ConcurrentHashMap<String, Chromosome> CHROMOSOME_NAME_ONLY = new ConcurrentHashMap<>(25);
-
-    public static Chromosome getCanonicalChromosome(Chromosome chr) {
-        if (CHR_HASH.size() > 1000) {
-            CHR_HASH.clear();
-        }
-        Chromosome canon = CHR_HASH.putIfAbsent(chr, chr);
-        return (canon == null) ? chr : canon;
-    }
 
     /**
      * Creates Chromosome instance with specified name. Returns single instance given same name multiple times.
@@ -64,12 +49,16 @@ public class Chromosome implements Comparable<Chromosome> {
         return instance(chr);
     }
 
+    public static Chromosome instance(String name, int length, GeneralAnnotation features) {
+        return new Chromosome(name, length, features);
+    }
+
     /**
      * @param name Name of the chromosome
      * @param length Length of chromosome in base pairs
      * @param features Map of features about the chromosome
      */
-    public Chromosome(String name, int length, GeneralAnnotation features) {
+    private Chromosome(String name, int length, GeneralAnnotation features) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Chromosome: name can't be null or empty.");
         }
@@ -101,7 +90,7 @@ public class Chromosome implements Comparable<Chromosome> {
      * @deprecated use {@link #instance(String)}
      */
     public Chromosome(String name) {
-        this(name, -1, parseAnnotationFromName(name));
+        this(name, -1, null);
     }
 
     public String getName() {
@@ -109,8 +98,7 @@ public class Chromosome implements Comparable<Chromosome> {
     }
 
     /**
-     * Returns the integer value of the chromosome (if name is not a number then
-     * Integer.MAX_VALUE is returned)
+     * Returns the integer value of the chromosome (if name is not a number then Integer.MAX_VALUE is returned)
      */
     public int getChromosomeNumber() {
         return myChromosomeNumber;
@@ -170,12 +158,11 @@ public class Chromosome implements Comparable<Chromosome> {
     }
 
     /**
-     * Takes a string, makes all upper case, removes leading CHROMOSOME/CHR,
-     * returns the resulting string
+     * Takes a string, makes all upper case, removes leading CHROMOSOME/CHR, returns the resulting string
      *
      * @param name name of chromosome
      *
-     * @return the input string minus a leading "chr" or "chromsome"
+     * @return the input string minus a leading "chr" or "chromosome"
      */
     private static String parseName(String name) {
         String parsedName = name.trim();
@@ -191,27 +178,6 @@ public class Chromosome implements Comparable<Chromosome> {
             parsedName = parsedName.substring(0, parsedName.indexOf(" "));
         }
         return parsedName;
-    }
-
-    /**
-     * Takes a chromosome name, looks for the first space, returns
-     * the data beyond as an annotation.  This takes care of lines in
-     * a fasta file that look like this:
-     * >3 This is a description
-     *
-     * @param name - the string chromosome passed in
-     *
-     * @return Annotations built from the string beyond the name
-     */
-    private static GeneralAnnotation parseAnnotationFromName(String name) {
-        GeneralAnnotation annotations = null;
-        int spaceIndex = name.indexOf(" ");
-        if (spaceIndex > 0) {
-            String currChrDesc = name.substring(name.indexOf(" ") + 1);
-            annotations = GeneralAnnotationStorage.getBuilder().addAnnotation("Description", currChrDesc).build();
-        }
-
-        return annotations;
     }
 
 }

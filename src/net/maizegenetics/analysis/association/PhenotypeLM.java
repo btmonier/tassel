@@ -33,6 +33,7 @@ public class PhenotypeLM {
 	protected Phenotype myPhenotype;
 	protected Phenotype myBlues;
 	protected TableReportBuilder reportBuilder;
+	private TableReport report;
 	boolean areTaxaReplicated;
 	protected TaxaList myTaxaList;
 	protected int numberOfObservations;
@@ -59,7 +60,8 @@ public class PhenotypeLM {
 	}
 	
 	public TableReport report() {
-		return reportBuilder.build();
+		if (report == null) report = reportBuilder.build();
+		return report;
 	}
 	
 	public List<Datum> datumList() {
