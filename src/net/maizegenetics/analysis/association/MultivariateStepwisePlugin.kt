@@ -35,9 +35,9 @@ import kotlin.math.roundToInt
  * Created June 24, 2019
  */
 
-class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin(parentFrame, isInteractive) {
+class MultivariateStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin(parentFrame, isInteractive) {
 
-    private val myLogger = Logger.getLogger(mvStepwisePlugin::class.java)
+    private val myLogger = Logger.getLogger(MultivariateStepwisePlugin::class.java)
 
     private var usePermutations = PluginParameter.Builder("usePerm", false, Boolean::class.javaObjectType)
             .description("Should permutations be used to set the enter and exit limits for stepwise regression? A permutation test will be used to determine the enter limit. The exit limit will be set to 2 times the enter limit.")
@@ -151,8 +151,6 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
 
     override fun preProcessParameters(input: DataSet?) {
         myFactorNameList = ArrayList<String>()
-        DoubleMatrixFactory.setDefault(DoubleMatrixFactory.FactoryType.ejml)
-
         //input data should be a single GenotypePhenotype
         val datumList = input?.getDataOfType(GenotypePhenotype::class.java)
         if (datumList!!.size != 1)
@@ -663,7 +661,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun usePermutations(value: Boolean): mvStepwisePlugin {
+    fun usePermutations(value: Boolean): MultivariateStepwisePlugin {
         usePermutations = PluginParameter(usePermutations, value)
         return this
     }
@@ -686,7 +684,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun numberOfPermutations(value: Int): mvStepwisePlugin {
+    fun numberOfPermutations(value: Int): MultivariateStepwisePlugin {
         numberOfPermutations = PluginParameter(numberOfPermutations, value)
         return this
     }
@@ -708,7 +706,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun permutationAlpha(value: Double?): mvStepwisePlugin {
+    fun permutationAlpha(value: Double?): MultivariateStepwisePlugin {
         permutationAlpha = PluginParameter(permutationAlpha, value)
         return this
     }
@@ -736,7 +734,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun enterLimit(value: Double): mvStepwisePlugin {
+    fun enterLimit(value: Double): MultivariateStepwisePlugin {
         enterLimit = PluginParameter(enterLimit, value)
         return this
     }
@@ -763,7 +761,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun exitLimit(value: Double): mvStepwisePlugin {
+    fun exitLimit(value: Double): MultivariateStepwisePlugin {
         exitLimit = PluginParameter(exitLimit, value)
         return this
     }
@@ -786,7 +784,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun isNested(value: Boolean): mvStepwisePlugin {
+    fun isNested(value: Boolean): MultivariateStepwisePlugin {
         isNested = PluginParameter(isNested, value)
         return this
     }
@@ -811,7 +809,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun nestingFactor(value: String): mvStepwisePlugin {
+    fun nestingFactor(value: String): MultivariateStepwisePlugin {
         nestingFactor = PluginParameter(nestingFactor, value)
         return this
     }
@@ -835,7 +833,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun genotypeTable(value: GenotypeTable.GENOTYPE_TABLE_COMPONENT): mvStepwisePlugin {
+    fun genotypeTable(value: GenotypeTable.GENOTYPE_TABLE_COMPONENT): MultivariateStepwisePlugin {
         myGenotypeTable = PluginParameter(myGenotypeTable, value)
         return this
     }
@@ -857,7 +855,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun createManova(value: Boolean): mvStepwisePlugin {
+    fun createManova(value: Boolean): MultivariateStepwisePlugin {
         createManova = PluginParameter(createManova, value)
         return this
     }
@@ -883,7 +881,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      * @return this plugin
      */
 /*
-    fun createEffects(value: Boolean): mvStepwisePlugin {
+    fun createEffects(value: Boolean): MultivariateStepwisePlugin {
         createEffects = PluginParameter(createEffects, value)
         return this
     }
@@ -907,7 +905,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun createStep(value: Boolean): mvStepwisePlugin {
+    fun createStep(value: Boolean): MultivariateStepwisePlugin {
         createStep = PluginParameter(createStep, value)
         return this
     }
@@ -937,7 +935,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      * @return this plugin
      */
 /*
-    fun createResiduals(value: Boolean): mvStepwisePlugin {
+    fun createResiduals(value: Boolean): MultivariateStepwisePlugin {
         createResiduals = PluginParameter(createResiduals, value)
         return this
     }
@@ -960,7 +958,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun writeFiles(value: Boolean): mvStepwisePlugin {
+    fun writeFiles(value: Boolean): MultivariateStepwisePlugin {
         writeFiles = PluginParameter(writeFiles, value)
         return this
     }
@@ -984,7 +982,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun outputName(value: String): mvStepwisePlugin {
+    fun outputName(value: String): MultivariateStepwisePlugin {
         outputName = PluginParameter(outputName, value)
         return this
     }
@@ -1006,7 +1004,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun maximumNumberOfVariantsInModel(value: Int): mvStepwisePlugin {
+    fun maximumNumberOfVariantsInModel(value: Int): MultivariateStepwisePlugin {
         maximumNumberOfVariantsInModel = PluginParameter(maximumNumberOfVariantsInModel, value)
         return this
     }
@@ -1027,7 +1025,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun runParallel(value: Boolean?): mvStepwisePlugin {
+    fun runParallel(value: Boolean?): MultivariateStepwisePlugin {
         runParallel = PluginParameter(runParallel, value)
         return this
     }
@@ -1048,7 +1046,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
      *
      * @return this plugin
      */
-    fun maxThreads(value: Int?): mvStepwisePlugin {
+    fun maxThreads(value: Int?): MultivariateStepwisePlugin {
         maxThreads = PluginParameter(maxThreads, value)
         return this
     }
@@ -1056,7 +1054,7 @@ class mvStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPl
 }
 
 /*fun main(args : Array<String>) {
-    generate(mvStepwisePlugin::class.java)
+    generate(MultivariateStepwisePlugin::class.java)
 }*/
 
 data class BetaValue(val B: DoubleMatrix, val H: DoubleMatrix)
