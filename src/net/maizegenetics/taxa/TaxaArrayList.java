@@ -1,5 +1,6 @@
 package net.maizegenetics.taxa;
 
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.apache.log4j.Logger;
 
@@ -23,14 +24,13 @@ class TaxaArrayList implements TaxaList {
 
     TaxaArrayList(List<Taxon> srcList) {
         myNumTaxa = srcList.size();
-        myTaxaList = new ArrayList<>(myNumTaxa);
+        ImmutableList.Builder<Taxon> taxaListBuilder = ImmutableList.builder();
         myNameToIndex = new Object2IntOpenHashMap(myNumTaxa);
-        int index = 0;
-        for (Taxon taxon : srcList) {
-            myTaxaList.add(taxon);
-            myNameToIndex.put(taxon.getName(), index);
-            index++;
+        for (int i = 0; i < myNumTaxa; i++) {
+            taxaListBuilder.add(srcList.get(i));
+            myNameToIndex.put(srcList.get(i).getName(), i);
         }
+        myTaxaList = taxaListBuilder.build();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package net.maizegenetics.taxa;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -21,10 +22,11 @@ class TaxaNoIndexList implements TaxaList {
 
     TaxaNoIndexList(List<Taxon> srcList) {
         myNumTaxa = srcList.size();
-        myTaxaList = new ArrayList<>(myNumTaxa);
+        ImmutableList.Builder<Taxon> taxaListBuilder = ImmutableList.builder();
         for (int i = 0; i < myNumTaxa; i++) {
-            myTaxaList.add(srcList.get(i));
+            taxaListBuilder.add(srcList.get(i));
         }
+        myTaxaList = taxaListBuilder.build();
     }
 
     @Override
