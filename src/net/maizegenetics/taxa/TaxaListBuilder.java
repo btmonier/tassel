@@ -121,8 +121,8 @@ public class TaxaListBuilder {
     }
 
     public TaxaListBuilder addAll(Taxon[] taxa) {
-        for (int i = 0, n = taxa.length; i < n; i++) {
-            add(new Taxon.Builder(taxa[i]).build());
+        for (Taxon taxon : taxa) {
+            add(taxon);
         }
         return this;
     }
