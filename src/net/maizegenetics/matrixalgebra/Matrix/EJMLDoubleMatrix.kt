@@ -5,7 +5,6 @@ import net.maizegenetics.taxa.distance.DistanceMatrix
 import org.ejml.data.DMatrixRMaj
 import org.ejml.dense.row.CommonOps_DDRM
 import org.ejml.dense.row.factory.LinearSolverFactory_DDRM
-import org.ejml.kotlin.transpose
 
 class EJMLDoubleMatrix: DoubleMatrix {
     val tol = 1e-10
