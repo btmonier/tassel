@@ -9,12 +9,7 @@ import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTableBuilder;
 import net.maizegenetics.util.HDF5Utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A builder for creating immutable {@link TaxaList} instances.
@@ -41,6 +36,7 @@ public class TaxaListBuilder {
     //TODO need to move union and intersection utils to the builder
     private List<Taxon> myTaxaList;
     private final HashMap<Taxon, Integer> tempLookup;
+    private boolean buildNoIndex = false;
 
     public TaxaListBuilder() {
         myTaxaList = new ArrayList<>();
@@ -134,8 +130,17 @@ public class TaxaListBuilder {
         return this;
     }
 
+    public TaxaListBuilder noIndex() {
+        buildNoIndex = true;
+        return this;
+    }
+
     public TaxaList build() {
-        return new TaxaArrayList(this);
+        if (buildNoIndex) {
+            return new TaxaNoIndexList(getImmutableList());
+        } else {
+            return new TaxaArrayList(getImmutableList());
+        }
     }
 
     /**
