@@ -6,15 +6,13 @@ import org.ejml.data.DMatrixRMaj
 import org.ejml.dense.row.CommonOps_DDRM
 import org.ejml.dense.row.EigenOps_DDRM
 import org.ejml.dense.row.factory.DecompositionFactory_DDRM
-import org.ejml.dense.row.factory.DecompositionFactory_MT_DDRM
 import org.ejml.interfaces.decomposition.EigenDecomposition_F64
 
 class EJMLEigenvalueDecomposition(matrix: DMatrixRMaj, val isSymmetric: Boolean = true): EigenvalueDecomposition {
     val myDecomposition: EigenDecomposition_F64<DMatrixRMaj>
 
     init {
-//        myDecomposition = DecompositionFactory_DDRM.eig(matrix.numRows, true, isSymmetric)
-        myDecomposition = DecompositionFactory_MT_DDRM.eig(matrix.numRows, true,true)
+        myDecomposition = DecompositionFactory_DDRM.eig(matrix.numRows, true,true)
         val inputMatrix = if (myDecomposition.inputModified()) matrix.copy() else matrix
         val success = myDecomposition.decompose(inputMatrix)
         check(success) {"EJML Eigenvalue decomposition failed"}
