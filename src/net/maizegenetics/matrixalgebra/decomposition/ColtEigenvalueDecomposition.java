@@ -20,12 +20,6 @@ public class ColtEigenvalueDecomposition implements EigenvalueDecomposition {
 		myDecomposition = new cern.colt.matrix.linalg.EigenvalueDecomposition(matrix);
 	}
 	
-//	public ColtEigenvalueDecomposition(DenseMatrix64F dm) {
-//		int nrows = dm.numRows;
-//		DoubleMatrix2D matrix = DoubleFactory2D.dense.make(dm.data, nrows);
-//		myDecomposition = new cern.colt.matrix.linalg.EigenvalueDecomposition(matrix);
-//	}
-//
 	public ColtEigenvalueDecomposition(DoubleMatrix2D matrix) {
 		myDecomposition = new cern.colt.matrix.linalg.EigenvalueDecomposition(matrix);
 	}

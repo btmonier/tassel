@@ -404,6 +404,12 @@ public class CompressedMLMusingDoubleMatrix {
                         }
                     }
 
+                    //test for all missing
+                    if (nonMissingCount == 0) {
+                        myLogger.error("All values missing for " + myGenotype.siteName(m));
+                        continue;
+                    }
+
                     //adjust y for missing data
                     DoubleMatrix ymarker = AssociationUtils.getNonMissingValues(y, missingFromZ);
 
@@ -442,7 +448,7 @@ public class CompressedMLMusingDoubleMatrix {
                         testMarkerUsingP3D(result, ymarker, X, Vminus.getInverse(missingFromZ, nonMissingObs), markerdf, markerIds);
                     } else {
                     	DoubleMatrix Zsel = AssociationUtils.getNonMissingValues(zk[0], missingFromZ);
-                        testMarkerUsingEMMA(result, ymarker, X, zk[1], Zsel, nAlleles, markerIds);
+                        if (!testMarkerUsingEMMA(result, ymarker, X, zk[1], Zsel, nAlleles, markerIds)) continue;
                         markerdf = result.modeldf - baseModeldf;
                     }
 
@@ -789,8 +795,16 @@ public class CompressedMLMusingDoubleMatrix {
         return zkMatrices;
     }
 
-    public void testMarkerUsingEMMA(CompressedMLMResult result, DoubleMatrix y, DoubleMatrix X, DoubleMatrix K, DoubleMatrix Z, int nAlleles, ArrayList<Byte> markerIds) {
-        EMMAforDoubleMatrix emlm = new EMMAforDoubleMatrix(y, X, K, Z, nAlleles, Double.NaN);
+    public boolean testMarkerUsingEMMA(CompressedMLMResult result, DoubleMatrix y, DoubleMatrix X, DoubleMatrix K, DoubleMatrix Z, int nAlleles, ArrayList<Byte> markerIds) {
+        EMMAforDoubleMatrix emlm;
+        try {
+            emlm = new EMMAforDoubleMatrix(y, X, K, Z, nAlleles, Double.NaN);
+        } catch(Exception except) {
+            myLogger.error(except.getMessage());
+            except.printStackTrace();
+            return false;
+        }
+
         emlm.solve();
         result.beta = emlm.getBeta();
         double[] Fp = emlm.getMarkerFp();
@@ -818,6 +832,7 @@ public class CompressedMLMusingDoubleMatrix {
         	result.Fdom = Fp[6];
         	result.pdom = Fp[7];
         }
+        return true;
     }
 
     public void testMarkerUsingP3D(CompressedMLMResult result, DoubleMatrix y, DoubleMatrix X, DoubleMatrix invV, int markerdf, ArrayList<Byte> markerIds) {
