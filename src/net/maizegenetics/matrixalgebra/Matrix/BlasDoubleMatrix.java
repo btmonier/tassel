@@ -171,6 +171,7 @@ public class BlasDoubleMatrix implements DoubleMatrix {
 		} else {
 			D = (BlasDoubleMatrix) B.copy();
 		}
+
 		multMatrices(myMatrix, nrows, ncols, C.myMatrix, C.nrows, C.ncols, D.myMatrix, alpha, beta, transpose, transposeA);
 		
 		return D;
@@ -238,9 +239,10 @@ public class BlasDoubleMatrix implements DoubleMatrix {
 	}
 
 	@Override
-	public void invert() {
+	public boolean invert() {
 		BlasDoubleMatrix inv = (BlasDoubleMatrix) generalizedInverseWithRank(new int[]{0});
 		myMatrix = inv.myMatrix;
+		return true;
 	}
 
 	@Override
