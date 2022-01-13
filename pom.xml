@@ -356,17 +356,17 @@
         <dependency>
             <groupId>org.biojava</groupId>
             <artifactId>biojava-core</artifactId>
-            <version>4.0.0</version>
+            <version>6.0.4</version>
         </dependency>
         <dependency>
             <groupId>org.biojava</groupId>
             <artifactId>biojava-alignment</artifactId>
-            <version>4.0.0</version>
+            <version>6.0.4</version>
         </dependency>
         <dependency>
             <groupId>org.biojava</groupId>
             <artifactId>biojava-phylo</artifactId>
-            <version>4.0.0</version>
+            <version>4.2.12</version>
         </dependency>
         <dependency>
             <groupId>org.jfree</groupId>
@@ -441,7 +441,7 @@
         <dependency>
             <groupId>org.biojava.thirdparty</groupId>
             <artifactId>forester</artifactId>
-            <version>1.038</version>
+            <version>1.039</version>
         </dependency>
         <dependency>
             <groupId>cisd</groupId>
