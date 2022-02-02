@@ -543,6 +543,13 @@ public class TasselPipeline implements PluginListener {
                     } else {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No FileLoadPlugin step defined: " + current);
                     }
+                } else if (current.equalsIgnoreCase("-keepDepth")) {
+                    FileLoadPlugin plugin = (FileLoadPlugin) findLastPluginFromCurrentPipe(new Class[]{FileLoadPlugin.class});
+                    if (plugin != null) {
+                        plugin.keepDepth(true);
+                    } else {
+                        throw new IllegalArgumentException("TasselPipeline: parseArgs: No FileLoadPlugin step defined: " + current);
+                    }
                 } else if (current.equalsIgnoreCase("-projection")) {
                     String file = args[index++].trim();
                     ProjectionLoadPlugin plugin = new ProjectionLoadPlugin(myMainFrame, myIsInteractive);
