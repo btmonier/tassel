@@ -545,7 +545,7 @@ public class TasselPipeline implements PluginListener {
                         throw new IllegalArgumentException("TasselPipeline: parseArgs: No FileLoadPlugin step defined: " + current);
                     }
                 } else if (current.equalsIgnoreCase("-keepDepth")) {
-                    // This flag added so users can include depth from the command line in desired.
+                    // This flag added, so users can include depth from the command line in desired.
                     FileLoadPlugin plugin = (FileLoadPlugin) findLastPluginFromCurrentPipe(new Class[]{FileLoadPlugin.class});
                     if (plugin != null) {
                         plugin.keepDepth(true);
