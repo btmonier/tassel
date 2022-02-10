@@ -66,7 +66,7 @@
     </developers>
     <properties>
         <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
-        <kotlin.version>1.4.32</kotlin.version>
+        <kotlin.version>1.6.10</kotlin.version>
         <dokka.version>0.10.0</dokka.version>
     </properties>
 
