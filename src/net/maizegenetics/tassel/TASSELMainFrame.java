@@ -110,8 +110,8 @@ import java.util.Map;
 public class TASSELMainFrame extends JFrame implements ActionListener {
 
     private static final Logger myLogger = Logger.getLogger(TASSELMainFrame.class);
-    public static final String version = "5.2.73";
-    public static final String versionDate = "June 23, 2021";
+    public static final String version = "5.2.80";
+    public static final String versionDate = "February 17, 2022";
     private DataTreePanel myDataTreePanel;
     //a variable to control when the progress bar was last updated
     private JFileChooser filerSave = new JFileChooser();

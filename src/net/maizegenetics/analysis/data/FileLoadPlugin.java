@@ -61,7 +61,7 @@ public class FileLoadPlugin extends AbstractPlugin {
             .dependentOnParameter(myFileType, new Object[]{TasselFileType.Unknown, TasselFileType.Hapmap, TasselFileType.HapmapDiploid, TasselFileType.VCF, TasselFileType.Plink})
             .build();
 
-    private PluginParameter<Boolean> myKeepDepth = new PluginParameter.Builder<>("keepDepth", true, Boolean.class)
+    private PluginParameter<Boolean> myKeepDepth = new PluginParameter.Builder<>("keepDepth", false, Boolean.class)
             .description("Whether to keep depth if that's possible.")
             .dependentOnParameter(myFileType, new Object[]{TasselFileType.Unknown, TasselFileType.VCF})
             .build();

@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import net.maizegenetics.taxa.TaxaListBuilder;
 import org.apache.log4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -776,10 +777,12 @@ public class PhenotypeBuilder {
 		for (Phenotype pheno : phenotypeList) {
 			TaxaList myTaxaList = pheno.taxa();
 			Iterator<Taxon> taxaIter = myTaxaList.iterator();
+			TaxaListBuilder newTaxaList = new TaxaListBuilder();
 			while (taxaIter.hasNext()) {
-				if (taxaToRemove.contains(taxaIter.next())) taxaIter.remove();
+				Taxon current = taxaIter.next();
+				if (!taxaToRemove.contains(current)) newTaxaList.add(current);
 			}
-			newList.add(FilterPhenotype.getInstance(pheno, myTaxaList,  "filtered_" + pheno.name()));
+			newList.add(FilterPhenotype.getInstance(pheno, newTaxaList.build(),  "filtered_" + pheno.name()));
 		}
 		phenotypeList = newList;
 	}

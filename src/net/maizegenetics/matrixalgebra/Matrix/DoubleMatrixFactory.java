@@ -1,13 +1,12 @@
 package net.maizegenetics.matrixalgebra.Matrix;
 
 import org.apache.log4j.Logger;
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
-import org.ejml.ops.SpecializedOps;
 
 import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix2D;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 public class DoubleMatrixFactory {
 	private static Logger myLogger = Logger.getLogger(DoubleMatrixFactory.class);
@@ -21,11 +20,9 @@ public class DoubleMatrixFactory {
 			DEFAULT = new DoubleMatrixFactory(FactoryType.blas);
 			myLogger.info("Using BLAS/LAPACK for DoubleMatrix operations");
 		} catch (UnsatisfiedLinkError err) {
-			//err.printStackTrace();
 			DEFAULT = new DoubleMatrixFactory(FactoryType.ejml);
 			myLogger.info("TasselBlas library for system-specific BLAS/LAPACK not found. Using system-independent EJML for DoubleMatrix operations.");
 		} catch (SecurityException se) {
-			//se.printStackTrace();
 			DEFAULT = new DoubleMatrixFactory(FactoryType.ejml);
 			myLogger.info("No permission to load blasDoubleMatrix library. Using EJML for DoubleMatrix operations.");
 		}
@@ -128,13 +125,13 @@ public class DoubleMatrixFactory {
 			for (int i = 0; i < nRows; i++) totalRows += components[i][0].numberOfRows();
 			for (int i = 0; i < nCols; i++) totalCols += components[0][i].numberOfColumns();
 			
-			DenseMatrix64F result = new DenseMatrix64F(totalRows, totalCols);
+			DMatrixRMaj result = new DMatrixRMaj(totalRows, totalCols);
 			int startRow = 0;
 			for (int r = 0; r < nRows; r++) {
 				int startCol = 0;
 				for (int c = 0; c < nCols; c++) {
-					DenseMatrix64F dm = ((EJMLDoubleMatrix) components[r][c]).myMatrix;
-					CommonOps.insert(dm, result, startRow, startCol);
+					DMatrixRMaj dm = ((EJMLDoubleMatrix) components[r][c]).getMyMatrix();
+					CommonOps_DDRM.insert(dm, result, startRow, startCol);
 					startCol += dm.numCols;
 				}
 				startRow += components[r][0].numberOfRows();

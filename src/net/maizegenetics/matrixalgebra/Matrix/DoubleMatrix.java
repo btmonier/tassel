@@ -57,9 +57,8 @@ public interface DoubleMatrix {
 	 * @param B	the matrix to be added, can be null
 	 * @param alpha	scalar multiplier for A
 	 * @param beta	scalar multiplier for B
-	 * @param transpose	if true, X is transposed 
+	 * @param transpose	if true, X is transposed
 	 * @param transposeA if true, A is transposed
-	 * @param transposeB if true, B is transposed
 	 * @return the matrix resulting from the specified operations
 	 */
 	DoubleMatrix multadd(DoubleMatrix A, DoubleMatrix B, double alpha, double beta, boolean transpose, boolean transposeA);
@@ -106,10 +105,10 @@ public interface DoubleMatrix {
 	DoubleMatrix inverse();
 	
 	/**
-	 * This returns the inverse or a square matrix, replacing the original with the inverse.
-	 * @return the inverse of a square matrix if it is non-singular, null otherwise
+	 * This invers a square matrix, replacing the original with the inverse.
+	 * @return true if the matrix can be inverted (is non-singular), false otherwise
 	 */
-	void invert();
+	boolean invert();
 	
 	/**
 	 * @return the generalized inverse of a square matrix
@@ -152,7 +151,7 @@ public interface DoubleMatrix {
 	
 	/**
 	 * @return an array of three DoubleMatrix's. Where X is this matrix, the first is X'X, 
-	 * the second is the inverse of X'X, and the third is I - XGX'.
+	 * the second is the inverse of X'X (=G), and the third is I - XGX'.
 	 */
 	DoubleMatrix[] getXtXGM();
 	
