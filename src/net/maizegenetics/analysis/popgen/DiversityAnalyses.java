@@ -99,12 +99,7 @@ public class DiversityAnalyses extends AbstractTableReport implements TableRepor
      */
     private void runAnalysisForRegion(int start, int end) {
         Chromosome locus = theAAlignment.chromosome(start);
-        int chromosome = -1;
-        try {
-            chromosome = Integer.parseInt(locus.getName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        String chromosome = locus.getName();
         double startChrPosition = theAAlignment.chromosomalPosition(start);
         double endChrPosition = theAAlignment.chromosomalPosition(end);
         GenotypeTable theFilteredAlignment = FilterGenotypeTable.getInstance(theAAlignment, start, end);
@@ -116,7 +111,7 @@ public class DiversityAnalyses extends AbstractTableReport implements TableRepor
     }
 
     DiversityResults evaluate(GenotypeTable theAlignment, DistanceMatrix dm,
-            int start, int end, int chromosome, double startChrPosition, double endChrPosition) {
+            int start, int end, String chromosome, double startChrPosition, double endChrPosition) {
         int sites = end - start + 1;
         DiversityResults theDiversityResults = new DiversityResults(start, end, chromosome, startChrPosition, endChrPosition);
         if (dm == null) {
@@ -295,10 +290,11 @@ public class DiversityAnalyses extends AbstractTableReport implements TableRepor
 class DiversityResults implements Serializable {
 
     protected double pipbp, thetapbp, totalSites, avgSiteCoverage, tajimaD, startChrPosition, endChrPosition;
-    protected int startSite, endSite, haplotypes, segregatingSites, chromosome;
+    protected int startSite, endSite, haplotypes, segregatingSites;
     private int index;
+    protected String chromosome;
 
-    public DiversityResults(int start, int end, int chromosome,
+    public DiversityResults(int start, int end, String chromosome,
             double startChrPosition, double endChrPosition) {
         this.startSite = start;
         this.endSite = end;
