@@ -12,15 +12,10 @@ import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
 import net.maizegenetics.analysis.popgen.LinkageDisequilibrium;
-import net.maizegenetics.dna.WHICH_ALLELE;
 import net.maizegenetics.dna.map.Chromosome;
 import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.map.PositionList;
-import net.maizegenetics.dna.snp.FilterGenotypeTable;
-import net.maizegenetics.dna.snp.GenotypeTable;
-import net.maizegenetics.dna.snp.GenotypeTableUtils;
-import net.maizegenetics.dna.snp.ImportUtils;
-import net.maizegenetics.dna.snp.genotypecall.AlleleFreqCache;
+import net.maizegenetics.dna.snp.*;
 import net.maizegenetics.dna.snp.io.FlapjackUtils;
 import net.maizegenetics.phenotype.*;
 import net.maizegenetics.taxa.TaxaList;
@@ -247,30 +242,19 @@ public class GenerateRCode {
      * This converts a genotype table to a double dimension dosage byte array.
      *
      * @param genotype genotype table
-     * @param useRef Use reference if true, and use major allele if false
      *
      * @return byte[][] of dosage values.  First index is taxa and second index is site.
      * Byte.MIN_VALUE is used for NA
      */
-    public static byte[][] genotypeTableToDosageByteArray(GenotypeTable genotype, boolean useRef) {
+    public static byte[][] genotypeTableToDosageByteArray(GenotypeTable genotype) {
 
         byte[][] result = new byte[genotype.numberOfTaxa()][genotype.numberOfSites()];
 
-        PositionList posList = genotype.positions();
+        PositionVectors posVectors = genotypeTableToPositionListOfArrays(genotype.positions());
         for (int site = 0; site < genotype.numberOfSites(); site++) {
             byte[] siteGenotypes = genotype.genotypeAllTaxa(site);
 
-            // Use reference if available.  If not, use major allele
-            Position posAtSite = posList.get(site);
-            byte refAllele;
-            if (useRef) {
-                myLogger.info("genotypeTableToDosageIntArray: using refAllele at sites");
-                refAllele = posAtSite.getAllele(WHICH_ALLELE.Reference);
-            } else {
-                myLogger.info("genotypeTableToDosageIntArray: using majorAllele for ref at sites");
-                int[][] alleleCounts = AlleleFreqCache.allelesSortedByFrequencyNucleotide(siteGenotypes);
-                refAllele = AlleleFreqCache.majorAllele(alleleCounts);
-            }
+            byte refAllele = NucleotideAlignmentConstants.getNucleotideAlleleByte(posVectors.refAllele[site]);
 
             // value assigned to site / taxon is the number of alleles
             // that do not match the ref allele / major allele.
