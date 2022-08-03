@@ -97,11 +97,11 @@ public class LoggingUtils {
             setupDebugLogfile(logFileName);
         } else {
             File logFile = new File(logFileName);
-            myLogger.info("Log File: " + logFile.getAbsolutePath());
             myPrintStream = new PrintStream(logFile);
             System.setOut(myPrintStream);
             System.setErr(myPrintStream);
             sendLog4jToStdout();
+            myLogger.info("Log File: " + logFile.getAbsolutePath());
         }
     }
 
@@ -115,11 +115,11 @@ public class LoggingUtils {
      */
     public static void setupDebugLogfile(String logFileName) throws FileNotFoundException {
         File logFile = new File(logFileName);
-        myLogger.info("Log File: " + logFile.getAbsolutePath());
         myPrintStream = new PrintStream(logFile);
         System.setOut(myPrintStream);
         System.setErr(myPrintStream);
         sendDebugLog4jToStdout();
+        myLogger.info("Log File: " + logFile.getAbsolutePath());
     }
 
     public static void setupStdOutLogging() {
