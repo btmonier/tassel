@@ -153,7 +153,7 @@ public class PositionListBuilder {
         Position startAP = myPositions.get(0);
         for (Position ap : myPositions) {
             if (ap.compareTo(startAP) < 0) {
-                myLogger.error("validateOrdering: " + ap.toString() + " and " + startAP.toString() + " out of order.");
+                myLogger.info("validateOrdering: " + ap + " and " + startAP + " out of order.");
                 return false;
             }
             startAP = ap;
