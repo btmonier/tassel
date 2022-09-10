@@ -12,13 +12,13 @@ import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
 import net.maizegenetics.analysis.popgen.LinkageDisequilibrium;
-import net.maizegenetics.dna.map.Chromosome;
-import net.maizegenetics.dna.map.Position;
-import net.maizegenetics.dna.map.PositionList;
+import net.maizegenetics.dna.map.*;
 import net.maizegenetics.dna.snp.*;
+import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTableBuilder;
 import net.maizegenetics.dna.snp.io.FlapjackUtils;
 import net.maizegenetics.phenotype.*;
 import net.maizegenetics.taxa.TaxaList;
+import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
@@ -410,6 +410,56 @@ public class GenerateRCode {
             this.annotation = annotation;
             this.dataVector = dataVector;
         }
+    }
+
+    public static GenotypeTable createGenotypeFromRDataFrameElements(
+            String[] taxa,
+            String[] chrom,
+            int[] snpPos,
+            String[] snpId,
+            String[] alleles,
+            int[][] markerMatrix
+    ) {
+
+        if (chrom.length != snpPos.length || chrom.length != snpId.length || chrom.length != alleles.length)
+            throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: length of chrom, snpPos, snpId, and alleles must be equal");
+
+        TaxaListBuilder taxaListBuilder = new TaxaListBuilder();
+        for (String taxon : taxa) {
+            taxaListBuilder.add(new Taxon(taxon));
+        }
+        TaxaList taxaList = taxaListBuilder.build();
+
+        int numberOfTaxa = taxaList.numberOfTaxa();
+        int numberOfSites = snpPos.length;
+
+        if (markerMatrix.length != numberOfSites)
+            throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: number of rows in markerMatrix must equal number of positions");
+
+        if (markerMatrix[0].length != numberOfTaxa)
+            throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: number of columns in markerMatrix must equal number of taxa");
+
+        GenotypeCallTableBuilder genotypeCallTableBuilder = GenotypeCallTableBuilder.getUnphasedNucleotideGenotypeBuilder(numberOfTaxa, numberOfSites);
+
+        PositionListBuilder positionListBuilder = new PositionListBuilder();
+        for (int i = 0; i < snpPos.length; i++) {
+
+            String[] variants = alleles[i].split("/");
+            Position position = new GeneralPosition.Builder(Chromosome.instance(chrom[i]), snpPos[i])
+                    .knownVariants(variants)
+                    .snpName(snpId[i])
+                    .build();
+            positionListBuilder.add(position);
+
+            for (int j = 0; j < numberOfTaxa; j++) {
+                genotypeCallTableBuilder.setBase(j, i, NucleotideAlignmentConstants.getNucleotideAlleleByte(alleles[markerMatrix[i][j]]));
+            }
+
+        }
+        PositionList positionList = positionListBuilder.build();
+        
+        return GenotypeTableBuilder.getInstance(genotypeCallTableBuilder.build(), positionList, taxaList);
+
     }
 
     public static Phenotype createPhenotypeFromRDataFrameElements(String[] taxaArray, String[] colNames, String[] attributeType, List dataVectors) {
