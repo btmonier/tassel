@@ -412,16 +412,19 @@ public class GenerateRCode {
         }
     }
 
+    /**
+     * This converts a GIGWA R Dataframe to a GenotypeTable
+     */
     public static GenotypeTable createGenotypeFromRDataFrameElements(
             String[] taxa,
-            String[] chrom,
+            String[] chromosomes,
             int[] snpPos,
             String[] snpId,
             String[] alleles,
             int[][] markerMatrix
     ) {
 
-        if (chrom.length != snpPos.length || chrom.length != snpId.length || chrom.length != alleles.length)
+        if (chromosomes.length != snpPos.length || chromosomes.length != snpId.length || chromosomes.length != alleles.length)
             throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: length of chrom, snpPos, snpId, and alleles must be equal");
 
         TaxaListBuilder taxaListBuilder = new TaxaListBuilder();
@@ -439,25 +442,66 @@ public class GenerateRCode {
         if (markerMatrix[0].length != numberOfTaxa)
             throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: number of columns in markerMatrix must equal number of taxa");
 
-        GenotypeCallTableBuilder genotypeCallTableBuilder = GenotypeCallTableBuilder.getUnphasedNucleotideGenotypeBuilder(numberOfTaxa, numberOfSites);
+        String delimitor = "/";
+        boolean phased = false;
+        if (alleles[0].contains("/")) {
+            delimitor = "/";
+            phased = false;
+        } else if (alleles[0].contains("|")) {
+            delimitor = "|";
+            phased = true;
+        } else {
+            throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: alleles must be in the form A/C or A|C");
+        }
+
+        GenotypeCallTableBuilder genotypeCallTableBuilder = null;
+        if (phased) {
+            genotypeCallTableBuilder = GenotypeCallTableBuilder.getUnphasedNucleotideGenotypeBuilder(numberOfTaxa, numberOfSites);
+            genotypeCallTableBuilder.isPhased(true);
+        } else {
+            genotypeCallTableBuilder = GenotypeCallTableBuilder.getUnphasedNucleotideGenotypeBuilder(numberOfTaxa, numberOfSites);
+        }
 
         PositionListBuilder positionListBuilder = new PositionListBuilder();
-        for (int i = 0; i < snpPos.length; i++) {
 
-            String[] variants = alleles[i].split("/");
-            Position position = new GeneralPosition.Builder(Chromosome.instance(chrom[i]), snpPos[i])
+        for (int s = 0; s < snpPos.length; s++) {
+
+            String[] variants = alleles[s].split(delimitor);
+            if (variants.length != 2)
+                throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: alleles must be in the form A/C or A|C");
+
+            Position position = new GeneralPosition.Builder(Chromosome.instance(chromosomes[s]), snpPos[s])
                     .knownVariants(variants)
-                    .snpName(snpId[i])
+                    .snpName(snpId[s])
                     .build();
             positionListBuilder.add(position);
 
-            for (int j = 0; j < numberOfTaxa; j++) {
-                genotypeCallTableBuilder.setBase(j, i, NucleotideAlignmentConstants.getNucleotideAlleleByte(alleles[markerMatrix[i][j]]));
+            for (int t = 0; t < numberOfTaxa; t++) {
+
+                // 0 = homozygous reference, 1 = heterozygous, 2 = homozygous alternate, 3 = missing
+                int genotypeIndex = markerMatrix[s][t];
+                byte homoRef = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[0]);
+                byte heterozygous = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[0] + variants[1]);
+                byte homoAlt = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[1]);
+
+                if (genotypeIndex == 0) {
+                    genotypeCallTableBuilder.setBase(t, s, homoRef);
+                } else if (genotypeIndex == 1) {
+                    genotypeCallTableBuilder.setBase(t, s, heterozygous);
+                } else if (genotypeIndex == 2) {
+                    genotypeCallTableBuilder.setBase(t, s, homoAlt);
+                } else if (genotypeIndex == Integer.MIN_VALUE) {
+                    genotypeCallTableBuilder.setBase(t, s, GenotypeTable.UNKNOWN_DIPLOID_ALLELE);
+                } else {
+                    throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: genotype index must be 0, 1, 2, or 3");
+                }
+
             }
 
         }
+
         PositionList positionList = positionListBuilder.build();
-        
+
         return GenotypeTableBuilder.getInstance(genotypeCallTableBuilder.build(), positionList, taxaList);
 
     }
