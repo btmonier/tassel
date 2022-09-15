@@ -464,34 +464,34 @@ public class GenerateRCode {
 
         PositionListBuilder positionListBuilder = new PositionListBuilder();
 
-        for (int s = 0; s < snpPos.length; s++) {
+        for (int sIdx = 0; sIdx < snpPos.length; sIdx++) {
 
-            String[] variants = alleles[s].split(delimitor);
+            String[] variants = alleles[sIdx].split(delimitor);
             if (variants.length != 2)
                 throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: alleles must be in the form A/C or A|C");
 
-            Position position = new GeneralPosition.Builder(Chromosome.instance(chromosomes[s]), snpPos[s])
+            Position position = new GeneralPosition.Builder(Chromosome.instance(chromosomes[sIdx]), snpPos[sIdx])
                     .knownVariants(variants)
-                    .snpName(snpId[s])
+                    .snpName(snpId[sIdx])
                     .build();
             positionListBuilder.add(position);
 
-            for (int t = 0; t < numberOfTaxa; t++) {
+            for (int tIdx = 0; tIdx < numberOfTaxa; tIdx++) {
 
                 // 0 = homozygous reference, 1 = heterozygous, 2 = homozygous alternate, MIN_VALUE = missing
-                int genotypeIndex = markerMatrix[s][t];
+                int genotypeIndex = markerMatrix[sIdx][tIdx];
                 byte homoRef = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[0]);
                 byte heterozygous = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[0] + variants[1]);
                 byte homoAlt = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[1]);
 
                 if (genotypeIndex == 0) {
-                    genotypeCallTableBuilder.setBase(t, s, homoRef);
+                    genotypeCallTableBuilder.setBase(tIdx, sIdx, homoRef);
                 } else if (genotypeIndex == 1) {
-                    genotypeCallTableBuilder.setBase(t, s, heterozygous);
+                    genotypeCallTableBuilder.setBase(tIdx, sIdx, heterozygous);
                 } else if (genotypeIndex == 2) {
-                    genotypeCallTableBuilder.setBase(t, s, homoAlt);
+                    genotypeCallTableBuilder.setBase(tIdx, sIdx, homoAlt);
                 } else if (genotypeIndex == Integer.MIN_VALUE) {
-                    genotypeCallTableBuilder.setBase(t, s, GenotypeTable.UNKNOWN_DIPLOID_ALLELE);
+                    genotypeCallTableBuilder.setBase(tIdx, sIdx, GenotypeTable.UNKNOWN_DIPLOID_ALLELE);
                 } else {
                     throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: genotype index must be 0, 1, 2, or NA (MIN_VALUE)");
                 }
