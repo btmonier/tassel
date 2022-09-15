@@ -478,7 +478,7 @@ public class GenerateRCode {
 
             for (int t = 0; t < numberOfTaxa; t++) {
 
-                // 0 = homozygous reference, 1 = heterozygous, 2 = homozygous alternate, 3 = missing
+                // 0 = homozygous reference, 1 = heterozygous, 2 = homozygous alternate, MIN_VALUE = missing
                 int genotypeIndex = markerMatrix[s][t];
                 byte homoRef = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[0]);
                 byte heterozygous = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[0] + variants[1]);
@@ -493,7 +493,7 @@ public class GenerateRCode {
                 } else if (genotypeIndex == Integer.MIN_VALUE) {
                     genotypeCallTableBuilder.setBase(t, s, GenotypeTable.UNKNOWN_DIPLOID_ALLELE);
                 } else {
-                    throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: genotype index must be 0, 1, 2, or 3");
+                    throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: genotype index must be 0, 1, 2, or NA (MIN_VALUE)");
                 }
 
             }
