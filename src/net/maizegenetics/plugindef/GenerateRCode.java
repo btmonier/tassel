@@ -442,13 +442,13 @@ public class GenerateRCode {
         if (markerMatrix[0].length != numberOfTaxa)
             throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: number of columns in markerMatrix must equal number of taxa");
 
-        String delimitor = "/";
+        String delimiter = "/";
         boolean phased = false;
         if (alleles[0].contains("/")) {
-            delimitor = "/";
+            delimiter = "/";
             phased = false;
         } else if (alleles[0].contains("|")) {
-            delimitor = "|";
+            delimiter = "|";
             phased = true;
         } else {
             throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: alleles must be in the form A/C or A|C");
@@ -466,9 +466,9 @@ public class GenerateRCode {
 
         for (int sIdx = 0; sIdx < snpPos.length; sIdx++) {
 
-            String[] variants = alleles[sIdx].split(delimitor);
+            String[] variants = alleles[sIdx].split(delimiter);
             if (variants.length != 2)
-                throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: alleles must be in the form A/C or A|C");
+                throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: there must be exactly two alleles per position: " + alleles[sIdx]);
 
             Position position = new GeneralPosition.Builder(Chromosome.instance(chromosomes[sIdx]), snpPos[sIdx])
                     .knownVariants(variants)
