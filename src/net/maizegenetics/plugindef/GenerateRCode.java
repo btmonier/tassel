@@ -12,13 +12,13 @@ import net.maizegenetics.analysis.distance.KinshipPlugin;
 import net.maizegenetics.analysis.filter.FilterSiteBuilderPlugin;
 import net.maizegenetics.analysis.filter.FilterTaxaBuilderPlugin;
 import net.maizegenetics.analysis.popgen.LinkageDisequilibrium;
-import net.maizegenetics.dna.map.Chromosome;
-import net.maizegenetics.dna.map.Position;
-import net.maizegenetics.dna.map.PositionList;
+import net.maizegenetics.dna.map.*;
 import net.maizegenetics.dna.snp.*;
+import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTableBuilder;
 import net.maizegenetics.dna.snp.io.FlapjackUtils;
 import net.maizegenetics.phenotype.*;
 import net.maizegenetics.taxa.TaxaList;
+import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
@@ -410,6 +410,100 @@ public class GenerateRCode {
             this.annotation = annotation;
             this.dataVector = dataVector;
         }
+    }
+
+    /**
+     * This converts a GIGWA R Dataframe to a GenotypeTable
+     */
+    public static GenotypeTable createGenotypeFromRDataFrameElements(
+            String[] taxa,
+            String[] chromosomes,
+            int[] snpPos,
+            String[] snpId,
+            String[] alleles,
+            int[][] markerMatrix
+    ) {
+
+        if (chromosomes.length != snpPos.length || chromosomes.length != snpId.length || chromosomes.length != alleles.length)
+            throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: length of chrom, snpPos, snpId, and alleles must be equal");
+
+        TaxaListBuilder taxaListBuilder = new TaxaListBuilder();
+        for (String taxon : taxa) {
+            taxaListBuilder.add(new Taxon(taxon));
+        }
+        TaxaList taxaList = taxaListBuilder.build();
+
+        int numberOfTaxa = taxaList.numberOfTaxa();
+        int numberOfSites = snpPos.length;
+
+        if (markerMatrix.length != numberOfSites)
+            throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: number of rows in markerMatrix must equal number of positions");
+
+        if (markerMatrix[0].length != numberOfTaxa)
+            throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: number of columns in markerMatrix must equal number of taxa");
+
+        String delimiter = "/";
+        boolean phased = false;
+        if (alleles[0].contains("/")) {
+            delimiter = "/";
+            phased = false;
+        } else if (alleles[0].contains("|")) {
+            delimiter = "|";
+            phased = true;
+        } else {
+            throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: alleles must be in the form A/C or A|C");
+        }
+
+        GenotypeCallTableBuilder genotypeCallTableBuilder = null;
+        if (phased) {
+            genotypeCallTableBuilder = GenotypeCallTableBuilder.getUnphasedNucleotideGenotypeBuilder(numberOfTaxa, numberOfSites);
+            genotypeCallTableBuilder.isPhased(true);
+        } else {
+            genotypeCallTableBuilder = GenotypeCallTableBuilder.getUnphasedNucleotideGenotypeBuilder(numberOfTaxa, numberOfSites);
+        }
+
+        PositionListBuilder positionListBuilder = new PositionListBuilder();
+
+        for (int sIdx = 0; sIdx < snpPos.length; sIdx++) {
+
+            String[] variants = alleles[sIdx].split(delimiter);
+            if (variants.length != 2)
+                throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: there must be exactly two alleles per position: " + alleles[sIdx]);
+
+            Position position = new GeneralPosition.Builder(Chromosome.instance(chromosomes[sIdx]), snpPos[sIdx])
+                    .knownVariants(variants)
+                    .snpName(snpId[sIdx])
+                    .build();
+            positionListBuilder.add(position);
+
+            for (int tIdx = 0; tIdx < numberOfTaxa; tIdx++) {
+
+                // 0 = homozygous reference, 1 = heterozygous, 2 = homozygous alternate, MIN_VALUE = missing
+                int genotypeIndex = markerMatrix[sIdx][tIdx];
+                byte homoRef = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[0]);
+                byte heterozygous = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[0] + variants[1]);
+                byte homoAlt = NucleotideAlignmentConstants.getNucleotideDiploidByte(variants[1]);
+
+                if (genotypeIndex == 0) {
+                    genotypeCallTableBuilder.setBase(tIdx, sIdx, homoRef);
+                } else if (genotypeIndex == 1) {
+                    genotypeCallTableBuilder.setBase(tIdx, sIdx, heterozygous);
+                } else if (genotypeIndex == 2) {
+                    genotypeCallTableBuilder.setBase(tIdx, sIdx, homoAlt);
+                } else if (genotypeIndex == Integer.MIN_VALUE) {
+                    genotypeCallTableBuilder.setBase(tIdx, sIdx, GenotypeTable.UNKNOWN_DIPLOID_ALLELE);
+                } else {
+                    throw new IllegalArgumentException("createGenotypeFromRDataFrameElements: genotype index must be 0, 1, 2, or NA (MIN_VALUE)");
+                }
+
+            }
+
+        }
+
+        PositionList positionList = positionListBuilder.build();
+
+        return GenotypeTableBuilder.getInstance(genotypeCallTableBuilder.build(), positionList, taxaList);
+
     }
 
     public static Phenotype createPhenotypeFromRDataFrameElements(String[] taxaArray, String[] colNames, String[] attributeType, List dataVectors) {
