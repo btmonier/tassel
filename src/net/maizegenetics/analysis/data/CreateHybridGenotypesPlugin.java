@@ -29,6 +29,10 @@ import java.util.List;
 
 /**
  * @author Terry Casstevens
+ *
+ * This plugin creates a hybrid genotype table from a reference genotype table and a hybrid file
+ * that defines the parents. The hybrid genotype is a combination of two homozyous values or unknown
+ * if either is heterozygous. For the numeric option, the numeric genotype values are averaged.
  */
 public class CreateHybridGenotypesPlugin extends AbstractPlugin {
 
@@ -108,6 +112,10 @@ public class CreateHybridGenotypesPlugin extends AbstractPlugin {
 
     }
 
+    /**
+     * Create a numeric hybrid genotype. The hybrid genotype is the average of the
+     * two parent's numeric genotype values.
+     */
     private static GenotypeTable numericHybridGenotype(GenotypeTable table, List<Integer> firstParents, List<Integer> secondParents, TaxaList taxa) {
 
         int nsites = table.numberOfSites();
@@ -115,17 +123,14 @@ public class CreateHybridGenotypesPlugin extends AbstractPlugin {
 
         ReferenceProbability original = table.referenceProbability();
 
-        float[][] data = new float[ntaxa][nsites];
-        for (int t = 0; t < ntaxa; t++) {
-            for (int s = 0; s < nsites; s++) {
-                data[t][s] = original.value(firstParents.get(t), s) * original.value(secondParents.get(t), s) / 2.0f;
-            }
-        }
-
         // build new ReferenceProbability
         ReferenceProbabilityBuilder refBuilder = ReferenceProbabilityBuilder.getInstance(ntaxa, nsites, table.taxa());
         for (int t = 0; t < ntaxa; t++) {
-            refBuilder.addTaxon(t, data[t]);
+            float[] hybrid = new float[nsites];
+            for (int s = 0; s < nsites; s++) {
+                hybrid[s] = original.value(firstParents.get(t), s) * original.value(secondParents.get(t), s) / 2.0f;
+            }
+            refBuilder.addTaxon(t, hybrid);
         }
 
         // build new GenotypeTable
