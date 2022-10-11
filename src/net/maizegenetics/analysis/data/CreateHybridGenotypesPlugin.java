@@ -5,15 +5,11 @@
  */
 package net.maizegenetics.analysis.data;
 
-import java.awt.Frame;
-import java.io.BufferedReader;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.ImageIcon;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableBuilder;
 import net.maizegenetics.dna.snp.genotypecall.HybridGenotypeCallTable;
+import net.maizegenetics.dna.snp.score.ReferenceProbability;
+import net.maizegenetics.dna.snp.score.ReferenceProbabilityBuilder;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
@@ -24,9 +20,19 @@ import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
+import java.awt.*;
+import java.io.BufferedReader;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- *
  * @author Terry Casstevens
+ *
+ * This plugin creates a hybrid genotype table from a reference genotype table and a hybrid file
+ * that defines the parents. The hybrid genotype is a combination of two homozyous values or unknown
+ * if either is heterozygous. For the numeric option, the numeric genotype values are averaged.
  */
 public class CreateHybridGenotypesPlugin extends AbstractPlugin {
 
@@ -40,6 +46,10 @@ public class CreateHybridGenotypesPlugin extends AbstractPlugin {
 
     private PluginParameter<String> myHybridChar = new PluginParameter.Builder<>("hybridChar", "/", String.class)
             .description("String used to combine taxa names to create hybrid name.")
+            .build();
+
+    private PluginParameter<Boolean> myNumeric = new PluginParameter.Builder<>("numericGenotype", false, Boolean.class)
+            .description("Whether to create a numeric hybrid genotype.")
             .build();
 
     public CreateHybridGenotypesPlugin(Frame parentFrame, boolean isInteractive) {
@@ -88,13 +98,45 @@ public class CreateHybridGenotypesPlugin extends AbstractPlugin {
                 lineNum++;
             }
 
-            GenotypeTable result = GenotypeTableBuilder.getInstance(new HybridGenotypeCallTable(genotypeTable.genotypeMatrix(), firstParents, secondParents), genotypeTable.positions(), taxa.build());
-            return new DataSet(new Datum(data.getName() + "_Hybrids", result, null), this);
+            if (numeric()) {
+                return new DataSet(new Datum(data.getName() + "_Numeric_Hybrids", numericHybridGenotype(genotypeTable, firstParents, secondParents, taxa.build()), null), this);
+            } else {
+                GenotypeTable result = GenotypeTableBuilder.getInstance(new HybridGenotypeCallTable(genotypeTable.genotypeMatrix(), firstParents, secondParents), genotypeTable.positions(), taxa.build());
+                return new DataSet(new Datum(data.getName() + "_Hybrids", result, null), this);
+            }
 
         } catch (Exception e) {
             myLogger.debug(e.getMessage(), e);
             throw new IllegalStateException("CreateHybridGenotypePlugin: processData: problem reading hybrid file: " + hybridFile());
         }
+
+    }
+
+    /**
+     * Create a numeric hybrid genotype. The hybrid genotype is the average of the
+     * two parent's numeric genotype values.
+     */
+    private static GenotypeTable numericHybridGenotype(GenotypeTable table, List<Integer> firstParents, List<Integer> secondParents, TaxaList taxa) {
+
+        int nsites = table.numberOfSites();
+        int ntaxa = taxa.numberOfTaxa();
+
+        ReferenceProbability original = table.referenceProbability();
+
+        // build new ReferenceProbability
+        ReferenceProbabilityBuilder refBuilder = ReferenceProbabilityBuilder.getInstance(ntaxa, nsites, table.taxa());
+        for (int t = 0; t < ntaxa; t++) {
+            float[] hybrid = new float[nsites];
+            for (int s = 0; s < nsites; s++) {
+                hybrid[s] = original.value(firstParents.get(t), s) * original.value(secondParents.get(t), s) / 2.0f;
+            }
+            refBuilder.addTaxon(t, hybrid);
+        }
+
+        // build new GenotypeTable
+        return GenotypeTableBuilder.getInstance(null, table.positions(),
+                taxa, null, null, refBuilder.build(), null,
+                null);
 
     }
 
@@ -137,6 +179,28 @@ public class CreateHybridGenotypesPlugin extends AbstractPlugin {
      */
     public CreateHybridGenotypesPlugin hybridChar(String value) {
         myHybridChar = new PluginParameter<>(myHybridChar, value);
+        return this;
+    }
+
+    /**
+     * Whether to create a numeric hybrid genotype.
+     *
+     * @return Numeric Genotype
+     */
+    public Boolean numeric() {
+        return myNumeric.value();
+    }
+
+    /**
+     * Set Numeric Genotype. Whether to create a numeric hybrid
+     * genotype.
+     *
+     * @param value Numeric Genotype
+     *
+     * @return this plugin
+     */
+    public CreateHybridGenotypesPlugin numeric(Boolean value) {
+        myNumeric = new PluginParameter<>(myNumeric, value);
         return this;
     }
 
