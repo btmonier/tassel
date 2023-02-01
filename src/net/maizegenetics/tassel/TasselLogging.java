@@ -3,34 +3,6 @@
  */
 package net.maizegenetics.tassel;
 
-import java.awt.BorderLayout;
-import java.awt.Dialog;
-import java.awt.EventQueue;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.Insets;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.gui.FileBrowserUtils;
 import net.maizegenetics.plugindef.AbstractPlugin;
@@ -38,8 +10,19 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.util.LoggingUtils;
 import net.maizegenetics.util.Utils;
-
 import org.apache.log4j.Logger;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.util.*;
+import java.util.List;
 
 /**
  *
@@ -223,6 +206,13 @@ public class TasselLogging extends AbstractPlugin {
         myLogger.info("Java Version: " + System.getProperty("java.version"));
         myLogger.info("OS: " + System.getProperty("os.name"));
         myLogger.info("Number of Processors: " + Runtime.getRuntime().availableProcessors());
+        myLogger.info("Tassel Citation: " + AbstractPlugin.DEFAULT_CITATION);
+        myLogger.info("");
+        Set<Map.Entry<String, TasselVersions.LibraryInfo>> infos = TasselVersions.INSTANCE.libraryInfos();
+        for (Map.Entry<String, TasselVersions.LibraryInfo> info : infos) {
+            myLogger.info("Tassel Using Library: " + info.getValue().getName() + ": Version: " + info.getValue().getVersion() + " Date: " + info.getValue().getDate());
+            myLogger.info(info.getKey() + " Citation: " + info.getValue().getCitation());
+        }
     }
 
     class TextAreaOutputStream extends OutputStream {
