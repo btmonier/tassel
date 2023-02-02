@@ -8,6 +8,24 @@ import org.apache.log4j.Logger
 import org.w3c.dom.Node
 import javax.xml.parsers.DocumentBuilderFactory
 
+/**
+ * This class is used to get the version information for Tassel and third party libraries.
+ * The version information is stored in a file called tassel_info.xml in the resources directory.
+ *
+ * The file is in the following format:
+ *
+ * <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+ * <Tassel>
+ *     <TasselLibrary>
+ *         <key>PHG</key>
+ *         <name>Practical Haplotype Graph (PHG)</name>
+ *         <version>1.3</version>
+ *         <date>January 10, 2023</date>
+ *         <citation>Bradbury PJ, Casstevens T, Jensen SE, Johnson LC, Miller ZR, Monier B, Romay MC, Song B, Buckler ES. The Practical Haplotype Graph, a platform for storing and using pangenomes for imputation. Bioinformatics. 2022 Aug 2;38(15):3698-3702. doi: 10.1093/bioinformatics/btac410. PMID: 35748708; PMCID: PMC9344836.</citation>
+ *     </TasselLibrary>
+ * </Tassel>
+ *
+ */
 object TasselVersions {
 
     private val myLogger = Logger.getLogger(LibraryInfo::class.java)
