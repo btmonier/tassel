@@ -9,4 +9,4 @@ pipelines:
     - step:
         name: Run TASSEL 5 tests
         script:
-          - mvn -B clean test
+          - pwd ; mvn -B clean test
