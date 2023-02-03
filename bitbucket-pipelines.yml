@@ -5,5 +5,5 @@ pipelines:
     - step:
         name: Clone TASSEL 5 test repository
         script:
-          - pwd ; git clone https://bitbucket.org/tasseladmin/tassel-5-test.git $BITBUCKET_CLONE_DIR/../tassel-5-test ; pwd ; ls
-          - pwd ; ls ; mvn -B clean test
+          - git clone https://bitbucket.org/tasseladmin/tassel-5-test.git $BITBUCKET_CLONE_DIR/../tassel-5-test
+          - mvn -B clean test
