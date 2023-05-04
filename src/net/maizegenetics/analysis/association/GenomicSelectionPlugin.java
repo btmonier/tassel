@@ -267,7 +267,7 @@ public class GenomicSelectionPlugin extends AbstractPlugin {
                     myReportBuilder.add(new Object[]{traitname, new Integer(iter), new Integer(fold), new Double(rval)});
                     startFold = endFold;
                     computeCount++;
-                    if (computeCount % updateProgressValue == 0) fireProgress(computeCount/updateProgressValue);
+                    if (computeCount % updateProgressValue == 0) fireProgress(Math.min(100, computeCount/updateProgressValue));
                 }
             }
             
