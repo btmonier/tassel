@@ -1102,8 +1102,8 @@ public class TagDataSQLite implements TagDataWriter, AutoCloseable {
         String sqlQuery="select p.positionid, forward, chromosome, position, strand, t.tagid, depthsRLE  " +
                 "from tag t, cutposition p, tagCutPosition tc, tagtaxadistribution ttd " +
                 "where p.positionid=tc.positionid and tc.tagid=t.tagid and t.tagid=ttd.tagid " +
-                "and chromosome='"+chromosome.toString()+"'" +//" and position>"+firstPosition+" " + //todo position would need to be index to make fast
-                " order by position";
+                "and chromosome='"+chromosome.toString()+"'"; // removed order by as it wasn't necessary
+
         Map<Position, Map<Tag, Tuple<Boolean,TaxaDistribution>>> positionTagTaxaMap=new HashMap<>();
         Map<Integer,Position> tempPositionMap=new HashMap<>();  //reverse the map
         getPositionSubMap(chromosome,firstPosition,lastPosition).entrySet().stream()
@@ -1142,8 +1142,7 @@ public class TagDataSQLite implements TagDataWriter, AutoCloseable {
         String sqlQuery="select p.positionid, forward, chromosome, position, strand, t.tagid, depthsRLE  " +
                 "from tag t, cutposition p, tagCutPosition tc, tagtaxadistribution ttd " +
                 "where p.positionid=tc.positionid and tc.tagid=t.tagid and t.tagid=ttd.tagid " +
-                "and chromosome='"+chromosome.toString()+"'" +//" and position>"+firstPosition+" " + //todo position would need to be index to make fast
-                " order by position";
+                "and chromosome='"+chromosome.toString()+"'"; // removed "order by position" as it was way too slow and unneccessary
 
         Map<Position, Map<Tag, TaxaDistribution>> positionTagTaxaMap=new HashMap<>();
         Map<Integer,Position> tempPositionMap=new HashMap<>();  //reverse the map
