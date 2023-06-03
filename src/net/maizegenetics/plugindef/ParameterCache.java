@@ -1,6 +1,5 @@
 package net.maizegenetics.plugindef;
 
-import net.maizegenetics.util.LoggingUtils;
 import net.maizegenetics.util.Utils;
 import org.apache.log4j.Logger;
 
@@ -58,7 +57,11 @@ public class ParameterCache {
         }
 
         for (String key : CACHE.stringPropertyNames()) {
-            myLogger.info("ParameterCache: key: " + key + " value: " + CACHE.getProperty(key));
+            if (key.toLowerCase().contains("password") || key.toLowerCase().contains("passwd")) {
+                myLogger.info("ParameterCache: key: " + key + " value: ********");
+            } else {
+                myLogger.info("ParameterCache: key: " + key + " value: " + CACHE.getProperty(key));
+            }
         }
 
         verify(filename);
