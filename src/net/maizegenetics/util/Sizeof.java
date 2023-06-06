@@ -23,8 +23,8 @@ public class Sizeof {
 
         try {
             System.out.println("-------------------------------");
-            System.out.print("Current Heap Size: ");
             long current = Sizeof.getMemoryUse() / 1048576l;
+            System.out.print("Current Heap Size: ");
             String currentStr = format.format(current);
             System.out.print(currentStr);
             System.out.println(" MB");

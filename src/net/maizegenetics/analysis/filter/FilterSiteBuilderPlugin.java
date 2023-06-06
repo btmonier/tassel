@@ -336,7 +336,12 @@ public class FilterSiteBuilderPlugin extends AbstractPlugin {
     }
 
     public GenotypeTable runPlugin(GenotypeTable input) {
-        return (GenotypeTable) performFunction(DataSet.getDataSet(input)).getDataOfType(GenotypeTable.class).get(0).getData();
+        List<Datum> result = performFunction(DataSet.getDataSet(input)).getDataOfType(GenotypeTable.class);
+        if (result.size() > 0) {
+            return (GenotypeTable) result.get(0).getData();
+        } else {
+            return null;
+        }
     }
 
     /**
