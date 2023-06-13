@@ -39,7 +39,9 @@ public class ReadBedfile {
      *
      * The positions stored in BedFileRange are 1-based inclusive exclusive.
      * This is done by adding 1 to both the start and end position from the BED file.
-     * @param bedFile
+     * Bedfiles are 0-based.
+     *
+     * @param bedFile filename of bed file
      * @return
      */
     public static List<BedFileRange> getRanges(String bedFile) {
@@ -51,17 +53,24 @@ public class ReadBedfile {
             int lineNum = 1;
             line = reader.readLine();
             while (line != null) {
+
+                if (line.startsWith("#")) {
+                    line = reader.readLine();
+                    lineNum++;
+                    continue;
+                }
+
                 String[] tokens = line.trim().split("\t");
                 if (tokens.length < 3) {
                     throw new IllegalStateException("getRanges: Expecting at least 3 columns on line: " + lineNum);
                 }
 
                 // tokens[0] is chromosome
-                // tokens[1] is start postion from bed file.
+                // tokens[1] is start position from bed file.
                 // plus one because bed files are 0-base
                 int startPos = Integer.parseInt(tokens[1]) + 1;
 
-                // tokens[2] is start postion from bed file.
+                // tokens[2] is start position from bed file.
                 // plus one because bed files are 0-base
                 int endPos = Integer.parseInt(tokens[2]) + 1;
 
