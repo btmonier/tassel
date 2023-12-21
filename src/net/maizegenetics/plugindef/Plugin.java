@@ -11,7 +11,8 @@ import java.awt.*;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -218,7 +219,7 @@ public interface Plugin extends PluginListener, ProgressListener, Runnable {
 
     public boolean wasCancelled();
 
-    static final Logger myLogger = Logger.getLogger(Plugin.class);
+    static final Logger myLogger = LogManager.getLogger(Plugin.class);
 
     public static Plugin getPluginInstance(String className, Frame frame) {
         return getPluginInstance(className, frame, false);

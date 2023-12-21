@@ -33,7 +33,8 @@ import net.maizegenetics.stats.linearmodels.ModelEffectUtils;
 import net.maizegenetics.stats.linearmodels.SweepFast;
 import net.maizegenetics.stats.linearmodels.SymmetricMatrixInverterDM;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +47,7 @@ import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
 
 public class CompressedMLMusingDoubleMatrix {
 
-    private static final Logger myLogger = Logger.getLogger(CompressedMLMusingDoubleMatrix.class);
+    private static final Logger myLogger = LogManager.getLogger(CompressedMLMusingDoubleMatrix.class);
     private static final List<String> homGenotypes = Arrays.asList("A","C","G","T","Z");
     private static final List<String> hetGenotypes = Arrays.asList("R","W","K","Y","S","M","0");
     private final boolean useCompression;

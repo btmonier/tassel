@@ -8,13 +8,13 @@ import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.plugindef.DataSet
 import net.maizegenetics.plugindef.PluginParameter
 import net.maizegenetics.util.Utils
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import java.awt.Frame
 import javax.swing.ImageIcon
 
 class MeanR2FromLDPlugin(parentFrame: Frame? = null, isInteractive: Boolean = false) : AbstractPlugin(parentFrame, isInteractive) {
 
-    private val myLogger = Logger.getLogger(MeanR2FromLDPlugin::class.java)
+    private val myLogger = LogManager.getLogger(MeanR2FromLDPlugin::class.java)
 
     private var intervalFile = PluginParameter.Builder("intervals", null, String::class.java)
             .description("Interval File.")

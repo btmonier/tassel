@@ -12,9 +12,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.DirectoryCrawler;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -33,7 +32,7 @@ import java.util.TreeSet;
  */
 public class MergeTagsByTaxaFilesPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(MergeTagsByTaxaFilesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(MergeTagsByTaxaFilesPlugin.class);
     static File inputDirectory = null, hapmapFile = null;
     static String[] infiles = null;
     static String outfilename = null;
@@ -150,7 +149,6 @@ public class MergeTagsByTaxaFilesPlugin extends AbstractPlugin {
     }
 
     public void setParameters(String[] args) {
-        myLogger.addAppender(new ConsoleAppender(new SimpleLayout()));
         if (args.length == 0) {
             printUsage();
             throw new IllegalArgumentException("\n\nPlease use the above arguments/options.\n\n");

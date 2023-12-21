@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.apache.commons.math3.stat.StatUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.clustering.Haplotype;
 import net.maizegenetics.analysis.clustering.HaplotypeCluster;
@@ -35,7 +36,7 @@ import net.maizegenetics.util.Utils;
  * 
  */
 public class BiparentalHaplotypeFinder {
-	private static final Logger myLogger = Logger.getLogger(BiparentalHaplotypeFinder.class);
+	private static final Logger myLogger = LogManager.getLogger(BiparentalHaplotypeFinder.class);
 	protected PopulationData myPopulationData;
 	protected GenotypeTable initialGenotype;
 	protected TableReportBuilder reportBuilder;

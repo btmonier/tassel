@@ -22,7 +22,8 @@ import java.util.TreeSet;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.data.FileLoadPlugin;
 import net.maizegenetics.analysis.data.FileLoadPlugin.TasselFileType;
@@ -37,7 +38,7 @@ import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportBuilder;
 
 public class ParentPhasingPlugin extends AbstractPlugin {
-	private static Logger myLogger = Logger.getLogger(ParentPhasingPlugin.class);
+	private static Logger myLogger = LogManager.getLogger(ParentPhasingPlugin.class);
 	private static final byte N = GenotypeTable.UNKNOWN_ALLELE;
 	
 	private PluginParameter<Boolean> phaseParents = new PluginParameter.Builder<>("phase", false, Boolean.class)

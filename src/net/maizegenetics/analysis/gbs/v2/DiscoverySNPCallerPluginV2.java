@@ -42,7 +42,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.Tuple;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.biojava.nbio.alignment.Alignments;
 import org.biojava.nbio.core.alignment.template.AlignedSequence;
 import org.biojava.nbio.core.alignment.template.Profile;
@@ -69,7 +70,7 @@ import com.google.common.collect.TreeBasedTable;
  */
 public class DiscoverySNPCallerPluginV2 extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(DiscoverySNPCallerPluginV2.class);
+    private static final Logger myLogger = LogManager.getLogger(DiscoverySNPCallerPluginV2.class);
 
     private PluginParameter<String> myInputDB = new PluginParameter.Builder<>("db", null, String.class).guiName("Input GBS Database").required(true).inFile()
             .description("Input Database file if using SQLite").build();

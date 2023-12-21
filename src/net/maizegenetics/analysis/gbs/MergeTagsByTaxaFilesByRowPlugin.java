@@ -15,10 +15,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.DirectoryCrawler;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedOutputStream;
@@ -39,7 +37,7 @@ import java.util.ArrayList;
  */
 public class MergeTagsByTaxaFilesByRowPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(MergeTagsByTaxaFilesByRowPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(MergeTagsByTaxaFilesByRowPlugin.class);
     static File inputDirectory = null, hapmapFile = null;
     static String topmFileName = "/Volumes/nextgen/Zea/build20120110/topm/allZea_mappedonly_chr5-10_20120115.topm";
     static String topmFileName2 = "/Volumes/LaCie/zea20120110c510.topm";
@@ -190,7 +188,6 @@ public class MergeTagsByTaxaFilesByRowPlugin extends AbstractPlugin {
     }
 
     public void setParameters(String[] args) {
-        myLogger.addAppender(new ConsoleAppender(new SimpleLayout()));
         if (args.length == 0) {
             printUsage();
             throw new IllegalArgumentException("\n\nPlease use the above arguments/options.\n\n");

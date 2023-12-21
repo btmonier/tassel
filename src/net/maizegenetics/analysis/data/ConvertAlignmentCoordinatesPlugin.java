@@ -21,7 +21,8 @@ import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.Tuple;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -29,7 +30,7 @@ import org.apache.log4j.Logger;
  */
 public class ConvertAlignmentCoordinatesPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ConvertAlignmentCoordinatesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ConvertAlignmentCoordinatesPlugin.class);
 
     private PluginParameter<String> myMapFilename = new PluginParameter.Builder<>("mapFile", null, String.class)
             .description("")

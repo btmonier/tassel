@@ -17,7 +17,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.dna.snp.io.VCFUtil;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,7 +49,7 @@ import java.util.*;
  */
 public class MergeDuplicateSNPsPlugin extends AbstractPlugin {
 
-    private static Logger myLogger = Logger.getLogger(MergeDuplicateSNPsPlugin.class);
+    private static Logger myLogger = LogManager.getLogger(MergeDuplicateSNPsPlugin.class);
     private static ArgsEngine myArgsEngine = null;
     private String suppliedInputFileName, suppliedOutputFileName, infile, outfile;
     private String snpLogFileName;

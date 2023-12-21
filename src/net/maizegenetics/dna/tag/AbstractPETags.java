@@ -11,7 +11,8 @@ import java.io.FileWriter;
 import net.maizegenetics.dna.BaseEncoder;
 import net.maizegenetics.dna.read.PERead;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.biojava.nbio.alignment.Alignments;
 import org.biojava.nbio.alignment.SimpleGapPenalty;
 import org.biojava.nbio.core.alignment.matrices.SubstitutionMatrixHelper;
@@ -26,7 +27,7 @@ import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
  * @author Fei Lu
  */
 public abstract class AbstractPETags implements PETags {
-	private static final Logger myLogger = Logger.getLogger(AbstractPETags.class);
+	private static final Logger myLogger = LogManager.getLogger(AbstractPETags.class);
     /**Tag length in Long primitive data type*/
     protected int tagLengthInLong; 
     /**

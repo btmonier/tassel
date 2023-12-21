@@ -7,7 +7,8 @@ import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.DirectoryCrawler;
 
@@ -32,7 +33,7 @@ import net.maizegenetics.util.HDF5Utils;
  */
 public class MergeHDF5GenotypesSameSitesPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(MergeHDF5GenotypesSameSitesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(MergeHDF5GenotypesSameSitesPlugin.class);
     private ArgsEngine myArgsEngine = null;
     private String[] inHD5F5GenoFileNames = null;
     private String mergedHDF5GenoFileName;

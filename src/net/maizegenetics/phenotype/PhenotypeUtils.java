@@ -22,7 +22,8 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -33,7 +34,7 @@ import com.google.common.collect.ListMultimap;
  */
 public class PhenotypeUtils {
 
-    private static final Logger myLogger = Logger.getLogger(PhenotypeUtils.class);
+    private static final Logger myLogger = LogManager.getLogger(PhenotypeUtils.class);
 
     private static final String DELIMITER = "\t";
 

@@ -26,7 +26,8 @@ import net.maizegenetics.util.BitSet;
 import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -48,7 +49,7 @@ import static net.maizegenetics.dna.map.Position.STRAND_PLUS;
  */
 public class GenerateRCode {
 
-    private static final Logger myLogger = Logger.getLogger(GenerateRCode.class);
+    private static final Logger myLogger = LogManager.getLogger(GenerateRCode.class);
 
     private GenerateRCode() {
 

@@ -20,14 +20,15 @@ import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 import net.maizegenetics.dna.snp.genotypecall.ProjectionGenotypeCallTable;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Terry Casstevens
  */
 public class AlignmentTableCellRenderer extends DefaultTableCellRenderer {
 
-    private static final Logger myLogger = Logger.getLogger(AlignmentTableCellRenderer.class);
+    private static final Logger myLogger = LogManager.getLogger(AlignmentTableCellRenderer.class);
 
     private static int[] NUCLEOTIDE_COLORS = new int[16];
 

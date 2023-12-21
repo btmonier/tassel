@@ -20,7 +20,8 @@ import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
 import net.maizegenetics.util.GeneralAnnotationStorage;
 import net.maizegenetics.util.ProgressListener;
 import net.maizegenetics.util.Tuple;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -28,7 +29,7 @@ import org.apache.log4j.Logger;
  */
 public class DominanceNormalizedIBSMatrix {
 
-    private static final Logger myLogger = Logger.getLogger(DominanceNormalizedIBSMatrix.class);
+    private static final Logger myLogger = LogManager.getLogger(DominanceNormalizedIBSMatrix.class);
 
     private DominanceNormalizedIBSMatrix() {
         // utility

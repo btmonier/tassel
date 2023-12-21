@@ -21,7 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -96,7 +97,7 @@ import net.maizegenetics.util.Utils;
  *
  */
 public class RepGenAlignerPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(RepGenAlignerPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(RepGenAlignerPlugin.class);
     
     private PluginParameter<String> myDBFile = new PluginParameter.Builder<String>("db", null, String.class).guiName("Input DB").required(true).inFile()
             .description("Input database file with tags and taxa distribution").build();

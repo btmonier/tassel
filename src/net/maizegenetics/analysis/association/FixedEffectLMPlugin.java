@@ -19,14 +19,15 @@ import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.TableReport;
 
 import net.maizegenetics.util.TableReportUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Range;
 
 
 public class FixedEffectLMPlugin extends AbstractPlugin {
 	
-    private static final Logger myLogger = Logger.getLogger(FixedEffectLMPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FixedEffectLMPlugin.class);
     String baseOutFileName = "";
     
 	enum GENOTYPE_DATA_TYPE { genotype, probability, allele_probabilities, none };

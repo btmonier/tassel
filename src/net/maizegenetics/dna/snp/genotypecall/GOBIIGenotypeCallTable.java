@@ -18,7 +18,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ForkJoinPool;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 import net.maizegenetics.util.Tuple;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
  */
 public class GOBIIGenotypeCallTable extends AbstractGenotypeCallTable {
 
-    private static final Logger myLogger = Logger.getLogger(GOBIIGenotypeCallTable.class);
+    private static final Logger myLogger = LogManager.getLogger(GOBIIGenotypeCallTable.class);
     private static final int NUM_LOOK_AHEAD_BLOCKS = 103;
 
     private final String myFilename;

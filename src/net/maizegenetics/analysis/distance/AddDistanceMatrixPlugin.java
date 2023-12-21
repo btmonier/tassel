@@ -15,7 +15,8 @@ import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
 import net.maizegenetics.taxa.distance.DistanceMatrixWithCounts;
 import net.maizegenetics.util.GeneralAnnotation;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -23,7 +24,7 @@ import org.apache.log4j.Logger;
  */
 public class AddDistanceMatrixPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(AddDistanceMatrixPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(AddDistanceMatrixPlugin.class);
 
     private KinshipPlugin.KINSHIP_METHOD myMethod = null;
 

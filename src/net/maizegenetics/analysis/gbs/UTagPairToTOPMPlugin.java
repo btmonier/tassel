@@ -12,7 +12,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.GeneratePluginCode;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.ArgsEngine;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +31,7 @@ import java.io.File;
 public class UTagPairToTOPMPlugin extends AbstractPlugin {
 
     private ArgsEngine engine = null;
-    private Logger logger = Logger.getLogger(UTagPairToTOPMPlugin.class);
+    private Logger logger = LogManager.getLogger(UTagPairToTOPMPlugin.class);
 
     //Internal data for converting tag pairs
     private UTagPairs tp;   //Structure to read in tag pairs

@@ -11,7 +11,8 @@ import java.sql.Statement;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
@@ -60,7 +61,7 @@ import net.maizegenetics.util.Utils;
  *  
  */
 public class MonetDB_IFLFilePlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(MonetDB_IFLFilePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(MonetDB_IFLFilePlugin.class);
 
     private PluginParameter<String> dbConfigFile= new PluginParameter.Builder<>("dbConfigFile",null,String.class).guiName("dbConfigFile").required(true)
             .description("DB connection config file").build();

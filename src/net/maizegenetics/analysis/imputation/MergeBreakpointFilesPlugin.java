@@ -20,7 +20,8 @@ import java.util.stream.Collectors;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
@@ -31,7 +32,7 @@ import net.maizegenetics.util.LoggingUtils;
 import net.maizegenetics.util.Utils;
 
 public class MergeBreakpointFilesPlugin extends AbstractPlugin {
-    private static Logger myLogger = Logger.getLogger(MergeBreakpointFilesPlugin.class);
+    private static Logger myLogger = LogManager.getLogger(MergeBreakpointFilesPlugin.class);
     private static final int minSite = 0;
     private static final int maxSite = 350000000;
     static {

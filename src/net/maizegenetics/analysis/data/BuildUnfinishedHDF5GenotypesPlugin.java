@@ -17,7 +17,8 @@ import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.util.HDF5Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Opens an "unfinished" HDF5 genotypes file, on which .closeUnfinished() was called rather than .build()
@@ -33,7 +34,7 @@ import org.apache.log4j.Logger;
  */
 public class BuildUnfinishedHDF5GenotypesPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(BuildUnfinishedHDF5GenotypesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(BuildUnfinishedHDF5GenotypesPlugin.class);
     
     String dataSetDescrip, date;
 

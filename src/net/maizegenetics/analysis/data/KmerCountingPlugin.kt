@@ -4,7 +4,7 @@ import htsjdk.samtools.fastq.FastqReader
 import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.plugindef.DataSet
 import net.maizegenetics.plugindef.PluginParameter
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import java.awt.Frame
 import java.io.File
 import javax.swing.ImageIcon
@@ -19,7 +19,7 @@ private const val NUM_BASES_PER_HASH = 14
 
 class KmerCountingPlugin(parentFrame: Frame? = null, isInteractive: Boolean = false) : AbstractPlugin(parentFrame, isInteractive) {
 
-    private val myLogger = Logger.getLogger(KmerCountingPlugin::class.java)
+    private val myLogger = LogManager.getLogger(KmerCountingPlugin::class.java)
 
     private var fastqFile = PluginParameter.Builder("fastqFile", null, String::class.java)
             .description("Fastq filename")

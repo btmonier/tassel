@@ -20,7 +20,8 @@ import net.maizegenetics.plugindef.DataSet;
 
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -28,7 +29,7 @@ import org.apache.log4j.Logger;
  */
 public class MergeAlignmentsSameSitesPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(MergeAlignmentsSameSitesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(MergeAlignmentsSameSitesPlugin.class);
     private static final char DELIMITER = '\t';
     private static final Pattern DELIMITER_PATTERN = Pattern.compile(String.valueOf(DELIMITER));
     private List<String> myInputFiles;

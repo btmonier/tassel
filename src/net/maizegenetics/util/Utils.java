@@ -5,7 +5,8 @@
  */
 package net.maizegenetics.util;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.URL;
@@ -28,7 +29,7 @@ import java.util.zip.ZipFile;
  */
 public final class Utils {
 
-    private static final Logger myLogger = Logger.getLogger(Utils.class);
+    private static final Logger myLogger = LogManager.getLogger(Utils.class);
     private static Collection<String> myJavaPackages = null;
 
     private Utils() {

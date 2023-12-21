@@ -18,7 +18,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -27,7 +28,7 @@ import org.apache.log4j.Logger;
 public class KeepSpecifiedSitesInTOPMPlugin extends AbstractPlugin {
 
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
-    private final Logger myLogger = Logger.getLogger(KeepSpecifiedSitesInTOPMPlugin.class);
+    private final Logger myLogger = LogManager.getLogger(KeepSpecifiedSitesInTOPMPlugin.class);
     private static String SITE_LIST_FILENAME_REGEX = "(?i).*\\.txt$";
     private static int PAD_POSITION = 300;
     private ArgsEngine myArgsEngine = null;

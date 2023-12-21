@@ -21,7 +21,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.*;
 import net.maizegenetics.util.BitSet;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -68,7 +69,7 @@ public class FindMergeHaplotypesPlugin extends AbstractPlugin {
     private BitSet badMask=null;
     
     private static ArgsEngine engine = new ArgsEngine();
-    private static final Logger myLogger = Logger.getLogger(FindMergeHaplotypesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FindMergeHaplotypesPlugin.class);
     
     public FindMergeHaplotypesPlugin() {
         super(null, false);

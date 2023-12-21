@@ -12,7 +12,8 @@ import java.util.stream.IntStream;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.association.FixedEffectLMPlugin;
 import net.maizegenetics.phenotype.CategoricalAttribute;
@@ -45,7 +46,7 @@ public class ResamplingGWASPlugin extends AbstractPlugin {
     private Random randomGen = new Random();
     int numberOfFactors;
 
-    private static Logger myLogger = Logger.getLogger(ResamplingGWASPlugin.class);
+    private static Logger myLogger = LogManager.getLogger(ResamplingGWASPlugin.class);
 
     private PluginParameter<Double> enterLimit =
             new PluginParameter.Builder<>("enterLimit", 1e-8, Double.class)

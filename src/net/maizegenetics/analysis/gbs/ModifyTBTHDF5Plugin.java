@@ -20,7 +20,8 @@ import java.util.TreeMap;
 import javax.swing.ImageIcon;
 import net.maizegenetics.plugindef.PluginParameter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This pipeline modifies TagsByTaxa HDF5 file with data organized by taxa. It
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
  */
 public class ModifyTBTHDF5Plugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ModifyTBTHDF5Plugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ModifyTBTHDF5Plugin.class);
 
     private PluginParameter<String> myTargetTBT = new PluginParameter.Builder<>("o", null, String.class).guiName("Target TBT HDF5 File").required(true).inFile()
             .description("Target TBT HDF5 (*tbt.h5) file to be modified. (Depending on the modification that you wish to make, choose only one of the only three parameters)").build();

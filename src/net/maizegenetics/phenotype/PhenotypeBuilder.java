@@ -21,7 +21,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import net.maizegenetics.taxa.TaxaListBuilder;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultiset;
@@ -40,7 +41,7 @@ import net.maizegenetics.util.OpenBitSet;
  *
  */
 public class PhenotypeBuilder {
-	private Logger myLogger = Logger.getLogger(PhenotypeBuilder.class);
+	private Logger myLogger = LogManager.getLogger(PhenotypeBuilder.class);
 	
 	private enum SOURCE_TYPE{file, phenotype, list, attributes};
 	private enum ACTION{importFile, union, intersect, separate, concatenate, keepTaxa, removeTaxa, keepAttributes, changeType, buildFromAttributes, removeMissing};

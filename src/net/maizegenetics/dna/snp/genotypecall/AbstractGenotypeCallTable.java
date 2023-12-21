@@ -7,7 +7,8 @@ import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,7 +29,7 @@ import java.util.stream.StreamSupport;
  */
 abstract class AbstractGenotypeCallTable implements GenotypeCallTable {
 
-    private static final Logger myLogger = Logger.getLogger(AbstractGenotypeCallTable.class);
+    private static final Logger myLogger = LogManager.getLogger(AbstractGenotypeCallTable.class);
     private static final int DEFAULT_MAX_NUM_ALLELES = NucleotideAlignmentConstants.NUMBER_NUCLEOTIDE_ALLELES;
     protected final int myTaxaCount;
     protected final int mySiteCount;

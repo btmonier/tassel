@@ -18,7 +18,8 @@ import net.maizegenetics.taxa.distance.DistanceMatrixWithCounts;
 import net.maizegenetics.taxa.distance.ReadDistanceMatrix;
 import net.maizegenetics.util.GeneralAnnotation;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -26,7 +27,7 @@ import org.apache.log4j.Logger;
  */
 public class SubtractDistanceMatrixPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(SubtractDistanceMatrixPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SubtractDistanceMatrixPlugin.class);
 
     private PluginParameter<String> myWholeMatrix = new PluginParameter.Builder<>("wholeMatrix", null, String.class)
             .description("The filename of the whole matrix which will be used to subtract input sub-matrices.")

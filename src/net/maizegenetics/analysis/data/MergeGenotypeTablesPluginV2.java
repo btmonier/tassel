@@ -11,7 +11,8 @@ import java.util.function.BiFunction;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.dna.WHICH_ALLELE;
 import net.maizegenetics.dna.map.GeneralPosition;
@@ -31,7 +32,7 @@ import net.maizegenetics.util.GeneralAnnotation;
 
 public class MergeGenotypeTablesPluginV2 extends net.maizegenetics.plugindef.AbstractPlugin {
     
-    private static final Logger myLogger = Logger.getLogger(MergeGenotypeTablesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(MergeGenotypeTablesPlugin.class);
 
     
     public static enum MERGE_TYPES {

@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -27,7 +28,7 @@ import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.util.OpenBitSet;
 
 public class TransformDataPlugin extends AbstractPlugin {
-	private static Logger myLogger = Logger.getLogger(TransformDataPlugin.class);
+	private static Logger myLogger = LogManager.getLogger(TransformDataPlugin.class);
 	public enum BASE {natural, base_2, base_10};
 	
 	private List<NumericAttribute> traitsToTransform;

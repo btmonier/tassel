@@ -8,7 +8,8 @@ import net.maizegenetics.dna.tag.TagDataSQLite;
 import net.maizegenetics.dna.tag.TagDataWriter;
 import net.maizegenetics.plugindef.*;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,7 +36,7 @@ import java.util.Map;
  */
 public class LoadRNAContigsToGBSDBPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(LoadRNAContigsToGBSDBPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(LoadRNAContigsToGBSDBPlugin.class);
 
     private PluginParameter<String> myContigFile = new PluginParameter.Builder<>("i", null, String.class).guiName("Input Fasta Contig File").required(true).inFile()
             .description("Input file containing contigs in fasta format.\n").build();

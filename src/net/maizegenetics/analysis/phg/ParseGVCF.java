@@ -8,7 +8,8 @@ import com.google.common.collect.ImmutableList;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.util.Tuple;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ import java.util.stream.StreamSupport;
 
 public class ParseGVCF {
 
-    private static final Logger myLogger = Logger.getLogger(ParseGVCF.class);
+    private static final Logger myLogger = LogManager.getLogger(ParseGVCF.class);
 
     private static final int NUM_LINES_PER_BLOCK = 10;
 

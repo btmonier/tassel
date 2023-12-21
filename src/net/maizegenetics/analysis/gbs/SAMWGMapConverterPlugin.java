@@ -8,7 +8,8 @@ import net.maizegenetics.dna.map.TagsOnPhysicalMap;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +26,7 @@ import java.io.FileOutputStream;
  *
  */
 public final class SAMWGMapConverterPlugin extends AbstractPlugin{
-    private static final Logger myLogger=Logger.getLogger(SAMWGMapConverterPlugin.class);
+    private static final Logger myLogger=LogManager.getLogger(SAMWGMapConverterPlugin.class);
     private static ArgsEngine myArgsEngine;
     private static String inputFileName=null;
     private static String outputFileName=null;

@@ -31,7 +31,8 @@ import java.util.HashMap;
 import javax.swing.ImageIcon;
 import net.maizegenetics.plugindef.PluginParameter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This pipeline converts a series of fastq or qseq files to a single TagsByTaxa
@@ -42,7 +43,7 @@ import org.apache.log4j.Logger;
  */
 public class SeqToTBTHDF5Plugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(SeqToTBTHDF5Plugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SeqToTBTHDF5Plugin.class);
 
     private PluginParameter<String> myInputDir = new PluginParameter.Builder<String>("i", null, String.class).guiName("Input Directory").required(true).inDir()
             .description("Input directory containing .fastq files").build();

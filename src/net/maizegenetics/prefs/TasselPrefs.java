@@ -7,7 +7,8 @@
 package net.maizegenetics.prefs;
 
 import org.apache.commons.lang.LocaleUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -19,7 +20,7 @@ import java.util.prefs.Preferences;
  */
 public class TasselPrefs {
 
-    private static final Logger myLogger = Logger.getLogger(TasselPrefs.class);
+    private static final Logger myLogger = LogManager.getLogger(TasselPrefs.class);
 
     private static boolean PERSIST_PREFERENCES = false;
     private static final Map<String, Object> TEMP_CACHED_VALUES = new HashMap<>();

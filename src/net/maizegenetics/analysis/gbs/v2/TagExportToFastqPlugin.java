@@ -10,7 +10,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class TagExportToFastqPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(TagExportToFastqPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(TagExportToFastqPlugin.class);
 
     private PluginParameter<String> myDBFile = new PluginParameter.Builder<String>("db", null, String.class).guiName("Input DB").required(true).inFile()
             .description("Input database file with tags and taxa distribution").build();

@@ -11,7 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.imputation.EmissionProbability;
 import net.maizegenetics.analysis.imputation.TransitionProbability;
@@ -33,7 +34,7 @@ import net.maizegenetics.analysis.imputation.TransitionProbability;
  * The either use gamma() to retrieve a List<double[]> of values or use writeGamma(String outputFile) to save the values to an output file.
  */
 public class BackwardForwardAlgorithm {
-	private static final Logger myLogger = Logger.getLogger(BackwardForwardAlgorithm.class);
+	private static final Logger myLogger = LogManager.getLogger(BackwardForwardAlgorithm.class);
 	
 	private int[] myObservations;
 	private int[] myPositions;

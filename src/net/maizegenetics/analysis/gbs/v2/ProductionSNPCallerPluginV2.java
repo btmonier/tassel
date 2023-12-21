@@ -52,7 +52,8 @@ import net.maizegenetics.util.Utils;
 
 import org.ahocorasick.trie.Emit;
 import org.ahocorasick.trie.Trie;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -94,7 +95,7 @@ import com.google.common.collect.Multimaps;
  */
 public class ProductionSNPCallerPluginV2 extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ProductionSNPCallerPluginV2.class);
+    private static final Logger myLogger = LogManager.getLogger(ProductionSNPCallerPluginV2.class);
 
     private PluginParameter<String> myInputDir = new PluginParameter.Builder<>("i", null, String.class).guiName("Input Directory").required(true).inDir()
             .description("Input directory containing fastq AND/OR qseq files.").build();

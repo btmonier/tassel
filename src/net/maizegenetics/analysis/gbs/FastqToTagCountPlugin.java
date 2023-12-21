@@ -8,7 +8,8 @@ import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +26,7 @@ import java.io.File;
  */
 public class FastqToTagCountPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(FastqToTagCountPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FastqToTagCountPlugin.class);
 
     private PluginParameter<String> myInputDir = new PluginParameter.Builder<String>("i", null, String.class).guiName("Input Directory").required(true).inDir()
             .description("Input directory containing FASTQ files in text or gzipped text. "

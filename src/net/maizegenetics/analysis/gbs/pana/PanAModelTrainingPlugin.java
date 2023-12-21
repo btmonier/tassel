@@ -3,7 +3,8 @@ package net.maizegenetics.analysis.gbs.pana;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +21,7 @@ public class PanAModelTrainingPlugin extends AbstractPlugin {
     
     static long timePoint1;
     private ArgsEngine engine = null;
-    private Logger logger = Logger.getLogger(PanAModelTrainingPlugin.class);
+    private Logger logger = LogManager.getLogger(PanAModelTrainingPlugin.class);
     
     String trainingSetFileS = null;
     String wekaPath = null;

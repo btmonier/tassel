@@ -10,7 +10,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.dna.snp.GenotypeTableUtils;
 import net.maizegenetics.dna.snp.score.SiteScore;
@@ -33,7 +34,7 @@ import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportBuilder;
 
 public abstract class AbstractFixedEffectLM implements FixedEffectLM {
-	protected static Logger myLogger = Logger.getLogger(AbstractFixedEffectLM.class);
+	protected static Logger myLogger = LogManager.getLogger(AbstractFixedEffectLM.class);
 	
 	protected final Datum myDatum;
 	protected final GenotypePhenotype myGenoPheno;

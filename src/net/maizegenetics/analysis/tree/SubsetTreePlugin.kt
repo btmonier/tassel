@@ -8,11 +8,11 @@ import net.maizegenetics.plugindef.PluginParameter
 import net.maizegenetics.taxa.TaxaList
 import net.maizegenetics.taxa.tree.Tree
 import net.maizegenetics.taxa.tree.subsetTree
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import java.awt.Frame
 import javax.swing.ImageIcon
 
-private val myLogger = Logger.getLogger(SubsetTreePlugin::class.java)
+private val myLogger = LogManager.getLogger(SubsetTreePlugin::class.java)
 
 class SubsetTreePlugin(parentFrame: Frame? = null, isInteractive: Boolean = false) : AbstractPlugin(parentFrame, isInteractive) {
 

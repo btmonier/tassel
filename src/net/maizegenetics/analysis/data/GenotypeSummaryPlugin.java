@@ -21,7 +21,8 @@ import net.maizegenetics.plugindef.PluginEvent;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.SimpleTableReport;
 import net.maizegenetics.util.TableReport;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -29,7 +30,7 @@ import org.apache.log4j.Logger;
  */
 public class GenotypeSummaryPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(GenotypeSummaryPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(GenotypeSummaryPlugin.class);
     private static final String NA = "NA";
     private static final Double ZERO_DOUBLE = 0.0;
     private static final int ZERO_INT = 0;

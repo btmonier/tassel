@@ -18,7 +18,8 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.clustering.Haplotype;
 import net.maizegenetics.analysis.clustering.HaplotypeCluster;
@@ -35,7 +36,7 @@ import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
 
 public class SelfedHaplotypeFinder {
-	private static final Logger myLogger = Logger.getLogger(SelfedHaplotypeFinder.class);
+	private static final Logger myLogger = LogManager.getLogger(SelfedHaplotypeFinder.class);
 	private static byte NN = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
 	private static byte N = GenotypeTable.UNKNOWN_ALLELE;
 	private static byte AA = NucleotideAlignmentConstants.getNucleotideDiploidByte("AA");

@@ -22,7 +22,8 @@ import net.maizegenetics.util.ProgressListener;
 import net.maizegenetics.util.SuperByteMatrix;
 import net.maizegenetics.util.SuperByteMatrixBuilder;
 import net.maizegenetics.util.Tuple;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ import java.util.stream.Collectors;
  */
 public class BuilderFromVCFUsingHTSJDK {
 
-    private static final Logger myLogger = Logger.getLogger(BuilderFromVCFUsingHTSJDK.class);
+    private static final Logger myLogger = LogManager.getLogger(BuilderFromVCFUsingHTSJDK.class);
 
     private static final int NUM_VARIANT_CONTEXT_PER_THREAD = 100;
 

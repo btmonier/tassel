@@ -12,7 +12,8 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.imputation.NucleotideImputationUtils;
 import net.maizegenetics.analysis.imputation.PopulationData;
@@ -33,7 +34,7 @@ import net.maizegenetics.util.OpenBitSet;
 
 public class WritePopulationAlignmentPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(WritePopulationAlignmentPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(WritePopulationAlignmentPlugin.class);
     public static final String brkptComment1 = "#Donor Haplotypes\n";
     public static final String brkptComment2 = "#Taxa Breakpoints\n";
     public static final String brkptComment3 = "#Block are defined chr:startPos:endPos:donor1:donor2 (-1 means no hypothesis)\n";

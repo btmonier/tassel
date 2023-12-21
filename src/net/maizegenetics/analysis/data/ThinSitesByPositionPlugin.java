@@ -22,7 +22,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Plugin to thin out sites based on their physical position on the chromosome.
@@ -35,7 +36,7 @@ import org.apache.log4j.Logger;
  *
  */
 public class ThinSitesByPositionPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(GenosToABHPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(GenosToABHPlugin.class);
 
     private PluginParameter<String> outfile= new PluginParameter.Builder<>("o", null, String.class)
             .required(true)

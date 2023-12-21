@@ -6,7 +6,8 @@ package net.maizegenetics.analysis.data;
 // standard imports for plugins
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import net.maizegenetics.util.ArgsEngine;
 import javax.swing.*;
 import java.awt.*;
@@ -26,7 +27,7 @@ import net.maizegenetics.plugindef.PluginParameter;
  */
 public class SplitHDF5ByChromosomePlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(SplitHDF5ByChromosomePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SplitHDF5ByChromosomePlugin.class);
 
     private PluginParameter<String> myInputGenotypes = new PluginParameter.Builder<>("i", null, String.class)
         .guiName("Input HDF5 Genotype File")

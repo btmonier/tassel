@@ -6,13 +6,14 @@ import net.maizegenetics.dna.map.GVCFGenomeSequenceBuilder;
 import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.map.PositionList;
 import net.maizegenetics.util.BitSet;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by zrm22 on 4/3/17.
  */
 public class FilterAndMaskGVCFGenomeSequence {
-    private static final Logger myLogger = Logger.getLogger(FilterAndMaskGVCFGenomeSequence.class);
+    private static final Logger myLogger = LogManager.getLogger(FilterAndMaskGVCFGenomeSequence.class);
 
     private FilterAndMaskGVCFGenomeSequence() {
     }

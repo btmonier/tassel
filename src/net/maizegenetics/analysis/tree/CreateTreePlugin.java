@@ -16,7 +16,8 @@ import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.taxa.tree.NeighborJoiningTree;
 import net.maizegenetics.taxa.tree.Tree;
 import net.maizegenetics.taxa.tree.UPGMATree;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +31,7 @@ import java.util.List;
  */
 public class CreateTreePlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(CreateTreePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(CreateTreePlugin.class);
 
     public static enum CLUSTERING_METHOD {
 

@@ -33,7 +33,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class WeightedMLMPlugin extends MLMPlugin{
     
@@ -61,7 +62,7 @@ public class WeightedMLMPlugin extends MLMPlugin{
         this.useRefProb = useRefProb;
     }
 
-    private static final Logger myLogger = Logger.getLogger(WeightedMLMPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(WeightedMLMPlugin.class);
     protected DistanceMatrix kinshipMatrix;
     protected boolean analyzeByColumn;
     protected boolean useP3D = true;

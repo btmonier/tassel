@@ -19,7 +19,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -27,7 +28,7 @@ import org.apache.log4j.Logger;
  */
 public class ExportMultiplePlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ExportMultiplePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ExportMultiplePlugin.class);
     private FileLoadPlugin.TasselFileType[] myFileTypes = null;
     private String[] mySaveFiles = null;
     private final ExportPlugin myExportPlugin;

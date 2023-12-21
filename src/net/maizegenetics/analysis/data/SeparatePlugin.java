@@ -15,7 +15,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginEvent;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,7 +30,7 @@ import java.util.List;
  */
 public class SeparatePlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(SeparatePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SeparatePlugin.class);
     private String[] myChromosomesToSeparate = null;
 
     /**

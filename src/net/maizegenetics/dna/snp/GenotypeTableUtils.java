@@ -23,7 +23,8 @@ import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.Tuple;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Utility methods for comparing, sorting, and counting genotypes.
@@ -33,7 +34,7 @@ import org.apache.log4j.Logger;
  */
 public class GenotypeTableUtils {
 
-    private static final Logger myLogger = Logger.getLogger(GenotypeTableUtils.class);
+    private static final Logger myLogger = LogManager.getLogger(GenotypeTableUtils.class);
 
     private static final Integer ONE = 1;
     private static final byte HIGHMASK = (byte) 0x0F;

@@ -16,7 +16,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -24,7 +25,7 @@ import org.apache.log4j.Logger;
  */
 public class FeatureListToPositionsPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(FeatureListToPositionsPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FeatureListToPositionsPlugin.class);
 
     private PluginParameter<String> myConnConfigFile = new PluginParameter.Builder<>("cf", null, String.class)
             .required(true)

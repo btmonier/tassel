@@ -24,11 +24,12 @@ import net.maizegenetics.plugindef.ParameterCache;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.util.LoggingUtils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TASSELMainApp {
 
-    private static final Logger myLogger = Logger.getLogger(TASSELMainApp.class);
+    private static final Logger myLogger = LogManager.getLogger(TASSELMainApp.class);
 
     private TASSELMainApp() {
     }

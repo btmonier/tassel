@@ -19,7 +19,8 @@ import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.taxa.TaxaList;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -27,7 +28,7 @@ import org.apache.log4j.Logger;
  */
 public class GOBIIPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(GOBIIPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(GOBIIPlugin.class);
 
     private PluginParameter<String> myDataset = new PluginParameter.Builder<>("dataset", null, String.class)
             .required(true)

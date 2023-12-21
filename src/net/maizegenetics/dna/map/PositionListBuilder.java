@@ -12,7 +12,8 @@ import net.maizegenetics.util.HDF5Utils;
 import net.maizegenetics.util.Tassel5HDF5Constants;
 
 import java.util.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static net.maizegenetics.dna.WHICH_ALLELE.*;
 import net.maizegenetics.util.Tuple;
@@ -47,7 +48,7 @@ import net.maizegenetics.util.Tuple;
  */
 public class PositionListBuilder {
 
-    private static final Logger myLogger = Logger.getLogger(PositionListBuilder.class);
+    private static final Logger myLogger = LogManager.getLogger(PositionListBuilder.class);
 
     private ArrayList<Position> myPositions = new ArrayList<>();
     private boolean isHDF5 = false;

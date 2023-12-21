@@ -14,7 +14,8 @@ import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.GeneralAnnotation;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -76,7 +77,7 @@ public class MergeRenameDeleteTaxaPlugin extends net.maizegenetics.plugindef.Abs
         super(parentFrame, isInteractive);
     }
 
-    private static final Logger myLogger = Logger.getLogger(MergeRenameDeleteTaxaPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(MergeRenameDeleteTaxaPlugin.class);
     String dataSetDescrip, date;
     String errorMessage;
     private GenotypeTable inputGenotypes = null;

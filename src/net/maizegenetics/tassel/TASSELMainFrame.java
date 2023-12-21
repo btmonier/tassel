@@ -81,7 +81,8 @@ import net.maizegenetics.plugindef.ThreadedPluginListener;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.progress.ProgressPanel;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -109,7 +110,7 @@ import java.util.Map;
  */
 public class TASSELMainFrame extends JFrame implements ActionListener {
 
-    private static final Logger myLogger = Logger.getLogger(TASSELMainFrame.class);
+    private static final Logger myLogger = LogManager.getLogger(TASSELMainFrame.class);
     public static final String version = "5.2.92";
     public static final String versionDate = "November 10, 2023";
     private DataTreePanel myDataTreePanel;

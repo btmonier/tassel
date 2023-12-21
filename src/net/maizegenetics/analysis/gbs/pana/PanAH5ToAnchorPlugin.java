@@ -5,7 +5,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.MultiMemberGZIPInputStream;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,7 +22,7 @@ public class PanAH5ToAnchorPlugin extends AbstractPlugin {
 
     static long timePoint1;
     private ArgsEngine engine = null;
-    private Logger logger = Logger.getLogger(PanAH5ToAnchorPlugin.class);
+    private Logger logger = LogManager.getLogger(PanAH5ToAnchorPlugin.class);
     
     String h5GenotypeFileS = null;
     String sBitGenotypeFileS = null;

@@ -9,7 +9,8 @@ import net.maizegenetics.dna.tag.TagsByTaxa;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +23,7 @@ public class ContigPETagCountPlugin extends AbstractPlugin {
 
     static long timePoint1;
     private ArgsEngine engine = null;
-    private Logger logger = Logger.getLogger(MergePETagCountPlugin.class);
+    private Logger logger = LogManager.getLogger(MergePETagCountPlugin.class);
     private String inputFileS = null;
     private String outputFileS = null;
     

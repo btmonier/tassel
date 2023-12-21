@@ -5,7 +5,8 @@ import net.maizegenetics.plugindef.*;
 import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportBuilder;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,7 +22,7 @@ import java.util.List;
  */
 public class ImputationAccuracyPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ImputationAccuracyPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ImputationAccuracyPlugin.class);
 
 	private PluginParameter<Boolean> isSubset = new PluginParameter.Builder<>("subset", false, Boolean.class)
             .guiName("Imputed is subset of original")

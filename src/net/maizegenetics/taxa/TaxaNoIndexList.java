@@ -1,7 +1,8 @@
 package net.maizegenetics.taxa;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
@@ -16,7 +17,7 @@ import java.util.*;
  */
 class TaxaNoIndexList implements TaxaList {
 
-    private static final Logger myLogger = Logger.getLogger(TaxaNoIndexList.class);
+    private static final Logger myLogger = LogManager.getLogger(TaxaNoIndexList.class);
     private final List<Taxon> myTaxaList;
     private final int myNumTaxa;
 

@@ -5,7 +5,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.MultiMemberGZIPInputStream;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +23,7 @@ public class TagAgainstAnchorPlugin extends AbstractPlugin {
 
     static long timePoint1;
     private ArgsEngine engine = null;
-    private Logger logger = Logger.getLogger(TagAgainstAnchorPlugin.class);
+    private Logger logger = LogManager.getLogger(TagAgainstAnchorPlugin.class);
     int preCalculation = 0;
     String hapMapHDF5 = null;
     String tbtHDF5 = null;

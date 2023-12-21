@@ -38,7 +38,8 @@ import net.maizegenetics.util.SuperByteMatrix;
 import net.maizegenetics.util.SuperByteMatrixBuilder;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -47,7 +48,7 @@ import org.apache.log4j.Logger;
  */
 public class BuilderFromHapMap {
 
-    private static final Logger myLogger = Logger.getLogger(BuilderFromHapMap.class);
+    private static final Logger myLogger = LogManager.getLogger(BuilderFromHapMap.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
     private static final int NUM_HAPMAP_NON_TAXA_HEADERS = 11;
     private static final int SNPID_INDEX = 0;

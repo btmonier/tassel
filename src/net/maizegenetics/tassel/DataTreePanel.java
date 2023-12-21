@@ -42,7 +42,8 @@ import net.maizegenetics.taxa.tree.Tree;
 import net.maizegenetics.util.GeneralAnnotation;
 import net.maizegenetics.util.HDF5TableReport;
 import net.maizegenetics.util.TableReport;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
@@ -71,7 +72,7 @@ import java.util.Map;
 
 public class DataTreePanel extends JPanel implements PluginListener {
 
-    private static final Logger myLogger = Logger.getLogger(DataTreePanel.class);
+    private static final Logger myLogger = LogManager.getLogger(DataTreePanel.class);
     public static final String NODE_TYPE_DATA = "Data";
     public static final String NODE_TYPE_RESULT = "Result";
     public static final String NODE_TYPE_SEQUENCE = "Sequence";

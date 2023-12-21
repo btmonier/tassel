@@ -15,7 +15,8 @@ import net.maizegenetics.util.BitSet;
 import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.ProgressListener;
 import net.maizegenetics.util.TableReport;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.Serializable;
 import java.io.StringWriter;
@@ -88,7 +89,7 @@ public class LinkageDisequilibrium extends Thread implements Serializable, Table
 
         Haplotype, Homozygous, Genotype
     };
-    private static final Logger myLogger = Logger.getLogger(LinkageDisequilibrium.class);
+    private static final Logger myLogger = LogManager.getLogger(LinkageDisequilibrium.class);
     private GenotypeTable myAlignment;
 //    private Alignment mySBitAlignment;
     private int myMinTaxaForEstimate = 20;

@@ -18,7 +18,8 @@ import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.plugindef.PluginParameter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,7 +32,7 @@ import java.util.List;
  */
 public class FilterTaxaPropertiesPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(FilterTaxaPropertiesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FilterTaxaPropertiesPlugin.class);
 
     private PluginParameter<Double> myMinNotMissing = new PluginParameter.Builder<Double>("minNotMissing", TasselPrefs.FILTER_TAXA_PROPS_PLUGIN_MIN_NOT_MISSING_DEFAULT, Double.class)
             .guiName("Min Proportion of Sites Present").range(Range.closed(0.0, 1.0)).build();

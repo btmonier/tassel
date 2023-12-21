@@ -21,7 +21,8 @@ import javax.xml.transform.stream.StreamResult;
 import net.maizegenetics.plugindef.Plugin;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -34,7 +35,7 @@ import org.w3c.dom.NodeList;
  */
 public class TasselPipelineXMLUtil {
 
-    private static final Logger myLogger = Logger.getLogger(TasselPipelineXMLUtil.class);
+    private static final Logger myLogger = LogManager.getLogger(TasselPipelineXMLUtil.class);
 
     private TasselPipelineXMLUtil() {
         // Utility Class

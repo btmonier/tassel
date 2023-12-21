@@ -7,7 +7,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Set;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
 
@@ -17,7 +18,7 @@ import org.ini4j.Profile;
  */
 public class EnzymeList {
     
-    private static final Logger myLogger = Logger.getLogger(EnzymeList.class);
+    private static final Logger myLogger = LogManager.getLogger(EnzymeList.class);
     /**
      * This is the application level default that will initiate using the EnzymeList 
      * default constructor.

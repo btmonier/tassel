@@ -4,12 +4,11 @@
 package net.maizegenetics.util;
 
 import net.maizegenetics.prefs.TasselPrefs;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 /**
@@ -17,7 +16,7 @@ import java.io.PrintStream;
  */
 public class LoggingUtils {
 
-    private static final Logger myLogger = Logger.getLogger(LoggingUtils.class);
+    private static final Logger myLogger = LogManager.getLogger(LoggingUtils.class);
     private static final PrintStream myOriginalOutputStream = System.out;
     private static final PrintStream myOriginalErrStream = System.err;
 
@@ -38,7 +37,7 @@ public class LoggingUtils {
         } else {
             System.setOut(myOriginalOutputStream);
             System.setErr(myOriginalErrStream);
-            sendLog4jToStdout();
+            LoggingUtilsKt.sendLog4jToStdout();
         }
     }
 
@@ -49,7 +48,7 @@ public class LoggingUtils {
     public static void setupDebugLogging() {
         System.setOut(myOriginalOutputStream);
         System.setErr(myOriginalErrStream);
-        sendDebugLog4jToStdout();
+        LoggingUtilsKt.sendDebugLog4jToStdout();
     }
 
     /**
@@ -66,7 +65,7 @@ public class LoggingUtils {
         } else {
             System.setOut(stream);
             System.setErr(stream);
-            sendLog4jToStdout();
+            LoggingUtilsKt.sendLog4jToStdout();
         }
     }
 
@@ -80,7 +79,7 @@ public class LoggingUtils {
     public static void setupDebugLogging(PrintStream stream) {
         System.setOut(stream);
         System.setErr(stream);
-        sendDebugLog4jToStdout();
+        LoggingUtilsKt.sendDebugLog4jToStdout();
     }
 
     /**
@@ -100,7 +99,7 @@ public class LoggingUtils {
             myPrintStream = new PrintStream(logFile);
             System.setOut(myPrintStream);
             System.setErr(myPrintStream);
-            sendLog4jToStdout();
+            LoggingUtilsKt.sendLog4jToStdout();
             myLogger.info("Log File: " + logFile.getAbsolutePath());
         }
     }
@@ -118,66 +117,14 @@ public class LoggingUtils {
         myPrintStream = new PrintStream(logFile);
         System.setOut(myPrintStream);
         System.setErr(myPrintStream);
-        sendDebugLog4jToStdout();
+        LoggingUtilsKt.sendDebugLog4jToStdout();
         myLogger.info("Log File: " + logFile.getAbsolutePath());
-    }
-
-    public static void setupStdOutLogging() {
-        System.setOut(myOriginalOutputStream);
-        System.setErr(myOriginalErrStream);
-        java.util.Properties props = new java.util.Properties();
-        props.setProperty("log4j.logger.net.maizegenetics", "ERROR, stdout");
-        props.setProperty("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
-        props.setProperty("log4j.appender.stdout.Threshold", "error");
-        props.setProperty("log4j.appender.stdout.layout", "org.apache.log4j.TTCCLayout");
-        PropertyConfigurator.configure(props);
     }
 
     public static void closeLogfile() {
         if (myPrintStream != null) {
             myPrintStream.close();
         }
-    }
-
-    /**
-     * Turns off logging
-     */
-    public static void setupLoggingOff() {
-        try {
-            PrintStream nullDev = new PrintStream(new FileOutputStream("/dev/null"));
-            System.setOut(nullDev);
-            System.setErr(nullDev);
-            turnOffLog4j();
-        } catch (Exception e) {
-            myLogger.error(e.getMessage(), e);
-        }
-    }
-
-    private static void sendLog4jToStdout() {
-        java.util.Properties props = new java.util.Properties();
-        props.setProperty("log4j.logger.net.maizegenetics", "INFO, stdout");
-        props.setProperty("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
-        props.setProperty("log4j.appender.stdout.Threshold", "info");
-        props.setProperty("log4j.appender.stdout.layout", "org.apache.log4j.TTCCLayout");
-        PropertyConfigurator.configure(props);
-    }
-
-    private static void sendDebugLog4jToStdout() {
-        java.util.Properties props = new java.util.Properties();
-        props.setProperty("log4j.logger.net.maizegenetics", "DEBUG, stdout");
-        props.setProperty("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
-        props.setProperty("log4j.appender.stdout.Threshold", "debug");
-        props.setProperty("log4j.appender.stdout.layout", "org.apache.log4j.TTCCLayout");
-        PropertyConfigurator.configure(props);
-    }
-
-    private static void turnOffLog4j() {
-        java.util.Properties props = new java.util.Properties();
-        props.setProperty("log4j.logger.net.maizegenetics", "OFF, stdout");
-        props.setProperty("log4j.appender.stdout", "org.apache.log4j.NullAppender");
-        props.setProperty("log4j.appender.stdout.Threshold", "off");
-        props.setProperty("log4j.appender.stdout.layout", "org.apache.log4j.TTCCLayout");
-        PropertyConfigurator.configure(props);
     }
 
 }

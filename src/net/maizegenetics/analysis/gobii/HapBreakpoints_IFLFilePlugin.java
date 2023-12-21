@@ -19,7 +19,8 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
@@ -112,7 +113,7 @@ import net.maizegenetics.util.Utils;
  *
  */
 public class HapBreakpoints_IFLFilePlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(PreProcessGOBIIMappingFilePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(PreProcessGOBIIMappingFilePlugin.class);
     
 //    private PluginParameter<String> dbConfigFile= new PluginParameter.Builder<>("dbConfigFile",null,String.class).guiName("dbConfigFile").required(true)
 //            .description("DB config file containing connection information to the GOBII instance").build();

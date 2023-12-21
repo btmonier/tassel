@@ -5,7 +5,8 @@ import net.maizegenetics.util.DirectedGraph;
 import net.maizegenetics.util.Graph;
 import net.maizegenetics.util.GraphBuilder;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -23,7 +24,7 @@ import java.util.*;
 //TODO: Add functionality for reading in a precompiled map
 public class GenomeFeatureMapBuilder {
 
-    private static final Logger myLogger = Logger.getLogger(GenomeFeatureMapBuilder.class);
+    private static final Logger myLogger = LogManager.getLogger(GenomeFeatureMapBuilder.class);
 
     //Graph of all the genome features connecting to each other
     DirectedGraph<GenomeFeature> featureTree = null;

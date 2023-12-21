@@ -5,7 +5,7 @@ package net.maizegenetics.dna.snp.io
 import net.maizegenetics.dna.snp.GenotypeTable
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants.UNDEFINED_ALLELE_STR
 import net.maizegenetics.util.Utils
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 
 
 /**
@@ -16,7 +16,7 @@ import org.apache.log4j.Logger
  * http://flapjack.hutton.ac.uk/en/latest/projects_&_data_formats.html
  */
 
-private val myLogger = Logger.getLogger("net.maizegenetics.dna.snp.io.FlapjackUtils")
+private val myLogger = LogManager.getLogger("net.maizegenetics.dna.snp.io.FlapjackUtils")
 
 private const val FLAPJACK_MISSING = "-"
 

@@ -21,7 +21,8 @@ import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * HDF5 implementation of GenotypeTable. Uses caching of GenotypeTable,
@@ -32,7 +33,7 @@ import org.apache.log4j.Logger;
  */
 class HDF5ByteGenotypeCallTable extends AbstractGenotypeCallTable {
 
-    private static final Logger myLogger = Logger.getLogger(HDF5ByteGenotypeCallTable.class);
+    private static final Logger myLogger = LogManager.getLogger(HDF5ByteGenotypeCallTable.class);
 
     private static final int SHIFT_AMOUNT = 16;
 

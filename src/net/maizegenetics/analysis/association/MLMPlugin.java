@@ -25,7 +25,8 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.gui.ReportDestinationDialog;
@@ -62,7 +63,7 @@ public class MLMPlugin extends AbstractPlugin {
 		this.useRefProb = useRefProb;
 	}
 
-	private static final Logger myLogger = Logger.getLogger(MLMPlugin.class);
+	private static final Logger myLogger = LogManager.getLogger(MLMPlugin.class);
     protected DistanceMatrix kinshipMatrix;
     protected boolean analyzeByColumn;
     protected boolean useP3D = true;

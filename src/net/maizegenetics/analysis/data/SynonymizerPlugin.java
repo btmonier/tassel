@@ -24,7 +24,8 @@ import net.maizegenetics.gui.TableReportNoPagingTableModel;
 import net.maizegenetics.tassel.TASSELMainFrame;
 import net.maizegenetics.util.GeneralAnnotation;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -52,7 +53,7 @@ import java.util.Map;
  */
 public class SynonymizerPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(SynonymizerPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SynonymizerPlugin.class);
     private String delimiter;
     /**
      * Creates a new instance of SynonymizerPlugin

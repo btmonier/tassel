@@ -26,7 +26,8 @@ import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.BitSet;
 import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -34,7 +35,7 @@ import org.apache.log4j.Logger;
  */
 public class AdjustPhasingPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(AdjustPhasingPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(AdjustPhasingPlugin.class);
 
     private static final int NUM_VCF_HEADER_COLUMNS = 9;
 

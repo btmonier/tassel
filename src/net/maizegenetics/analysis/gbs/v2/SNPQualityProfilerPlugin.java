@@ -16,7 +16,8 @@ import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListIOUtils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 
@@ -41,7 +42,7 @@ import java.util.stream.Stream;
  */
 public class SNPQualityProfilerPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(SNPQualityProfilerPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SNPQualityProfilerPlugin.class);
 
     private PluginParameter<String> myTaxaFile = new PluginParameter.Builder<String>("taxa", null, String.class).guiName("Taxa List File").inFile()
             .description("Name of taxa list input file in taxa list format").build();
