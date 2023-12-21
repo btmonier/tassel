@@ -5,7 +5,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.MultiMemberGZIPInputStream;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +31,7 @@ public class PanAReadToKmerPlugin extends AbstractPlugin {
 
     static long timePoint1;
     private ArgsEngine engine = null;
-    private Logger logger = Logger.getLogger(PanAReadToKmerPlugin.class);
+    private Logger logger = LogManager.getLogger(PanAReadToKmerPlugin.class);
     
     String polyA = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
     

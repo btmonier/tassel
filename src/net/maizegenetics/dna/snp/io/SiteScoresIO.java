@@ -17,7 +17,8 @@ import net.maizegenetics.dna.snp.score.ReferenceProbability;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
  */
 public class SiteScoresIO {
 
-    private static final Logger myLogger = Logger.getLogger(SiteScoresIO.class);
+    private static final Logger myLogger = LogManager.getLogger(SiteScoresIO.class);
 
     private static final String DELIMITER = "\t";
 

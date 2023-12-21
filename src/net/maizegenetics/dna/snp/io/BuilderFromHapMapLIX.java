@@ -26,7 +26,8 @@ import static net.maizegenetics.dna.snp.io.BuilderFromHapMap.processTaxa;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListIOUtils;
 import net.maizegenetics.util.Tuple;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -34,7 +35,7 @@ import org.apache.log4j.Logger;
  */
 public class BuilderFromHapMapLIX {
 
-    private static final Logger myLogger = Logger.getLogger(BuilderFromHapMapLIX.class);
+    private static final Logger myLogger = LogManager.getLogger(BuilderFromHapMapLIX.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
     private static final int NUM_HAPMAP_NON_TAXA_HEADERS = 11;
     private static final int SNPID_INDEX = 0;

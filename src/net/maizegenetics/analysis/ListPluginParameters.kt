@@ -11,8 +11,8 @@ import net.maizegenetics.plugindef.PluginParameter
 import net.maizegenetics.util.TableReport
 import net.maizegenetics.util.TableReportBuilder
 import net.maizegenetics.util.Utils
-import org.apache.log4j.Level
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.Level
+import org.apache.logging.log4j.LogManager
 import java.awt.Frame
 import java.io.File
 import java.util.*
@@ -24,7 +24,7 @@ import javax.swing.ImageIcon
  * @author Terry Casstevens
  */
 
-private val myLogger = Logger.getLogger(ListPluginParameters::class.java)
+private val myLogger = LogManager.getLogger(ListPluginParameters::class.java)
 
 class ListPluginParameters(parentFrame: Frame? = null, isInteractive: Boolean = false) : AbstractPlugin(parentFrame, isInteractive) {
 
@@ -135,8 +135,8 @@ class ListPluginParameters(parentFrame: Frame? = null, isInteractive: Boolean = 
     }
 
     init {
-        Logger.getLogger("net.maizegenetics").level = Level.OFF
-        Logger.getLogger("net.maizegenetics.plugindef").level = Level.INFO
+        LogManager.getLogger("net.maizegenetics").atLevel(Level.OFF)
+        LogManager.getLogger("net.maizegenetics.plugindef").atLevel(Level.INFO)
     }
 
     companion object {

@@ -21,7 +21,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.DirectoryCrawler;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /** 
  * Derives a PETagCount list for a pair of Qseq files. The forward and backward tags are ordered during processing
@@ -36,7 +37,7 @@ public class QseqToPETagCountPlugin extends AbstractPlugin {
 
     static long timePoint1;
     private ArgsEngine engine = null;
-    private Logger logger = Logger.getLogger(QseqToPETagCountPlugin.class);    
+    private Logger logger = LogManager.getLogger(QseqToPETagCountPlugin.class);    
     String inputFileSWithBarcode = null;
     String inputFileSWithoutBarcode = null;
     String keyfile = null;

@@ -5,8 +5,8 @@ import net.maizegenetics.phenotype.PhenotypeAttribute;
 import net.maizegenetics.stats.linearmodels.*;
 import net.maizegenetics.util.TableReportBuilder;
 import org.apache.commons.math3.distribution.FDistribution;
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.RootLogger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
@@ -22,7 +22,7 @@ import java.util.stream.StreamSupport;
  */
 public class StepwiseAddDomModelFitter extends StepwiseAdditiveModelFitter {
 
-    private static Logger myLogger = RootLogger.getLogger(StepwiseAddDomModelFitter.class);
+    private static Logger myLogger = LogManager.getLogger(StepwiseAddDomModelFitter.class);
 
     /**
      *

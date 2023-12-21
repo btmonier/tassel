@@ -13,7 +13,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,7 +27,7 @@ import java.util.Arrays;
  */
 public class BinaryToTextPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(BinaryToTextPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(BinaryToTextPlugin.class);
 
     public static enum FILE_TYPES {
 

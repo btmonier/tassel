@@ -15,7 +15,8 @@ import net.maizegenetics.dna.tag.Tags;
 import net.maizegenetics.dna.tag.TagsByTaxa.FilePacking;
 import net.maizegenetics.dna.BaseEncoder;
 import net.maizegenetics.dna.tag.GBSHDF5Constants;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * HDF5 version of TagsOnPhysical Map.  This is the preferred version of physical map as it uses less
@@ -33,7 +34,7 @@ import org.apache.log4j.Logger;
  */
 public class TagsOnPhysicalMapV3 extends AbstractTagsOnPhysicalMap implements TOPMInterface {
 
-    private static final Logger myLogger = Logger.getLogger(TagsOnPhysicalMapV3.class);
+    private static final Logger myLogger = LogManager.getLogger(TagsOnPhysicalMapV3.class);
     /**Shift 2^16*/
     private static final int BITS_TO_SHIFT_FOR_CHUNK = 16;
     /**65536 tags in a truck*/

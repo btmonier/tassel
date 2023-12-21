@@ -18,14 +18,15 @@ import java.nio.ByteOrder;
 
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Terry Casstevens
  */
 public class ReadDistanceMatrix {
 
-    private static final Logger myLogger = Logger.getLogger(ReadDistanceMatrix.class);
+    private static final Logger myLogger = LogManager.getLogger(ReadDistanceMatrix.class);
 
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 

@@ -17,7 +17,8 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
  */
 public class AlignmentTableModel extends AbstractTableModel implements ChangeListener {
 
-    private static final Logger myLogger = Logger.getLogger(AlignmentTableModel.class);
+    private static final Logger myLogger = LogManager.getLogger(AlignmentTableModel.class);
 
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getPercentInstance();
     private static final NumberFormat DECIMAL_FORMAT = NumberFormat.getNumberInstance();

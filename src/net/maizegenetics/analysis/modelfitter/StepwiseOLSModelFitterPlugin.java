@@ -7,7 +7,8 @@ import net.maizegenetics.phenotype.Phenotype.ATTRIBUTE_TYPE;
 import net.maizegenetics.plugindef.*;
 import net.maizegenetics.util.TableReport;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 
@@ -92,7 +93,7 @@ public class StepwiseOLSModelFitterPlugin extends AbstractPlugin {
 //                    .outFile()
 //                    .build();
 
-    private static final Logger myLogger = Logger.getLogger(StepwiseOLSModelFitterPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(StepwiseOLSModelFitterPlugin.class);
     private double alpha = 0.05;
 
     //TODO need to change this to a list

@@ -14,8 +14,8 @@ import java.util.stream.StreamSupport;
 
 import net.maizegenetics.stats.linearmodels.*;
 import org.apache.commons.math3.distribution.FDistribution;
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.RootLogger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.association.AssociationUtils;
 import net.maizegenetics.dna.map.Chromosome;
@@ -50,7 +50,7 @@ import net.maizegenetics.util.TableReportBuilder;
  */
 public class StepwiseAdditiveModelFitter {
     //replacement for StepwiseOLSModelFitter that has many of the same features but is not multi-threaded
-    private static Logger myLogger = RootLogger.getLogger(StepwiseAdditiveModelFitter.class);
+    private static Logger myLogger = LogManager.getLogger(StepwiseAdditiveModelFitter.class);
     protected final GenotypePhenotype myGenoPheno;
     protected final GenotypeTable myGenotype;
     protected final Phenotype myPhenotype;

@@ -17,7 +17,8 @@ import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.LoggingUtils;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
  */
 public class BMSConnection {
 
-    private static final Logger myLogger = Logger.getLogger(BMSConnection.class);
+    private static final Logger myLogger = LogManager.getLogger(BMSConnection.class);
 
     private BMSConnection() {
         //utility

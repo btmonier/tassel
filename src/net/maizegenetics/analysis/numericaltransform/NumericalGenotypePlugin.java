@@ -13,7 +13,8 @@ import net.maizegenetics.dna.snp.score.ReferenceProbabilityBuilder;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,7 +28,7 @@ import java.util.List;
  * @author Peter Bradbury
  */
 public class NumericalGenotypePlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(NumericalGenotypePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(NumericalGenotypePlugin.class);
 
     public static enum TRANSFORM_TYPE {
         as_minor, as_major, as_missing, use_all_alleles, collapse, separated

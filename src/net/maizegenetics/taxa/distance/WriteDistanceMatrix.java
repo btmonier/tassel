@@ -9,7 +9,8 @@ import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.GeneralAnnotation;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Terry Casstevens
@@ -17,7 +18,7 @@ import org.apache.log4j.Logger;
  */
 public class WriteDistanceMatrix {
 
-    private static final Logger myLogger = Logger.getLogger(WriteDistanceMatrix.class);
+    private static final Logger myLogger = LogManager.getLogger(WriteDistanceMatrix.class);
 
     private WriteDistanceMatrix() {
         //utility

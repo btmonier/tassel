@@ -7,7 +7,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.GeneratePluginCode;
 import net.maizegenetics.plugindef.PluginParameter;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +20,7 @@ import java.io.File;
  */
 public class UTagCountToTagPairPlugin extends AbstractPlugin {
 
-    private static final Logger logger = Logger.getLogger(UTagCountToTagPairPlugin.class);
+    private static final Logger logger = LogManager.getLogger(UTagCountToTagPairPlugin.class);
 
     private PluginParameter<Double> errorTolerance
             = new PluginParameter.Builder<>("errorTolerance", 0.03, Double.class)

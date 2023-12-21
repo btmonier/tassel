@@ -18,7 +18,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This class can read in a CBSU TagMapFile into the gbs.TagsOnPhysicalMap data
@@ -30,7 +31,7 @@ import org.apache.log4j.Logger;
 public final class SAMConverterPlugin extends AbstractPlugin {
 
     boolean cleanCutSites = true;
-    private static final Logger myLogger = Logger.getLogger(SAMConverterPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SAMConverterPlugin.class);
 
     private PluginParameter<String> myInputFile = new PluginParameter.Builder<String>("i", null, String.class).guiName("Input File").required(true).inFile()
             .description("Name of input file in SAM text format").build();

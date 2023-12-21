@@ -10,7 +10,8 @@ import net.maizegenetics.dna.tag.TagsByTaxaByte;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +23,7 @@ import java.io.File;
  */
 public class TextToBinaryPlugin extends AbstractPlugin {
 
-    private Logger myLogger = Logger.getLogger(TextToBinaryPlugin.class);
+    private Logger myLogger = LogManager.getLogger(TextToBinaryPlugin.class);
     private ArgsEngine myEngine = null;
     private String myInput;
     private String myOutput;

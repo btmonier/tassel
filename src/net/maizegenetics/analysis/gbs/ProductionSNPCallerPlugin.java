@@ -26,7 +26,8 @@ import net.maizegenetics.dna.snp.genotypecall.BasicGenotypeMergeRule;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.taxa.Taxon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -68,7 +69,7 @@ import net.maizegenetics.util.GeneralAnnotation;
  */
 public class ProductionSNPCallerPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ProductionSNPCallerPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ProductionSNPCallerPlugin.class);
 
     private PluginParameter<String> myInputDirectory = new PluginParameter.Builder<>("i", null, String.class).guiName("Input Directory").required(true).inDir()
             .description("Input directory containing fastq AND/OR qseq files.").build();

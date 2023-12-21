@@ -26,12 +26,13 @@ import net.maizegenetics.util.BitUtil;
 import net.maizegenetics.util.OpenBitSet;
 
 import org.apache.commons.math3.stat.inference.TestUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
 public class NucleotideImputationUtils {
-	private static final Logger myLogger = Logger.getLogger(NucleotideImputationUtils.class);
+	private static final Logger myLogger = LogManager.getLogger(NucleotideImputationUtils.class);
 	static final byte AA = NucleotideAlignmentConstants.getNucleotideDiploidByte("AA");
 	static final byte CC = NucleotideAlignmentConstants.getNucleotideDiploidByte("CC");
 	static final byte GG = NucleotideAlignmentConstants.getNucleotideDiploidByte("GG");

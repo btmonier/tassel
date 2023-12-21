@@ -8,11 +8,12 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginEvent;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ViterbiAlgorithmPlugin extends AbstractPlugin {
 
-	private static final Logger myLogger = Logger.getLogger(ViterbiAlgorithmPlugin.class);
+	private static final Logger myLogger = LogManager.getLogger(ViterbiAlgorithmPlugin.class);
 	private boolean fillGapsInAlignment = true;
 	private double probHeterozygous = 0.07;
 	private boolean useVariableTransition = false;

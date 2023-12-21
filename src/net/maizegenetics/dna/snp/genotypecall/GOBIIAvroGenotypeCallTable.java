@@ -16,7 +16,8 @@ import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 import net.maizegenetics.util.Tuple;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -29,7 +30,7 @@ import org.apache.log4j.Logger;
  */
 public class GOBIIAvroGenotypeCallTable extends AbstractGenotypeCallTable {
 
-    private static final Logger myLogger = Logger.getLogger(GOBIIAvroGenotypeCallTable.class);
+    private static final Logger myLogger = LogManager.getLogger(GOBIIAvroGenotypeCallTable.class);
     private static final int NUM_LOOK_AHEAD_BLOCKS = 5;
     public static final int GENOTYPE_BLOCK_SIZE = 256;
 

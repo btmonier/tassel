@@ -28,7 +28,8 @@ import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.Utils;
 import org.ahocorasick.trie.Emit;
 import org.ahocorasick.trie.Trie;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -76,7 +77,7 @@ import java.util.stream.Collectors;
  */
 public class RGBSProductionSNPCallerPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(RGBSProductionSNPCallerPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(RGBSProductionSNPCallerPlugin.class);
 
     private PluginParameter<String> myInputDir = new PluginParameter.Builder<>("i", null, String.class).guiName("Input Directory").required(true).inDir()
             .description("Input directory containing fastq AND/OR qseq files.").build();

@@ -35,7 +35,8 @@ import net.maizegenetics.plugindef.PluginEvent;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.plugindef.ThreadedPluginListener;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -43,7 +44,7 @@ import org.apache.log4j.Logger;
  */
 public class VCAPScanPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(VCAPScanPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(VCAPScanPlugin.class);
 
     public static enum SCAN_METHOD {
 

@@ -5,7 +5,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.ParameterCache;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.prefs.TasselPrefs;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +20,7 @@ import java.util.Locale;
  */
 public class PreferencesDialog extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(PreferencesDialog.class);
+    private static final Logger myLogger = LogManager.getLogger(PreferencesDialog.class);
 
     private PluginParameter<Boolean> myRetainRareAlleles = new PluginParameter.Builder<>("retainRareAlleles", TasselPrefs.ALIGNMENT_RETAIN_RARE_ALLELES_DEFAULT, Boolean.class)
             .description("True if rare alleles should be retained.  This has no effect on Nucleotide Data as all alleles will be retained regardless.")

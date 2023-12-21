@@ -1,6 +1,7 @@
 package net.maizegenetics.stats.linearmodels;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix;
 import net.maizegenetics.util.BitSet;
@@ -8,7 +9,7 @@ import net.maizegenetics.util.BitSet;
 
 public class SymmetricMatrixInverterDM {
 
-    private static final Logger myLogger = Logger.getLogger(SymmetricMatrixInverterDM.class);
+    private static final Logger myLogger = LogManager.getLogger(SymmetricMatrixInverterDM.class);
 	private SweepFast originalSweep;
 	boolean[] included;
 	

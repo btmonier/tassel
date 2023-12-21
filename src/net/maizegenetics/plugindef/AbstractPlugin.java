@@ -23,7 +23,8 @@ import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.taxa.distance.ReadDistanceMatrix;
 import net.maizegenetics.util.ExceptionUtils;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -53,7 +54,7 @@ import java.util.regex.Pattern;
  */
 abstract public class AbstractPlugin implements Plugin {
 
-    private static final Logger myLogger = Logger.getLogger(AbstractPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(AbstractPlugin.class);
 
     public static final String DEFAULT_CITATION = "Bradbury PJ, Zhang Z, Kroon DE, Casstevens TM, Ramdoss Y, Buckler ES. (2007) TASSEL: Software for association mapping of complex traits in diverse samples. Bioinformatics 23:2633-2635.";
 

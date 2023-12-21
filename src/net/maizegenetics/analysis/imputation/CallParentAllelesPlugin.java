@@ -12,10 +12,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginEvent;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,7 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class CallParentAllelesPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(CallParentAllelesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(CallParentAllelesPlugin.class);
     private String pedfileName = null;
     private int windowSize = 50;  //the number of sites to be used a window for determining the original set of snps in LD
     private double minRforSnps = 0.2;  //the minimum R used to judge whether a snp is in ld with a test group
@@ -216,33 +214,33 @@ public class CallParentAllelesPlugin extends AbstractPlugin {
     }
 
     private void addFileLogger(String filename) {
-        try {
-            Appender fileAppender = Logger.getRootLogger().getAppender("fileAppender");
-            if (fileAppender == null) {
-                FileAppender filelog =
-                        new FileAppender(new PatternLayout("%d %-5p  [%c{1}] %m %n"), filename, true);
-                filelog.setName("fileAppender");
-                Logger.getRootLogger().addAppender(filelog);
-            }
-        } catch (Exception e) {
-            myLogger.info("log file could not be instantiated");
-            e.printStackTrace();
-        }
+//        try {
+//            Appender fileAppender = Logger.getRootLogger().getAppender("fileAppender");
+//            if (fileAppender == null) {
+//                FileAppender filelog =
+//                        new FileAppender(new PatternLayout("%d %-5p  [%c{1}] %m %n"), filename, true);
+//                filelog.setName("fileAppender");
+//                Logger.getRootLogger().addAppender(filelog);
+//            }
+//        } catch (Exception e) {
+//            myLogger.info("log file could not be instantiated");
+//            e.printStackTrace();
+//        }
     }
 
     private void setFileLogger(String filename) {
-        try {
-            Appender fileAppender = Logger.getRootLogger().getAppender("fileAppender");
-            if (fileAppender != null)
-                Logger.getRootLogger().removeAppender(fileAppender);
-            FileAppender filelog =
-                    new FileAppender(new PatternLayout("%d %-5p  [%c{1}] %m %n"), filename, true);
-            filelog.setName("fileAppender");
-            Logger.getRootLogger().addAppender(filelog);
-        } catch (Exception e) {
-            myLogger.info("log file could not be instantiated");
-            e.printStackTrace();
-        }
+//        try {
+//            Appender fileAppender = Logger.getRootLogger().getAppender("fileAppender");
+//            if (fileAppender != null)
+//                Logger.getRootLogger().removeAppender(fileAppender);
+//            FileAppender filelog =
+//                    new FileAppender(new PatternLayout("%d %-5p  [%c{1}] %m %n"), filename, true);
+//            filelog.setName("fileAppender");
+//            Logger.getRootLogger().addAppender(filelog);
+//        } catch (Exception e) {
+//            myLogger.info("log file could not be instantiated");
+//            e.printStackTrace();
+//        }
     }
 
     public void setPedfileName(String pedfileName) {

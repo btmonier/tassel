@@ -11,7 +11,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginEvent;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,7 +29,7 @@ import java.util.stream.IntStream;
  */
 public class LinkageDisequilibriumPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(LinkageDisequilibriumPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(LinkageDisequilibriumPlugin.class);
     private boolean myIsRapidAnalysis = true;
     private int myPermutationNumber = 1000;
     private int myWindowSize = 50;

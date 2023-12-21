@@ -19,7 +19,8 @@ import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginEvent;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -27,7 +28,7 @@ import org.apache.log4j.Logger;
  */
 public class FilterSubsetPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(FilterSubsetPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FilterSubsetPlugin.class);
     private boolean myIsRandom = true;
     private double mySiteSubset = -1;
     private int[] mySitesToKeep = null;

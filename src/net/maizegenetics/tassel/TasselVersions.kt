@@ -4,7 +4,7 @@ package net.maizegenetics.tassel
 
 import net.maizegenetics.plugindef.AbstractPlugin
 import net.maizegenetics.util.Utils
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import org.w3c.dom.Node
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -28,7 +28,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  */
 object TasselVersions {
 
-    private val myLogger = Logger.getLogger(LibraryInfo::class.java)
+    private val myLogger = LogManager.getLogger(LibraryInfo::class.java)
 
     private val infoMap = mutableMapOf<String, LibraryInfo>()
 

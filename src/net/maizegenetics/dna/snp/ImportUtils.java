@@ -6,7 +6,8 @@ package net.maizegenetics.dna.snp;
 import net.maizegenetics.dna.snp.io.BuilderFromVCF;
 import net.maizegenetics.util.ProgressListener;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -34,7 +35,7 @@ import net.maizegenetics.taxa.TaxaListBuilder;
  */
 public class ImportUtils {
 
-    private static final Logger myLogger = Logger.getLogger(ImportUtils.class);
+    private static final Logger myLogger = LogManager.getLogger(ImportUtils.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
     public static final int NUM_HAPMAP_NON_TAXA_HEADERS = 11;
 

@@ -12,7 +12,8 @@ import net.maizegenetics.taxa.TaxaListIOUtils;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,7 +27,7 @@ import net.maizegenetics.analysis.gbs.v2.EnzymeList;
 
 
 public class RNADeMultiplexProductionPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(RNADeMultiplexProductionPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(RNADeMultiplexProductionPlugin.class);
 
     private PluginParameter<String> myInputDir = new PluginParameter.Builder<>("i", null, String.class).guiName("Input Directory").required(true).inDir()
             .description("Input directory containing fastq AND/OR qseq files.").build();

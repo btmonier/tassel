@@ -27,7 +27,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.taxa.TaxaList;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Multimap;
 
@@ -45,7 +46,7 @@ import com.google.common.collect.Multimap;
  *
  */
 public class SNPCutPosTagVerificationPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(UpdateSNPPositionQualityPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(UpdateSNPPositionQualityPlugin.class);
 
     private PluginParameter<String> myDBFile = new PluginParameter.Builder<String>("db", null, String.class).guiName("Input DB").required(true).inFile()
             .description("Input database file with SNP positions stored").build();

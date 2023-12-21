@@ -17,7 +17,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginEvent;
 import net.maizegenetics.prefs.TasselPrefs;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,7 +37,7 @@ import net.maizegenetics.dna.snp.FilterGenotypeTable;
  */
 public class FilterAlignmentPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(FilterAlignmentPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FilterAlignmentPlugin.class);
     private int myStart = 0;
     private int myEnd = -1;
     private int myStartPos = -1;
@@ -403,7 +404,7 @@ public class FilterAlignmentPlugin extends AbstractPlugin {
 
     class DataFilterAlignmentDialog extends JDialog {
 
-        private final Logger myLogger = Logger.getLogger(DataFilterAlignmentDialog.class);
+        private final Logger myLogger = LogManager.getLogger(DataFilterAlignmentDialog.class);
 
         GenotypeTable theAlignment;
         GenotypeTable chromFilteredAlignment;

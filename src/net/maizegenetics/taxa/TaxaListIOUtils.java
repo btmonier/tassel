@@ -10,7 +10,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.*;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Utilities for reading and writing IdGroup and PedigreeIdGroups.
@@ -19,7 +20,7 @@ import org.apache.log4j.Logger;
  */
 public class TaxaListIOUtils {
 
-    private static final Logger myLogger = Logger.getLogger(TaxaListIOUtils.class);
+    private static final Logger myLogger = LogManager.getLogger(TaxaListIOUtils.class);
 
     private static final String DELIMITER = "\t";
 

@@ -7,7 +7,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.math3.distribution.FDistribution;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.phenotype.GenotypePhenotype;
 import net.maizegenetics.phenotype.Phenotype;
@@ -16,7 +17,7 @@ import net.maizegenetics.stats.linearmodels.ModelEffect;
 import net.maizegenetics.stats.linearmodels.SweepFastLinearModel;
 
 public class AdditiveModelForwardRegression extends AbstractForwardRegression {
-    private static Logger myLogger = Logger.getLogger(AdditiveModelForwardRegression.class);
+    private static Logger myLogger = LogManager.getLogger(AdditiveModelForwardRegression.class);
     double highestSS;
     int bestSite;
     int maxThreads;

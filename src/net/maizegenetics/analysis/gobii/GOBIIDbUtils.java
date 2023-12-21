@@ -17,7 +17,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
 
@@ -40,7 +41,7 @@ import net.maizegenetics.util.Utils;
  *
  */
 public class GOBIIDbUtils {
-    private static final Logger myLogger = Logger.getLogger(GenomeAnnosDBQueryToPositionListPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(GenomeAnnosDBQueryToPositionListPlugin.class);
     private static String errorMessage;
     public static Connection connectToDB(String configFile) {
         Properties props = new Properties();

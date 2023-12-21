@@ -10,7 +10,8 @@ import java.util.stream.Collectors;
 import net.maizegenetics.dna.map.GeneralPosition;
 import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.map.PositionList;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.data.FileLoadPlugin;
 import net.maizegenetics.analysis.data.FileLoadPlugin.TasselFileType;
@@ -28,7 +29,7 @@ import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.Tuple;
 
 public class ImputeCrossProgeny {
-	private Logger myLogger = Logger.getLogger(ImputeCrossProgeny.class);
+	private Logger myLogger = LogManager.getLogger(ImputeCrossProgeny.class);
 	
 	private static final byte N = GenotypeTable.UNKNOWN_ALLELE;
 	private static final byte missingState = 4;

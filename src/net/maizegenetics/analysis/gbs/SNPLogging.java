@@ -7,7 +7,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -15,7 +16,7 @@ import org.apache.log4j.Logger;
  */
 public class SNPLogging {
 
-    private final Logger myLogger = Logger.getLogger(SNPLogging.class);
+    private final Logger myLogger = LogManager.getLogger(SNPLogging.class);
     private static final String HEADER = "Chr\tPosition\tAlleles\tTagLocusStart\tStrand\tPlugin\tTest\tStatus\tValue\tCuttoff\n";
     private static final String DELIMITER = "\t";
     private final BufferedWriter myWriter;

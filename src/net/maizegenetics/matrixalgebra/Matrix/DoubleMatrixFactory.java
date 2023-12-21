@@ -1,6 +1,7 @@
 package net.maizegenetics.matrixalgebra.Matrix;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix2D;
@@ -9,7 +10,7 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 
 public class DoubleMatrixFactory {
-	private static Logger myLogger = Logger.getLogger(DoubleMatrixFactory.class);
+	private static Logger myLogger = LogManager.getLogger(DoubleMatrixFactory.class);
 	public enum FactoryType {ejml, jblas, colt, blas};
 	private FactoryType myType;
 	public static DoubleMatrixFactory DEFAULT;

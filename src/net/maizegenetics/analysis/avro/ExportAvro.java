@@ -17,7 +17,8 @@ import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
  */
 public class ExportAvro {
 
-    private static final Logger myLogger = Logger.getLogger(ExportAvro.class);
+    private static final Logger myLogger = LogManager.getLogger(ExportAvro.class);
 
     private ExportAvro() {
         // utility

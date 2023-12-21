@@ -17,7 +17,8 @@ import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
 import net.maizegenetics.util.GeneralAnnotationStorage;
 import net.maizegenetics.util.ProgressListener;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
  */
 public class IBSDistanceMatrix3Alleles {
 
-    private static final Logger myLogger = Logger.getLogger(IBSDistanceMatrix3Alleles.class);
+    private static final Logger myLogger = LogManager.getLogger(IBSDistanceMatrix3Alleles.class);
 
     private IBSDistanceMatrix3Alleles() {
         // utility

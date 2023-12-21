@@ -28,7 +28,8 @@ import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.HDF5Utils;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Compares an unfinished HDF5 file containing raw genotypes to a corresponding 
@@ -42,7 +43,7 @@ import org.apache.log4j.Logger;
  */
 public class ReImputeUpdatedTaxaByFILLINPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ReImputeUpdatedTaxaByFILLINPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ReImputeUpdatedTaxaByFILLINPlugin.class);
 
     private PluginParameter<String> rawHDF5GenotypeFile 
         = new PluginParameter.Builder<>("raw", null, String.class)

@@ -14,7 +14,8 @@ import java.util.concurrent.atomic.LongAdder;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.dna.map.GenomeSequenceBuilder;
 import net.maizegenetics.dna.tag.Tag;
@@ -43,7 +44,7 @@ import net.maizegenetics.util.Utils;
  *
  */
 public class GetTagSequenceFromDBPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(GetTagSequenceFromDBPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(GetTagSequenceFromDBPlugin.class);
 
     private PluginParameter<String> myDBFile = new PluginParameter.Builder<String>("db", null, String.class).guiName("Input DB").required(true).inFile()
             .description("Input database file with tags").build();

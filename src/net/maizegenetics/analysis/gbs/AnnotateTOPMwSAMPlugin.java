@@ -22,7 +22,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.MultiMemberGZIPInputStream;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This class reads in SAM mapping results tests them against an anchor map 
@@ -39,7 +40,7 @@ import org.apache.log4j.Logger;
  */
 public final class AnnotateTOPMwSAMPlugin extends AbstractPlugin{
     boolean cleanCutSites=true;
-    private static final Logger myLogger=Logger.getLogger(AnnotateTOPMwSAMPlugin.class);
+    private static final Logger myLogger=LogManager.getLogger(AnnotateTOPMwSAMPlugin.class);
     private static ArgsEngine myArgsEngine;
     private static String inputFileName=null;
     private static String topmFileName=null;

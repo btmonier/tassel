@@ -15,7 +15,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.MultiMemberGZIPInputStream;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +31,7 @@ import java.util.HashMap;
  */
 public class FastqToTBTPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(FastqToTBTPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FastqToTBTPlugin.class);
     private ArgsEngine myArgsEngine = null;
     private String[] myFastqFileS = null;
     private String myKeyFile = null;

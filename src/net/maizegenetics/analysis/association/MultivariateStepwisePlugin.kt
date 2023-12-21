@@ -9,7 +9,7 @@ import net.maizegenetics.phenotype.*
 import net.maizegenetics.plugindef.*
 import net.maizegenetics.plugindef.GeneratePluginCode.*
 import net.maizegenetics.util.TableReportBuilder
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import java.awt.Frame
 import java.util.*
 import java.util.concurrent.Callable
@@ -37,7 +37,7 @@ import kotlin.math.roundToInt
 
 class MultivariateStepwisePlugin(parentFrame: Frame?, isInteractive: Boolean) : AbstractPlugin(parentFrame, isInteractive) {
 
-    private val myLogger = Logger.getLogger(MultivariateStepwisePlugin::class.java)
+    private val myLogger = LogManager.getLogger(MultivariateStepwisePlugin::class.java)
 
     private var usePermutations = PluginParameter.Builder("usePerm", false, Boolean::class.javaObjectType)
             .description("Should permutations be used to set the enter and exit limits for stepwise regression? A permutation test will be used to determine the enter limit. The exit limit will be set to 2 times the enter limit.")

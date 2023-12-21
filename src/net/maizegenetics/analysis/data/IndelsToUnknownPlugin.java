@@ -5,7 +5,8 @@ import net.maizegenetics.dna.snp.GenotypeTableBuilder;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +18,7 @@ import java.util.List;
  */
 public class IndelsToUnknownPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(HetsToUnknownPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(HetsToUnknownPlugin.class);
 
     public IndelsToUnknownPlugin(Frame parentFrame, boolean isInteractive) {
         super(parentFrame, isInteractive);

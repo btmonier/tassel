@@ -12,7 +12,8 @@ import java.util.*;
 import javax.swing.ImageIcon;
 
 import net.maizegenetics.dna.tag.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
@@ -37,7 +38,7 @@ import net.maizegenetics.taxa.TaxaList;
  *
  */
 public class GetTagTaxaDistFromDBPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(GetTagSequenceFromDBPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(GetTagSequenceFromDBPlugin.class);
 
     private PluginParameter<String> myDBFile = new PluginParameter.Builder<String>("db", null, String.class).guiName("Input DB").required(true).inFile()
             .description("Input database file with tags").build();

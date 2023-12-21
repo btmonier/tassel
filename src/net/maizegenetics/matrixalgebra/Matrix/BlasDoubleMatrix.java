@@ -2,7 +2,8 @@ package net.maizegenetics.matrixalgebra.Matrix;
 
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.matrixalgebra.decomposition.BlasEigenvalueDecomposition;
 import net.maizegenetics.matrixalgebra.decomposition.BlasSingularValueDecomposition;
@@ -12,7 +13,7 @@ import net.maizegenetics.matrixalgebra.decomposition.SingularValueDecomposition;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
 
 public class BlasDoubleMatrix implements DoubleMatrix {
-	private static Logger myLogger = Logger.getLogger(BlasDoubleMatrix.class);
+	private static Logger myLogger = LogManager.getLogger(BlasDoubleMatrix.class);
 	public static native void multMatrices(double[] A, int nrowsA, int ncolsA, double[] B, int nrowsB, int ncolsB, double[] C, double alpha, double beta, 
 			boolean transA, boolean transB); 
 	public static native int solveLSdgelsd(double[] A, int Arows, int Acols, double[] B, int Bcols, double rcond, int[] rank);

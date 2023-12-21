@@ -6,7 +6,8 @@
 
 package net.maizegenetics.dna.read;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.biojava.nbio.alignment.Alignments;
 import org.biojava.nbio.alignment.SimpleGapPenalty;
 import org.biojava.nbio.core.alignment.matrices.SubstitutionMatrixHelper;
@@ -21,7 +22,7 @@ import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
  * @author Fei Lu
  */
 public class PERead {
-    private static final Logger myLogger = Logger.getLogger(PERead.class);
+    private static final Logger myLogger = LogManager.getLogger(PERead.class);
     Read rf;
     Read rb;
     Read pContig = null;

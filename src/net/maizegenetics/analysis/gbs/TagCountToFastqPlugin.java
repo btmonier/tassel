@@ -19,7 +19,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /*
  * Converts a TagCounts binary (*.cnt) file (presumably a master tag list) to a fastq file that can be used as input
@@ -32,7 +33,7 @@ import org.apache.log4j.Logger;
  */
 public class TagCountToFastqPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(TagCountToFastqPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(TagCountToFastqPlugin.class);
 
     private PluginParameter<String> myInputFile = new PluginParameter.Builder<String>("i", null, String.class).guiName("Input File").required(true).inFile()
             .description("Input binary tag count (*.cnt) file").build();

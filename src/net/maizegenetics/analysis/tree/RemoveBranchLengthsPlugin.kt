@@ -5,11 +5,11 @@ import net.maizegenetics.plugindef.DataSet
 import net.maizegenetics.plugindef.Datum
 import net.maizegenetics.taxa.tree.Tree
 import net.maizegenetics.taxa.tree.removeBranchLengths
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import java.awt.Frame
 import javax.swing.ImageIcon
 
-private val myLogger = Logger.getLogger(RemoveBranchLengthsPlugin::class.java)
+private val myLogger = LogManager.getLogger(RemoveBranchLengthsPlugin::class.java)
 
 class RemoveBranchLengthsPlugin(parentFrame: Frame? = null, isInteractive: Boolean = false) : AbstractPlugin(parentFrame, isInteractive) {
 

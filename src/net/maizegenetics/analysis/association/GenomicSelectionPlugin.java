@@ -18,7 +18,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 
@@ -50,7 +51,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 public class GenomicSelectionPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(GenomicSelectionPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(GenomicSelectionPlugin.class);
 
     private PluginParameter<Boolean> performCrossValidation = new
         PluginParameter.Builder<>("doCV", true, Boolean.class)

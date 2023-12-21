@@ -24,7 +24,8 @@ import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.util.BitSet;
 import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.Tuple;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Taxa and site filtering of GenotypeTables. The class essentially creates
@@ -34,7 +35,7 @@ import org.apache.log4j.Logger;
  */
 public class FilterGenotypeTable {
 
-    private static final Logger myLogger = Logger.getLogger(FilterGenotypeTable.class);
+    private static final Logger myLogger = LogManager.getLogger(FilterGenotypeTable.class);
 
     private FilterGenotypeTable() {
     }

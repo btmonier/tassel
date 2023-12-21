@@ -15,7 +15,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.ArgsEngine;
 import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -23,7 +24,7 @@ import org.apache.log4j.Logger;
  */
 public class KeepSpecifiedReadsinFastqPlugin extends AbstractPlugin {
 
-    private final Logger myLogger = Logger.getLogger(KeepSpecifiedReadsinFastqPlugin.class);
+    private final Logger myLogger = LogManager.getLogger(KeepSpecifiedReadsinFastqPlugin.class);
     private static String FASTQ_FILENAME_REGEX = "(?i).*\\.fq$|.*\\.fq\\.gz$|.*\\.fastq$|.*_fastq\\.txt$|.*_fastq\\.gz$|.*_fastq\\.txt\\.gz$|.*_sequence\\.txt$|.*_sequence\\.txt\\.gz$";
     private ArgsEngine myArgsEngine = null;
     private String[] myInputFastqFileNames = null;

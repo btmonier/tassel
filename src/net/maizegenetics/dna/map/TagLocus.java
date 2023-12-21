@@ -16,7 +16,8 @@ import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.dna.snp.io.VCFUtil;
 
 import org.apache.commons.math3.distribution.BinomialDistribution;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.biojava.nbio.alignment.Alignments;
 import org.biojava.nbio.alignment.Alignments.PairwiseSequenceAlignerType;
 import org.biojava.nbio.alignment.SimpleGapPenalty;
@@ -40,7 +41,7 @@ import java.util.List;
  * @author jcg233
  */
 public class TagLocus {
-	private static final Logger myLogger = Logger.getLogger(TagLocus.class);
+	private static final Logger myLogger = LogManager.getLogger(TagLocus.class);
 
     ArrayList<SingleTagByTaxa> theTags = new ArrayList<SingleTagByTaxa>();
     private int minStartPosition;

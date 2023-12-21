@@ -8,7 +8,8 @@ import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +23,7 @@ import java.util.regex.Pattern;
 
 
 public class ExtractHapmapSubsetPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(ExtractHapmapSubsetPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ExtractHapmapSubsetPlugin.class);
     private static final Pattern tab = Pattern.compile("\t");
 
 	private int minAlleleCount = 0;

@@ -10,7 +10,8 @@ import net.maizegenetics.dna.WHICH_ALLELE;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 
@@ -40,7 +41,7 @@ import net.maizegenetics.util.Utils;
  */
 public class AddReferenceAlleleToHDF5Plugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(AddReferenceAlleleToHDF5Plugin.class);
+    private static final Logger myLogger = LogManager.getLogger(AddReferenceAlleleToHDF5Plugin.class);
 
     private PluginParameter<String> myInputGenotypes = new PluginParameter.Builder<>("i", null, String.class)
         .guiName("Input HDF5 Genotype File")

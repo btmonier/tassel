@@ -10,7 +10,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.prefs.TasselPrefs;
 import net.maizegenetics.util.LoggingUtils;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,7 +32,7 @@ import java.util.List;
 public class TasselLogging extends AbstractPlugin {
 
     private static TasselLogging myInstance = null;
-    private static final Logger myLogger = Logger.getLogger(TasselLogging.class);
+    private static final Logger myLogger = LogManager.getLogger(TasselLogging.class);
 
     private final JDialog myDialog = new JDialog((Window) null, "Tassel Logging", Dialog.ModalityType.MODELESS);
     private final JTextArea myTextArea = new JTextArea();

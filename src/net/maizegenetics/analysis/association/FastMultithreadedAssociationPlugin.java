@@ -16,7 +16,8 @@ import javax.swing.ImageIcon;
 import net.maizegenetics.stats.linearmodels.*;
 import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.commons.math3.exception.OutOfRangeException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.dna.map.Position;
 import net.maizegenetics.dna.snp.GenotypeTable;
@@ -38,7 +39,7 @@ import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportBuilder;
 
 public class FastMultithreadedAssociationPlugin extends AbstractPlugin {
-    private static Logger myLogger = Logger.getLogger(FastMultithreadedAssociationPlugin.class);
+    private static Logger myLogger = LogManager.getLogger(FastMultithreadedAssociationPlugin.class);
     private GENOTYPE_TABLE_COMPONENT[] GENOTYPE_COMP = new GENOTYPE_TABLE_COMPONENT[] {
             GENOTYPE_TABLE_COMPONENT.Genotype, GENOTYPE_TABLE_COMPONENT.ReferenceProbability,
             GENOTYPE_TABLE_COMPONENT.AlleleProbability };

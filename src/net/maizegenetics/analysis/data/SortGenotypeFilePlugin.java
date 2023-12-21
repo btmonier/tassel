@@ -13,7 +13,8 @@ import net.maizegenetics.dna.snp.io.BuilderFromVCF;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by jgw87 on 6/5/14. This plugin takes a Hapmap or VCF genotype file
@@ -22,7 +23,7 @@ import org.apache.log4j.Logger;
  */
 public class SortGenotypeFilePlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(SortGenotypeFilePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SortGenotypeFilePlugin.class);
 
     public static enum SupportedFileTypes {
         Hapmap, VCF, Plink

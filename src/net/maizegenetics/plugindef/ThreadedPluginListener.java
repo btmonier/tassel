@@ -6,7 +6,8 @@ package net.maizegenetics.plugindef;
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -14,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public class ThreadedPluginListener extends Thread {
 
-    private static final Logger myLogger = Logger.getLogger(ThreadedPluginListener.class);
+    private static final Logger myLogger = LogManager.getLogger(ThreadedPluginListener.class);
     private final PluginListener myPluginListener;
     private final PluginEvent myEvent;
 

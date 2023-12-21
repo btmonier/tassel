@@ -18,7 +18,8 @@ import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.util.BitSet;
 import net.maizegenetics.util.GeneralAnnotationStorage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,7 +38,7 @@ import java.util.stream.Stream;
  */
 public class CoreGenotypeTable implements GenotypeTable {
 
-    private static final Logger myLogger = Logger.getLogger(CoreGenotypeTable.class);
+    private static final Logger myLogger = LogManager.getLogger(CoreGenotypeTable.class);
     private final GenotypeCallTable myGenotype;
     private final Map<WHICH_ALLELE, BitStorage> myBitStorage = new HashMap<>();
     private final PositionList myPositionList;

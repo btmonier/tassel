@@ -38,7 +38,8 @@ import java.util.stream.IntStream;
 import net.maizegenetics.gui.SelectFromAvailableSitesDialog;
 import net.maizegenetics.gui.SiteNamesAvailableListModel;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @deprecated 
@@ -48,7 +49,7 @@ import org.apache.log4j.Logger;
  */
 public class FilterSiteNamePlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(FilterSiteNamePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FilterSiteNamePlugin.class);
     private int[] mySitesToKeep = null;
     private int[] mySitesToCovariates = null;
     private int[] mySitesToFactors = null;

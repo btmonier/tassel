@@ -36,10 +36,11 @@ import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class RNADeMultiPlexSeqToDBPlugin extends AbstractPlugin{
-    private static final Logger myLogger = Logger.getLogger(RNADeMultiPlexSeqToDBPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(RNADeMultiPlexSeqToDBPlugin.class);
     static LongAdder roughTagCnt = new LongAdder();
     private PluginParameter<String> myInputDir = new PluginParameter.Builder<>("i", null, String.class).guiName("Input Directory").required(true).inDir()
             .description("Input directory containing FASTQ files in text or gzipped text.\n"

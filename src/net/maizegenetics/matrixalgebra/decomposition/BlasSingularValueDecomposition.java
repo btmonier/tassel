@@ -2,7 +2,8 @@ package net.maizegenetics.matrixalgebra.decomposition;
 
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.matrixalgebra.Matrix.BlasDoubleMatrix;
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrix;
@@ -12,7 +13,7 @@ public class BlasSingularValueDecomposition implements SingularValueDecompositio
 	private BlasDoubleMatrix bdU = null;
 	private BlasDoubleMatrix bdVT = null;
 	public boolean successful = false;
-	private static final Logger myLogger = Logger.getLogger(BlasSingularValueDecomposition.class);
+	private static final Logger myLogger = LogManager.getLogger(BlasSingularValueDecomposition.class);
 	private double tol = 1e-12;
 	
 	public BlasSingularValueDecomposition(BlasDoubleMatrix bdm, char jobz) {

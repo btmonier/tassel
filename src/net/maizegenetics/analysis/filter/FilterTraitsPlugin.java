@@ -10,7 +10,8 @@ import java.util.stream.IntStream;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
@@ -21,7 +22,7 @@ import net.maizegenetics.phenotype.Phenotype.ATTRIBUTE_TYPE;
 import net.maizegenetics.phenotype.PhenotypeBuilder;
 
 public class FilterTraitsPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(FilterTraitsPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(FilterTraitsPlugin.class);
 	private ArrayList<int[]> includeList;
 	private ArrayList<Map<PhenotypeAttribute, ATTRIBUTE_TYPE>> typeChangeList;
 	private boolean excludeLast = false;

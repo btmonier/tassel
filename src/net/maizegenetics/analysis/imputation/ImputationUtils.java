@@ -12,7 +12,8 @@ import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.util.BitSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -22,7 +23,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class ImputationUtils {
-	private static final Logger myLogger = Logger.getLogger(ImputationUtils.class);
+	private static final Logger myLogger = LogManager.getLogger(ImputationUtils.class);
 
 	public static Pattern tab = Pattern.compile("\t");
 	

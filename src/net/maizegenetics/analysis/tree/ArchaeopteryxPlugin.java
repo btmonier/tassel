@@ -8,7 +8,8 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.forester.archaeopteryx.Archaeopteryx;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
@@ -21,7 +22,7 @@ import net.maizegenetics.plugindef.Datum;
 
 public class ArchaeopteryxPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ArchaeopteryxPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ArchaeopteryxPlugin.class);
 
     public ArchaeopteryxPlugin(Frame parentFrame, boolean isInteractive) {
         super(parentFrame, isInteractive);

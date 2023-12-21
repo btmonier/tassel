@@ -16,7 +16,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Terry Casstevens
@@ -26,7 +27,7 @@ import org.apache.log4j.Logger;
  */
 public class KinshipPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(KinshipPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(KinshipPlugin.class);
 
     public static enum KINSHIP_METHOD {
 

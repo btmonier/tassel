@@ -15,7 +15,8 @@ import java.util.stream.IntStream;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.dna.WHICH_ALLELE;
 import net.maizegenetics.dna.map.Position;
@@ -30,7 +31,7 @@ import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.Taxon;
 
 public class RandomGenotypeImputationPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(RandomGenotypeImputationPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(RandomGenotypeImputationPlugin.class);
     private static final byte NN = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
     public static final String tab = "\t";
     private final Random randomizer = new Random();

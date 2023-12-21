@@ -10,7 +10,8 @@ import java.util.stream.Collectors;
 import javax.swing.ImageIcon;
 
 import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 import net.maizegenetics.analysis.modelfitter.AdditiveSite.CRITERION;
@@ -40,7 +41,7 @@ public class StepwiseAdditiveModelFitterPlugin extends AbstractPlugin {
     //    private String nestingEffectName = "family";
     //    private AdditiveSite.CRITERION modelSelectionCriterion = AdditiveSite.CRITERION.pval;
     //    private int maxSitesInModel = 1000;
-    private static Logger myLogger = Logger.getLogger(StepwiseAdditiveModelFitterPlugin.class);
+    private static Logger myLogger = LogManager.getLogger(StepwiseAdditiveModelFitterPlugin.class);
     private List<String> myFactorNameList;
     private GenotypePhenotype myGenoPheno;
     private String datasetName;

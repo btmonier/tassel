@@ -20,7 +20,8 @@ import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTable;
 import net.maizegenetics.dna.snp.genotypecall.GenotypeCallTableBuilder;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -34,7 +35,7 @@ public class RemoveIndelsForBeaglePlugin extends net.maizegenetics.plugindef.Abs
     private PluginParameter<Boolean> retainMono= new PluginParameter.Builder<>("retainMono",false,Boolean.class).guiName("Retain monomorphic sites")
             .description("Retain monomorphic sites in the output file").build();
     
-    private static final Logger myLogger = Logger.getLogger(RemoveIndelsForBeaglePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(RemoveIndelsForBeaglePlugin.class);
 
     @Override
     protected void postProcessParameters() {

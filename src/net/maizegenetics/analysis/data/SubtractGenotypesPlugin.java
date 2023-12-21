@@ -8,7 +8,8 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.GenotypeTableBuilder;
@@ -24,7 +25,7 @@ import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.Utils;
 
 public class SubtractGenotypesPlugin extends AbstractPlugin {
-	private static final Logger myLogger = Logger.getLogger(SubtractGenotypesPlugin.class);
+	private static final Logger myLogger = LogManager.getLogger(SubtractGenotypesPlugin.class);
 
     private PluginParameter<String> myHybridFile = new PluginParameter.Builder<>("hybridFile", null, String.class)
             .description("Three column tab-delimited file defining parent crosses. Columns are hybrid, firstParent, secondParent. "

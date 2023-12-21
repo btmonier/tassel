@@ -1,6 +1,7 @@
 package net.maizegenetics.dna.map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.json.simple.JSONObject;
 
@@ -18,7 +19,7 @@ import java.util.regex.Pattern;
  */
 public class GenomeFeatureBuilder {
 
-    private static final Logger myLogger = Logger.getLogger(GenomeFeatureBuilder.class);
+    private static final Logger myLogger = LogManager.getLogger(GenomeFeatureBuilder.class);
 
     //Variables to store the information on the feature
     private HashMap<String, String> myannotations = null;

@@ -26,7 +26,8 @@ import net.maizegenetics.util.GeneralAnnotationStorage;
 import net.maizegenetics.util.Tuple;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -37,7 +38,7 @@ import org.apache.log4j.Logger;
  *
  */
 public class GenomeSequenceBuilder {
-    private static final Logger myLogger = Logger.getLogger(GenomeSequenceBuilder.class);
+    private static final Logger myLogger = LogManager.getLogger(GenomeSequenceBuilder.class);
 
     /**
      * Builds GenomeSequence from a fasta file.

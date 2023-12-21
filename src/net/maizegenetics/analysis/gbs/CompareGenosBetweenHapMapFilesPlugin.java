@@ -15,9 +15,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.ArgsEngine;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -33,7 +32,7 @@ import java.util.List;
  */
 public class CompareGenosBetweenHapMapFilesPlugin extends AbstractPlugin {
 
-    private final Logger myLogger = Logger.getLogger(CompareGenosBetweenHapMapFilesPlugin.class);
+    private final Logger myLogger = LogManager.getLogger(CompareGenosBetweenHapMapFilesPlugin.class);
     private ArgsEngine myArgsEngine = null;
     private String hmp1FileStr, hmp2FileStr;
     private int startChr, endChr, chr, position;
@@ -87,7 +86,6 @@ public class CompareGenosBetweenHapMapFilesPlugin extends AbstractPlugin {
 
     @Override
     public void setParameters(String[] args) {
-        myLogger.addAppender(new ConsoleAppender(new SimpleLayout()));
         if (args.length == 0) {
             printUsage();
             throw new IllegalArgumentException("\n\nPlease use the above arguments/options.\n\n");

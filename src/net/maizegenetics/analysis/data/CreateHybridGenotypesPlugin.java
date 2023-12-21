@@ -18,7 +18,8 @@ import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,7 +37,7 @@ import java.util.List;
  */
 public class CreateHybridGenotypesPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(CreateHybridGenotypesPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(CreateHybridGenotypesPlugin.class);
 
     private PluginParameter<String> myHybridFile = new PluginParameter.Builder<>("hybridFile", null, String.class)
             .description("Two column tab-delimited file defining parent crosses.")

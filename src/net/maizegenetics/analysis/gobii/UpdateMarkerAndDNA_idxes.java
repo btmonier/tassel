@@ -8,7 +8,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.util.Utils;
 
@@ -41,7 +42,7 @@ import net.maizegenetics.util.Utils;
  *
  */
 public class UpdateMarkerAndDNA_idxes {
-    private static final Logger myLogger = Logger.getLogger(UpdateMarkerAndDNA_idxes.class);
+    private static final Logger myLogger = LogManager.getLogger(UpdateMarkerAndDNA_idxes.class);
     public static void createIdxValues(String configFile, String outputDir, int datasetID, int platformID, int experimentID) {
         // connect to db
         // what should these files be called ??

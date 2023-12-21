@@ -16,7 +16,8 @@ import javax.swing.*;
 import java.awt.Frame;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
  */
 public class ProjectionLoadPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ProjectionLoadPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ProjectionLoadPlugin.class);
 
     private PluginParameter<String> myRecombinationBreakpoints = new PluginParameter.Builder<>("recombinationBreakpoints", null, String.class).required(true).inFile()
             .description("").build();

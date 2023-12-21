@@ -14,7 +14,8 @@ import java.util.stream.IntStream;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.modelfitter.AdditiveSite.CRITERION;
 import net.maizegenetics.dna.map.Position;
@@ -26,7 +27,7 @@ import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.taxa.Taxon;
 
 public class AdditiveSiteStorePlugin extends AbstractPlugin {
-    private static Logger myLogger = Logger.getLogger(AdditiveSiteStorePlugin.class);
+    private static Logger myLogger = LogManager.getLogger(AdditiveSiteStorePlugin.class);
     PluginParameter<String> outFilename =
             new PluginParameter.Builder<>("filename", null, String.class)
                     .guiName("Output Filename")

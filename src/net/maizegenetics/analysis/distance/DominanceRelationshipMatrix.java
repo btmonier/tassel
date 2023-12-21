@@ -19,7 +19,8 @@ import net.maizegenetics.taxa.distance.DistanceMatrixBuilder;
 import net.maizegenetics.util.GeneralAnnotationStorage;
 import net.maizegenetics.util.ProgressListener;
 import net.maizegenetics.util.Tuple;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Compute Dominance Relationship Matrix for all pairs of taxa. Missing sites
@@ -29,7 +30,7 @@ import org.apache.log4j.Logger;
  */
 public class DominanceRelationshipMatrix {
 
-    private static final Logger myLogger = Logger.getLogger(DominanceRelationshipMatrix.class);
+    private static final Logger myLogger = LogManager.getLogger(DominanceRelationshipMatrix.class);
 
     private static final int DEFAULT_MAX_ALLELES = 6;
     private static final KinshipPlugin.ALGORITHM_VARIATION DEFAULT_ALGORITHM_VARIATION = KinshipPlugin.ALGORITHM_VARIATION.Observed_Allele_Freq;

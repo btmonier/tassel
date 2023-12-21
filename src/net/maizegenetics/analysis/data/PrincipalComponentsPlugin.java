@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Range;
 
@@ -37,7 +38,7 @@ import net.maizegenetics.util.OpenBitSet;
 import net.maizegenetics.util.SimpleTableReport;
 
 public class PrincipalComponentsPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(PrincipalComponentsPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(PrincipalComponentsPlugin.class);
     public static enum PCA_LIMIT {number_of_components, min_eigenvalue, total_variance};
     
     private PluginParameter<Boolean> useCovariance = new PluginParameter.Builder<>("covariance", true, Boolean.class)

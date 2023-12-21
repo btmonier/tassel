@@ -13,7 +13,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.HDF5Utils;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,7 +31,7 @@ import java.util.List;
 //TODO: Add support for chromosomes, positions, etc.
 public class HDF5SummaryPlugin extends AbstractPlugin {
 
-    private Logger logger = Logger.getLogger(HDF5SummaryPlugin.class);
+    private Logger logger = LogManager.getLogger(HDF5SummaryPlugin.class);
     private enum H5FileType {GENOTYPE, TOPM, TBT, UNKNOWN}
     private H5FileType myFileType = H5FileType.UNKNOWN;
 

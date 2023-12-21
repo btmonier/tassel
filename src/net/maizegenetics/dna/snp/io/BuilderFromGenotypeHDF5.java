@@ -9,7 +9,8 @@ import net.maizegenetics.dna.snp.GenotypeTableBuilder;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ import java.util.TreeSet;
  * @author Ed Buckler
  */
 public class BuilderFromGenotypeHDF5 {
-    private static final Logger myLogger=Logger.getLogger(BuilderFromGenotypeHDF5.class);
+    private static final Logger myLogger=LogManager.getLogger(BuilderFromGenotypeHDF5.class);
     private final String infile;
 
     private BuilderFromGenotypeHDF5(String infile) {

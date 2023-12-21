@@ -1,13 +1,14 @@
 package net.maizegenetics.util;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.InputStream;
 import java.security.MessageDigest;
 
 public class CheckSum {
 
-    private static final Logger myLogger = Logger.getLogger(CheckSum.class);
+    private static final Logger myLogger = LogManager.getLogger(CheckSum.class);
 
     private CheckSum() {
         // utility class

@@ -17,7 +17,8 @@ import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This plugin takes as input:
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
  *
  */
 public class UpdateSNPPositionQualityPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(UpdateSNPPositionQualityPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(UpdateSNPPositionQualityPlugin.class);
 
     private PluginParameter<String> myDBFile = new PluginParameter.Builder<String>("db", null, String.class).guiName("Input DB").required(true).inFile()
             .description("Input database file with SNP positions stored").build();

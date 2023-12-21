@@ -5,7 +5,8 @@ import net.maizegenetics.matrixalgebra.Matrix.DoubleMatrixFactory;
 import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition;
 import net.maizegenetics.stats.linearmodels.LinearModelUtils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +18,7 @@ import java.util.stream.IntStream;
  */
 public class EMMAforDoubleMatrix {
 	
-	private static final Logger myLogger = Logger.getLogger(EMMAforDoubleMatrix.class);
+	private static final Logger myLogger = LogManager.getLogger(EMMAforDoubleMatrix.class);
 	protected DoubleMatrix y;
 	
     protected double[] lambda;

@@ -19,7 +19,8 @@ import net.maizegenetics.dna.BaseEncoder;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.biojava.nbio.core.util.ConcurrencyTools;
 
 import javax.swing.*;
@@ -42,7 +43,7 @@ import net.maizegenetics.plugindef.PluginParameter;
  */
 public class DiscoverySNPCallerPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(DiscoverySNPCallerPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(DiscoverySNPCallerPlugin.class);
 
     private PluginParameter<String> myInputTagsByTaxa = new PluginParameter.Builder<>("i", null, String.class).guiName("Input Tags by Taxa File").required(true).inFile()
             .description("Input TagsByTaxa file (if hdf5 format, use .hdf or .h5 extension)").build();

@@ -15,7 +15,8 @@ import net.maizegenetics.util.FormattedOutput;
 import java.io.PrintWriter;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Helper routines for dealing with nodes.
@@ -28,7 +29,7 @@ import org.apache.log4j.Logger;
  */
 public class NodeUtils {
     
-    private static final Logger myLogger = Logger.getLogger(NodeUtils.class);
+    private static final Logger myLogger = LogManager.getLogger(NodeUtils.class);
     
 	/**
 	 * Appends all external nodes from tree defined by root to Vector store

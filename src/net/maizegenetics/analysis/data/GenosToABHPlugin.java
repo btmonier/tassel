@@ -22,7 +22,8 @@ import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Plugin to convert genotypes to parental comparisons and store them in an
@@ -39,7 +40,7 @@ import org.apache.log4j.Logger;
  */
 public class GenosToABHPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(GenosToABHPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(GenosToABHPlugin.class);
     private ArrayList<Integer> parentAIndices = null;
     private ArrayList<Integer> parentBIndices = null;
 

@@ -14,7 +14,8 @@ import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.ProgressListener;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ import static net.maizegenetics.dna.snp.NucleotideAlignmentConstants.*;
  */
 public class BuilderFromPLINK {
 
-    private static final Logger myLogger = Logger.getLogger(BuilderFromPLINK.class);
+    private static final Logger myLogger = LogManager.getLogger(BuilderFromPLINK.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
     private static final int NUM_PLINK_NON_SITE_HEADERS = 6;
 

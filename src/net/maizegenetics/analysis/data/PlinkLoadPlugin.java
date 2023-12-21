@@ -20,7 +20,8 @@ import javax.swing.*;
 
 import java.awt.Frame;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -28,7 +29,7 @@ import org.apache.log4j.Logger;
  */
 public class PlinkLoadPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(PlinkLoadPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(PlinkLoadPlugin.class);
 
     private PluginParameter<String> myPedFile = new PluginParameter.Builder<>("pedFile", null, String.class).required(true).inFile()
             .description("Ped File").build();

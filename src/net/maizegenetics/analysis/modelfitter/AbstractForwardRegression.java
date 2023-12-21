@@ -8,7 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.association.AssociationUtils;
 import net.maizegenetics.analysis.modelfitter.AdditiveSite.CRITERION;
@@ -41,7 +42,7 @@ public abstract class AbstractForwardRegression implements ForwardRegression {
     //returns a list of markers with p-values
     //no missing values allowed in phenotype, factors, or covariates
 
-    private Logger myLogger = Logger.getLogger(AbstractForwardRegression.class);
+    private Logger myLogger = LogManager.getLogger(AbstractForwardRegression.class);
     protected double[] y;     //data for a single phenotype (no missing data allowed)
     protected final GenotypePhenotype myGenotypePhenotype;
     protected final GenotypeTable myGenotype;

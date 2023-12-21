@@ -31,7 +31,8 @@ import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.stats.PCA.PrinComp;
 import net.maizegenetics.taxa.TaxaList;
 import net.maizegenetics.util.OpenBitSet;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -42,7 +43,7 @@ import org.apache.log4j.Logger;
  */
 public class ProjectPcsAndRunModelSelectionPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ProjectPcsAndRunModelSelectionPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ProjectPcsAndRunModelSelectionPlugin.class);
 
     private PluginParameter<String> myRecombinationBreakpoints = new PluginParameter.Builder<>("recombinationBreakpoints", null, String.class).required(true).inFile()
             .description("").build();

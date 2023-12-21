@@ -18,7 +18,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.distribution.BinomialDistribution;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.maizegenetics.analysis.data.FileLoadPlugin;
 import net.maizegenetics.analysis.data.FileLoadPlugin.TasselFileType;
@@ -28,7 +29,7 @@ import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 
 
 public class RephaseParents {
-	private static Logger myLogger = Logger.getLogger(RephaseParents.class);
+	private static Logger myLogger = LogManager.getLogger(RephaseParents.class);
 	private static final byte NN = GenotypeTable.UNKNOWN_DIPLOID_ALLELE;
 	private static final byte N = GenotypeTable.UNKNOWN_ALLELE;
 	private static final byte AA = NucleotideAlignmentConstants.getNucleotideDiploidByte("AA");

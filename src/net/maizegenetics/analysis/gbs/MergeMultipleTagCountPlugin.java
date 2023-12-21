@@ -23,7 +23,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.DirectoryCrawler;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /*
  * Implements an external mergesort to combine multiple tag-count files.
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
  */
 public class MergeMultipleTagCountPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(MergeMultipleTagCountPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(MergeMultipleTagCountPlugin.class);
 
     PluginParameter<String> myInputDir = new PluginParameter.Builder<String>("i", null, String.class).guiName("Input Directory").required(true).inDir()
             .description("Input directory containing .cnt files.").build();

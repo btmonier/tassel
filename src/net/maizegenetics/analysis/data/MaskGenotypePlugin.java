@@ -22,7 +22,8 @@ import net.maizegenetics.dna.snp.score.AlleleDepth;
 import net.maizegenetics.gui.DialogUtils;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The purpose of this class is to mask (make UNKNOWN) a portion of the
@@ -33,7 +34,7 @@ import org.apache.log4j.Logger;
  */
 public class MaskGenotypePlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(MaskGenotypePlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(MaskGenotypePlugin.class);
 
     private PluginParameter<Double> myPercentageMasked
             = new PluginParameter.Builder<>("percentageMasked", 0.01, Double.class)

@@ -16,7 +16,8 @@ import java.util.Map;
 
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -52,7 +53,7 @@ import net.maizegenetics.taxa.Taxon;
  *
  */
 public class ConvertOldFastqToModernFormatPlugin extends AbstractPlugin {
-    private static final Logger myLogger = Logger.getLogger(ConvertOldFastqToModernFormatPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(ConvertOldFastqToModernFormatPlugin.class);
     
     private PluginParameter<String> inputFile = new PluginParameter.Builder<>("i", null, String.class).guiName("Input Directory").required(true)
             .description("Input file or directory containing FASTQ files in text or gzipped text.\n"

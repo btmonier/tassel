@@ -50,8 +50,9 @@ import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.ExceptionUtils;
 import net.maizegenetics.util.LoggingUtils;
 import net.maizegenetics.util.Utils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -96,7 +97,7 @@ public class TasselPipeline implements PluginListener {
 
     }
 
-    private static final Logger myLogger = Logger.getLogger(TasselPipeline.class);
+    private static final Logger myLogger = LogManager.getLogger(TasselPipeline.class);
     private final TASSELMainFrame myMainFrame;
     private final Map<String, List<Plugin>> myForks = new LinkedHashMap<>();
     private String myCurrentFork = null;

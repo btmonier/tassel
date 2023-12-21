@@ -4,7 +4,7 @@ package net.maizegenetics.taxa.tree
 
 import net.maizegenetics.taxa.TaxaList
 import org.apache.commons.lang.StringUtils
-import org.apache.log4j.Logger
+import org.apache.logging.log4j.LogManager
 import java.io.BufferedWriter
 import java.io.File
 import java.lang.Double
@@ -16,7 +16,7 @@ import kotlin.collections.HashMap
  * http://evolution.genetics.washington.edu/phylip/newicktree.html
  */
 
-private val myLogger = Logger.getLogger("net.maizegenetics.taxa.tree.NewickUtils")
+private val myLogger = LogManager.getLogger("net.maizegenetics.taxa.tree.NewickUtils")
 
 /**
  * Creates a Tree from the given newick formatted file

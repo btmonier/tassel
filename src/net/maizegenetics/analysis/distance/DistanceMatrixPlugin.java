@@ -9,7 +9,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.taxa.distance.DistanceMatrix;
 import net.maizegenetics.util.ProgressListener;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,7 +24,7 @@ import java.util.List;
  */
 public class DistanceMatrixPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(DistanceMatrixPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(DistanceMatrixPlugin.class);
 
     public DistanceMatrixPlugin(Frame parentFrame, boolean isInteractive) {
         super(parentFrame, isInteractive);

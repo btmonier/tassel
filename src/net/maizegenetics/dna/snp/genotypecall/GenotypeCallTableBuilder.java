@@ -23,7 +23,8 @@ import net.maizegenetics.util.SuperByteMatrix;
 import net.maizegenetics.util.SuperByteMatrixBuilder;
 import net.maizegenetics.util.Tuple;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Builder to construct a GenotypeCallTable. This builder is generally only used
@@ -33,7 +34,7 @@ import org.apache.log4j.Logger;
  */
 public class GenotypeCallTableBuilder {
 
-    private static Logger myLogger = Logger.getLogger(GenotypeCallTableBuilder.class);
+    private static Logger myLogger = LogManager.getLogger(GenotypeCallTableBuilder.class);
 
     private SuperByteMatrix myGenotype;
     private boolean myIsPhased = false;

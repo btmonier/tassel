@@ -1,7 +1,8 @@
 package net.maizegenetics.taxa;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
  */
 class TaxaArrayList extends TaxaNoIndexList {
 
-    private static final Logger myLogger = Logger.getLogger(TaxaArrayList.class);
+    private static final Logger myLogger = LogManager.getLogger(TaxaArrayList.class);
     private final Map<String, Integer> myNameToIndex;
 
     TaxaArrayList(List<Taxon> srcList) {

@@ -23,7 +23,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.tassel.TASSELMainFrame;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
  */
 public class WorkflowPlugin extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(WorkflowPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(WorkflowPlugin.class);
 
     private final String myButtonName;
     private final String[] myArgs;

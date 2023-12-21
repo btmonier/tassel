@@ -10,7 +10,8 @@ import net.maizegenetics.util.DirectoryCrawler;
 import net.maizegenetics.plugindef.AbstractPlugin;
 import net.maizegenetics.util.LoggingUtils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,7 +30,7 @@ import java.util.Date;
  */
 public class ProductionPipeline extends AbstractPlugin {
 
-    private static final Logger myLogger = Logger.getLogger(ProductionPipeline.class);
+    private static final Logger myLogger = LogManager.getLogger(ProductionPipeline.class);
     private static final SimpleDateFormat LOGGING_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
     private static final String READY_FILE_NAME = "ready.txt";
     private static final String LOCK_FILE_NAME = "lock.txt";

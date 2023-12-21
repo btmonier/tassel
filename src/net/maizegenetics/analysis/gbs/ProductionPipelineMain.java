@@ -15,7 +15,8 @@ import net.maizegenetics.util.CheckSum;
 import net.maizegenetics.util.SMTPClient;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -42,7 +43,7 @@ import java.util.Properties;
 public class ProductionPipelineMain {
 
 
-    private final Logger myLogger = Logger.getLogger(ProductionPipelineMain.class);
+    private final Logger myLogger = LogManager.getLogger(ProductionPipelineMain.class);
 
 //    myLogger.setLevel(Level.OFF);
 

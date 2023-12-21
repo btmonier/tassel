@@ -7,7 +7,8 @@ import ch.systemsx.cisd.hdf5.*;
 import java.io.File;
 import java.util.Arrays;
 import net.maizegenetics.dna.tag.GBSHDF5Constants;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * HDF5 version of TagsOnPhysical Map.  This is the preferred version of physical map as it uses less
@@ -27,7 +28,7 @@ import org.apache.log4j.Logger;
  */
 public class TagsOnPhysMapHDF5 extends AbstractTagsOnPhysicalMap implements TOPMInterface {
 
-    private static final Logger myLogger = Logger.getLogger(TagsOnPhysMapHDF5.class);
+    private static final Logger myLogger = LogManager.getLogger(TagsOnPhysMapHDF5.class);
     private static final int NUM_UNITS_TO_CACHE_ON_GET = 64;
     private static final int BITS_TO_SHIFT_FOR_CHUNK = 16;
     private static final int CHUNK_SIZE = 1 << BITS_TO_SHIFT_FOR_CHUNK;

@@ -17,7 +17,8 @@ import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.Tuple;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
 
@@ -38,7 +39,7 @@ import java.util.Set;
 public final class SAMToGBSdbPlugin extends AbstractPlugin {
 
     boolean cleanCutSites = true;
-    private static final Logger myLogger = Logger.getLogger(SAMToGBSdbPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SAMToGBSdbPlugin.class);
 
     private PluginParameter<String> myInputFile = new PluginParameter.Builder<String>("i", null, String.class).guiName("SAM Input File").required(true).inFile()
             .description("Name of input file in SAM text format").build();

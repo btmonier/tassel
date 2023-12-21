@@ -17,8 +17,8 @@ import net.maizegenetics.plugindef.Plugin;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.util.Utils;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
 
 /**
  *
@@ -32,8 +32,8 @@ public class ListPlugins extends AbstractPlugin {
     public ListPlugins(Frame parentFrame, boolean isInteractive) {
         super(parentFrame, isInteractive);
 
-        Logger.getLogger("net.maizegenetics").setLevel(Level.OFF);
-        Logger.getLogger("net.maizegenetics.plugindef").setLevel(Level.INFO);
+        LogManager.getLogger("net.maizegenetics").atLevel(Level.OFF);
+        LogManager.getLogger("net.maizegenetics.plugindef").atLevel(Level.INFO);
     }
 
     @Override

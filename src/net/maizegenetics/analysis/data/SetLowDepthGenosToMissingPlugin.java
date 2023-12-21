@@ -15,7 +15,8 @@ import net.maizegenetics.plugindef.DataSet;
 import net.maizegenetics.plugindef.Datum;
 import net.maizegenetics.plugindef.PluginParameter;
 import net.maizegenetics.taxa.Taxon;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Set genotypes below a minimum depth to missing. Set each genotype in the
@@ -42,7 +43,7 @@ public class SetLowDepthGenosToMissingPlugin extends net.maizegenetics.plugindef
             .range(Range.closed(2, 127))
             .build();
 
-    private static final Logger myLogger = Logger.getLogger(SetLowDepthGenosToMissingPlugin.class);
+    private static final Logger myLogger = LogManager.getLogger(SetLowDepthGenosToMissingPlugin.class);
     private GenotypeTable inputGenotypes = null;
     private String inputGenosName = null;
 
