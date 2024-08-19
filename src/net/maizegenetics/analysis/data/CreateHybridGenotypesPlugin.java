@@ -129,7 +129,7 @@ public class CreateHybridGenotypesPlugin extends AbstractPlugin {
         for (int t = 0; t < ntaxa; t++) {
             float[] hybrid = new float[nsites];
             for (int s = 0; s < nsites; s++) {
-                hybrid[s] = original.value(firstParents.get(t), s) * original.value(secondParents.get(t), s) / 2.0f;
+                hybrid[s] = (original.value(firstParents.get(t), s) + original.value(secondParents.get(t), s)) / 2.0f;
             }
             refBuilder.addTaxon(t, hybrid);
         }
