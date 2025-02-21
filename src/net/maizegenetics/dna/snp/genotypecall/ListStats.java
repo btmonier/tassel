@@ -1,23 +1,22 @@
 /*
  *  ListStats
- * 
+ *
  *  Created on Dec 27, 2016
  */
 package net.maizegenetics.dna.snp.genotypecall;
 
 import java.lang.ref.WeakReference;
 import java.util.AbstractList;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
- *
  * @author Terry Casstevens
  */
 public abstract class ListStats extends AbstractList<Stats> {
 
-    private final static Map<GenotypeCallTable, WeakReference<ListStats>> TAXA_INSTANCES = new HashMap<>();
-    private final static Map<GenotypeCallTable, WeakReference<ListStats>> SITE_INSTANCES = new HashMap<>();
+    private final static Map<GenotypeCallTable, WeakReference<ListStats>> TAXA_INSTANCES = new WeakHashMap<>();
+    private final static Map<GenotypeCallTable, WeakReference<ListStats>> SITE_INSTANCES = new WeakHashMap<>();
 
     protected final GenotypeCallTable myGenotype;
     private final int myNumIndices;
