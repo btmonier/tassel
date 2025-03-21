@@ -45,7 +45,7 @@ public class TableReportPanel extends JPanel {
             @Override
             public void setValue(Object value) {
                 if (value == null) {
-                    setText("NA");
+                    setText("NaN");
                 } else if (value.getClass() == Integer.class) {
                     setText(String.valueOf(value));
                 } else if (value.getClass() == Double.class) {
