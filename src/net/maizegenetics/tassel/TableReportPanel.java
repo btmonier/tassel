@@ -44,7 +44,9 @@ public class TableReportPanel extends JPanel {
         myDataTable.setDefaultRenderer(Double.class, new DefaultTableCellRenderer() {
             @Override
             public void setValue(Object value) {
-                if (value.getClass() == Integer.class) {
+                if (value == null) {
+                    setText("NA");
+                } else if (value.getClass() == Integer.class) {
                     setText(String.valueOf(value));
                 } else if (value.getClass() == Double.class) {
                     setText(DoubleFormat.format((Double) value));
