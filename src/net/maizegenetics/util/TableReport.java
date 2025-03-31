@@ -78,7 +78,7 @@ public interface TableReport {
         sb.append("\n");
         for (int i = 0; i < getRowCount(); i++) {
             sb.append(Stream.of(getRow(i))
-                    .map(o -> (o==null)?"NULL":o.toString())
+                    .map(o -> (o==null)?"NaN":o.toString())
                     .collect(Collectors.joining("\t")));
             sb.append("\n");
         }

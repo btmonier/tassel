@@ -374,7 +374,12 @@ public class GenerateRCode {
             if (o instanceof Float || o instanceof Double) {
                 double[] result = new double[rows];
                 for (int row = 0; row < tableReport.getRowCount(); row++) {
-                    result[row] = ((Number) tableReport.getValueAt(row, column)).doubleValue();
+                    Object value = tableReport.getValueAt(row, column);
+                    if (value == null) {
+                        result[row] = Double.NaN;
+                    } else {
+                        result[row] = ((Number) value).doubleValue();
+                    }
                 }
                 dataVector.add(result);
             } else if (o instanceof Byte || o instanceof Short || o instanceof Integer || o instanceof Long) {
@@ -390,7 +395,12 @@ public class GenerateRCode {
             } else {
                 String[] result = new String[rows];
                 for (int row = 0; row < tableReport.getRowCount(); row++) {
-                    result[row] = tableReport.getValueAt(row, column).toString();
+                    Object value = tableReport.getValueAt(row, column);
+                    if (value == null) {
+                        result[row] = "";
+                    } else {
+                        result[row] = value.toString();
+                    }
                 }
                 dataVector.add(result);
             }

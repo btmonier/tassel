@@ -39,19 +39,19 @@ public class StepwiseOLSModelFitterPlugin extends AbstractPlugin {
                     .description("The model selection criteria used to determine which terms enter the model and how many. Value must be one of pvalue, bic, mbic, or aic")
                     .build();
     private PluginParameter<Double> enterlimit =
-            new PluginParameter.Builder<>("enter", 1e-6, Double.class)
+            new PluginParameter.Builder<>("enter", 0.01, Double.class)
                     .range(Range.closed(0.0, 1.0))
                     .guiName("Entry limit")
                     .description("The enter limit or maximum p-value for which a term can enter the model")
                     .build();
     private PluginParameter<Double> exitlimit =
-            new PluginParameter.Builder<>("exit", 2e-6, Double.class)
+            new PluginParameter.Builder<>("exit", 0.01, Double.class)
                     .range(Range.closed(0.0, 1.0))
                     .guiName("Exit limit")
                     .description("A term exits the model on a backward step if its p-value is greater than this value")
                     .build();
     private PluginParameter<Integer> maxNumberOfMarkers =
-            new PluginParameter.Builder<>("maxMarkers", 100, Integer.class)
+            new PluginParameter.Builder<>("maxMarkers", 20, Integer.class)
                     .range(Range.closed(0, 10000))
                     .guiName("Maximum markers")
                     .description("The maximum number of markers that will be fit, if the enter limit is not reached first")
