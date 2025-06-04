@@ -13,6 +13,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Install OpenBLAS (Ubuntu)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopenblas-dev
+
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
@@ -29,11 +34,14 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle-
 
       - name: Run tests & generate Kover coverage report
-        run: ./gradlew clean test koverXmlReport
+        run: ./gradlew clean test koverXmlReport --continue
+        env:
+          JAVA_TOOL_OPTIONS: >
+            -Djava.library.path=/usr/lib/x86_64-linux-gnu
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_GLOBAL_TOKEN }}
+        uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_GLOBAL_TOKEN }}
+          slug: maize-genetics/tassel
           files: build/reports/kover/report.xml

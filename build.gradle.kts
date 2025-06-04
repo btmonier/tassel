@@ -93,8 +93,7 @@ tasks {
 
     test {
         val nativeLibs = listOf(
-            "/opt/homebrew/opt/openblas/lib",
-            "/Users/bm646-admin/Projects/tassel_5_source/lib"
+            "/opt/homebrew/opt/openblas/lib"
         ).joinToString(":")
 
         jvmArgs = listOf(
