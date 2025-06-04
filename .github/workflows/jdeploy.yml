@@ -2,8 +2,8 @@ name: jDeploy CI with Maven
 
 on:
   push:
-    paths:
-      - VERSION
+#    paths:
+#      - VERSION
     branches:
       - [main, master]
   workflow_dispatch:

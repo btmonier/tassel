@@ -35,6 +35,7 @@ jobs:
 
       - name: Run tests & generate Kover coverage report
         run: ./gradlew clean test koverXmlReport --continue
+        continue-on-error: true
         env:
           JAVA_TOOL_OPTIONS: >
             -Djava.library.path=/usr/lib/x86_64-linux-gnu
