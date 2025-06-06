@@ -52,7 +52,7 @@ jobs:
             -Djava.library.path=/usr/lib/x86_64-linux-gnu
 
       - name: Upload HTML test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: html-test-report
           path: build/reports/tests/
