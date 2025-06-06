@@ -45,3 +45,4 @@ bin/
 ### Misc ###
 dataFiles/
 tempDir/
+production_pipeline.properties

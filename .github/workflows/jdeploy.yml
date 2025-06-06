@@ -4,8 +4,7 @@ on:
   push:
 #    paths:
 #      - VERSION
-    branches:
-      - [main, master]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:

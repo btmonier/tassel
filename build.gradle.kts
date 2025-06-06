@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.Locale
 
 plugins {
     kotlin("jvm") version "2.1.20"
@@ -70,7 +71,7 @@ tasks {
     // Copy runtime dependencies into build/libs/lib
     register<Copy>("copyDependencies") {
         from(configurations.runtimeClasspath)
-        into("${buildDir}/libs/lib")
+        into(layout.buildDirectory.dir("libs/lib").get().asFile)
     }
 
     // Ensure dependencies are copied after build
@@ -92,16 +93,38 @@ tasks {
     }
 
     test {
-        val nativeLibs = listOf(
-            "/opt/homebrew/opt/openblas/lib"
-        ).joinToString(":")
+        val baseArgs = mutableListOf("-Xmx10g")
 
-        jvmArgs = listOf(
-            "-Xmx10g",
-            "-Djava.library.path=$nativeLibs"
-        )
+        // Detect path to BLAS native library
+        val overrideDir: String? = System.getenv("BLAS_LIB_PATH")
+        if (!overrideDir.isNullOrBlank()) {
+            baseArgs += "-Djava.library.path=$overrideDir"
+        } else {
+            val os = System.getProperty("os.name").lowercase(Locale.ROOT)
+            val nativeDir = when {
+                "mac" in os -> {
+                    val intel = "/usr/local/opt/openblas/lib"
+                    val silicon = "/opt/homebrew/opt/openblas/lib"
+                    when {
+                        file(intel).exists() -> intel
+                        file(silicon).exists() -> silicon
+                        else -> {
+                            logger.warn("Neither $intel nor $silicon exists. BLAS tests may fail unless BLAS_LIB_PATH is set.")
+                            ""
+                        }
+                    }
+                }
+                "linux" in os -> "/usr/lib/x86_64-linux-gnu"
+                else -> {
+                    logger.warn("Unrecognized OS: $os. BLAS tests may fail unless BLAS_LIB_PATH is set.")
+                    ""
+                }
+            }
 
-        ignoreFailures = true
+            if (nativeDir.isNotBlank()) {
+                baseArgs += "-Djava.library.path=$nativeDir"
+            }
+        }
 
         exclude(
             "**/analysis/gobii/*Test.class",
@@ -123,6 +146,11 @@ tasks {
             "**/analysis/rna/*Test.class",
             "**/CreateFastaOrFastqFiles.class", // hard coded file paths (LCJ)
         )
+
+        ignoreFailures = true // currently setting this to 'true' until we figure out failing tests
+        jvmArgs = baseArgs
+
+        println(jvmArgs)
     }
 }
 
