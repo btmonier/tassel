@@ -7,6 +7,9 @@ plugins {
     id("org.jetbrains.dokka") version "2.0.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
+    alias(libs.plugins.composeMultiplatform) apply false
+    alias(libs.plugins.composeCompiler) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
 }
 
 java {
