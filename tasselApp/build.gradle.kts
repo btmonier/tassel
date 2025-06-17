@@ -8,11 +8,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
-//repositories {
-//mavenCentral()
-//maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-//}
-
 kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -45,6 +40,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
             //implementation("org.jetbrains.compose.html:html-core:1.8.1")
             //implementation("org.jetbrains.compose.web:web-core:1.8.1")
         }
