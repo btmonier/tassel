@@ -2,13 +2,18 @@ package net.maizegenetics.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -35,8 +40,9 @@ private fun leftColumn() {
     Column(
         modifier = Modifier
             .safeContentPadding()
-            .fillMaxSize(0.25f)
-            .border(2.dp, Color.Red, shape = RoundedCornerShape(4.dp))
+            .fillMaxWidth(0.25f)
+            .fillMaxHeight()
+            .border(2.dp, Color.Red, shape = RoundedCornerShape(7.dp))
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -44,32 +50,138 @@ private fun leftColumn() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .fillMaxHeight(0.45f)
                 .border(2.dp, Color.Red, shape = RoundedCornerShape(4.dp))
                 .padding(8.dp)
-                .weight(1f),
+                .weight(0.45f),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("This is a Tassel Web App")
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("Datasets")
+                Spacer(modifier = Modifier.height(10.dp))
+                DatasetTreeExample()
+            }
         }
 
-        var text by remember { mutableStateOf("Initial value") }
+        var text by remember {
+            mutableStateOf(
+                "Number of taxa: 281\n" +
+                        "Number of sites: 3093\n" +
+                        "\n" +
+                        "Chromosomes...\n" +
+                        "\n" +
+                        "1: 540 sites:\n" +
+                        "0 (157104) - 539 (299170077)\n" +
+                        "\n" +
+                        "2: 393 sites:\n" +
+                        "540 (736367) - 932 (234574991)\n" +
+                        "\n" +
+                        "3: 355 sites:\n" +
+                        "933 (1240310) - 1287 (229544509)\n" +
+                        "\n" +
+                        "4: 319 sites:\n" +
+                        "1288 (139753) - 1606 (245131801)\n" +
+                        "\n" +
+                        "5: 357 sites:\n" +
+                        "1607 (656148) - 1963 (216431558)\n" +
+                        "\n" +
+                        "6: 213 sites:\n" +
+                        "1964 (2379148) - 2176 (167883450)\n" +
+                        "\n" +
+                        "7: 246 sites:\n" +
+                        "2177 (729478) - 2422 (170346253)\n" +
+                        "\n" +
+                        "8: 256 sites:\n" +
+                        "2423 (169137) - 2678 (172323795)\n" +
+                        "\n" +
+                        "9: 213 sites:\n" +
+                        "2679 (3873116) - 2891 (151289948)\n" +
+                        "\n" +
+                        "10: 201 sites:\n" +
+                        "2892 (838970) - 3092 (148907116)\n" +
+                        "\n" +
+                        "\n" +
+                        "Nucleotide Codes\n" +
+                        "(Derived from IUPAC)...\n" +
+                        "A     A:A\n" +
+                        "C     C:C\n" +
+                        "G     G:G\n" +
+                        "T     T:T\n" +
+                        "R     A:G\n" +
+                        "Y     C:T\n" +
+                        "S     C:G\n" +
+                        "W     A:T\n" +
+                        "K     G:T\n" +
+                        "M     A:C\n" +
+                        "+     +:+ (insertion)\n" +
+                        "0     +:-\n" +
+                        "-     -:- (deletion)\n" +
+                        "N     Unknown\n" +
+                        "\n"
+            )
+        }
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .fillMaxHeight(0.45f)
                 .border(2.dp, Color.Red, shape = RoundedCornerShape(4.dp))
                 .padding(8.dp)
-                .weight(1f),
+                .weight(0.45f),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            TextField(
-                value = text,
-                onValueChange = { /* no-op: ignore user edits */ },
-                readOnly = true,
-                label = { Text("Dataset Description") },
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-            )
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text("Dataset Description")
+                Spacer(modifier = Modifier.height(10.dp))
+                TextField(
+                    value = text,
+                    onValueChange = { /* no-op: ignore user edits */ },
+                    readOnly = true,
+                    //label = { Text("Dataset Description") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.1f)
+                .fillMaxSize(0.1f)
+                .border(2.dp, Color.Red, shape = RoundedCornerShape(7.dp))
+                .padding(8.dp)
+                .weight(0.1f),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text("Progress")
+                Spacer(modifier = Modifier.height(10.dp))
+                LinearProgressIndicator(
+                    progress = {
+                        0.5f
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
 
     }
@@ -102,5 +214,107 @@ fun exampleColumn() {
                 Text("Compose: $greeting")
             }
         }
+    }
+}
+
+data class TreeNode<T>(
+    val value: T,
+    val children: List<TreeNode<T>> = emptyList()
+)
+
+@Composable
+fun <T> TreeView(
+    nodes: List<TreeNode<T>>,
+    indent: Dp = 16.dp,
+    nodeContent: @Composable (T) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxHeight()
+            .border(2.dp, Color.Red, shape = RoundedCornerShape(4.dp))
+    ) {
+        nodes.forEach { node ->
+            TreeNodeView(node, 0, indent, nodeContent)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <T> TreeNodeView(
+    node: TreeNode<T>,
+    depth: Int,
+    indent: Dp,
+    nodeContent: @Composable (T) -> Unit
+) {
+    // track expand/collapse state per node
+    var expanded by remember { mutableStateOf(false) }
+
+    Column {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = indent.times(depth), top = 4.dp, bottom = 4.dp)
+                .clickable {
+                    if (node.children.isNotEmpty()) expanded = !expanded
+                }
+        ) {
+            // arrow icon for expand/collapse
+            if (node.children.isNotEmpty()) {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandMore else Icons.Default.ChevronRight,
+                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    modifier = Modifier.size(16.dp)
+                )
+            } else {
+                Spacer(modifier = Modifier.width(16.dp))
+            }
+
+            Spacer(Modifier.width(4.dp))
+
+            // render the node's actual content
+            nodeContent(node.value)
+        }
+
+        // if expanded, recurse into children
+        if (expanded) {
+            node.children.forEach { child ->
+                TreeNodeView(child, depth + 1, indent, nodeContent)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DatasetTreeExample() {
+    val treeData = listOf(
+        TreeNode(
+            "Images", listOf(
+                TreeNode("Cats"),
+                TreeNode("Dogs"),
+                TreeNode("Birds")
+            )
+        ),
+        TreeNode(
+            "Text", listOf(
+                TreeNode("News Articles"),
+                TreeNode("Books"),
+                TreeNode("Tweets")
+            )
+        ),
+        TreeNode(
+            "Tabular", listOf(
+                TreeNode("Sales Data"),
+                TreeNode("Sensor Readings")
+            )
+        )
+    )
+
+    TreeView(
+        nodes = treeData
+    ) { label ->
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
     }
 }
