@@ -20,8 +20,13 @@ import org.jetbrains.compose.resources.painterResource
 import tassel.tasselapp.generated.resources.Res
 import tassel.tasselapp.generated.resources.genotype_viewer_example
 
+//import net.maizegenetics.dna.snp.ImportUtils
+
 @Composable
 fun TasselWebApp() {
+
+    //val genotype = ImportUtils.readFromVCF("/Users/tmc46/git/tassel-5-standalone/TASSELTutorialData/data/mdp_genotype.hmp.txt", null, false, true)
+
     MaterialTheme {
 
         Row(
@@ -42,6 +47,7 @@ fun TasselWebApp() {
         }
 
     }
+
 }
 
 @Composable
@@ -305,30 +311,20 @@ private fun <T> TreeNodeView(
 private fun DatasetTreeExample() {
     val treeData = listOf(
         TreeNode(
-            "Images", listOf(
-                TreeNode("Cats"),
-                TreeNode("Dogs"),
-                TreeNode("Birds")
+            "Matrix", listOf(
+                TreeNode("mdp_kinship"),
+                // TreeNode("Dogs"),
+                // TreeNode("Birds")
             )
         ),
-        TreeNode(
-            "Text", listOf(
-                TreeNode("News Articles"),
-                TreeNode("Books"),
-                TreeNode("Tweets")
-            )
-        ),
-        TreeNode(
-            "Tabular", listOf(
-                TreeNode("Sales Data"),
-                TreeNode("Sensor Readings")
-            )
-        )
+        TreeNode("Numerical", listOf(
+            TreeNode("mdp_phenotype")
+        )),
+        TreeNode("Sequence"),
+        TreeNode("Results")
     )
 
-    TreeView(
-        nodes = treeData
-    ) { label ->
+    TreeView(nodes = treeData) { label ->
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
     }
 }
