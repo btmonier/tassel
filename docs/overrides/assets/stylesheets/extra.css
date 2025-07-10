@@ -1,0 +1,79 @@
+:root {
+  --md-primary-fg-color: #de5766;
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color:  #de5766;
+}
+
+.tx-container {
+  background: var(--bg-color);
+  padding-top: 0;
+}
+
+.tx-hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 32px 2.8rem;
+  color: var(--md-primary-bg-color);
+  flex-wrap: wrap;
+}
+
+.tx-hero__content {
+  color: #333;
+  text-align: center;
+  margin: 2rem;
+  max-width: 28rem;
+}
+
+.tx-hero__content h1 {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.tx-hero__content p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.md-button {
+  margin: 0.5rem;
+  text-transform: none;
+}
+
+.md-button--primary {
+  background-color: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+}
+
+.md-button--secondary {
+  background-color: transparent;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.md-button:hover,
+.md-button:focus {
+  background-color: var(--accent-color);
+  color: #fff;
+  border-color: var(--accent-color);
+}
+
+@media screen and (max-width: 30em) {
+  .tx-hero__content h1 {
+    font-size: 1.4rem;
+  }
+
+  .tx-hero__content p {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-sidebar--primary,
+  .md-sidebar--secondary {
+    display: none;
+  }
+}
+
+

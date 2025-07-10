@@ -14,8 +14,9 @@ Thank you for your interest in contributing to TASSEL! We welcome contributions 
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 ## Getting Started
-The TASSEL project is written in Kotlin and uses the Gradle build system. To get started, you will need to install the following:
-* [Java 17](https://www.oracle.com/java/technologies/downloads/#java17)
+The TASSEL project is written in Java and uses the Gradle build system. To get started, you will need to install the following:
+
+* [Java 21](https://www.oracle.com/java/technologies/downloads/#java17)
 * [Git](https://git-scm.com/downloads)
 
 It is recommended to use an IDE to make any code changes.  Our group prefers using [IntelliJ IDEA](https://www.jetbrains.com/idea/download/).
