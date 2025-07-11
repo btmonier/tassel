@@ -30,6 +30,7 @@ theme:
     - navigation.indexes
     - navigation.expand
     - search.highlight
+    - navigation.instant: false
   language: en
   font:
     text: Roboto
@@ -77,10 +78,8 @@ extra_css:
 
 # Navigation
 nav:
-  - Home: 
+  - Home:
       - index.md
-  - Getting Started:
-      - Installation: installation.md
   - Community:
       - Contributing: CONTRIBUTING.md
       - Code of Conduct: CODE_OF_CONDUCT.md
