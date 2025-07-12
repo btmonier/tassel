@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jreleaser.model.Active
 import java.util.Locale
 
 plugins {
@@ -7,6 +8,12 @@ plugins {
     id("org.jetbrains.dokka") version "2.0.0"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
+    id("org.jreleaser") version "1.18.0"
+
+    application
+    `java-library`
+    `maven-publish`
+    signing
 }
 
 java {
@@ -158,3 +165,148 @@ tasks {
 kotlin {
     jvmToolchain(21)
 }
+
+/**
+ * Generates HTML files based on Javadoc-style comments. Supports automatic insertion of Jupyter notebook tutorials,
+ * (see [tutorialInjector] for details). Supports insertion of images (see [imageInjector] for details).
+ */
+val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class) {
+    dokkaSourceSets {
+        configureEach {
+            includes.from("src/main/kotlin/biokotlin/packages.md")
+        }
+    }
+}
+
+val dokkaJar by tasks.registering(Jar::class) {
+    dependsOn(dokkaHtml)
+    mustRunAfter(dokkaHtml)
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "BioKotlin: ${project.version}"
+    archiveClassifier.set("javadoc")
+    from(dokkaHtml.outputDirectory)
+}
+
+publishing {
+    publications {
+
+        create<MavenPublication>("maven") {
+            artifactId = "biokotlin"
+            description = "org.biokotlin:biokotlin:$version"
+
+            from(components["java"])
+            artifact(dokkaJar)
+
+            versionMapping {
+                usage("java-api") {
+                    fromResolutionOf("runtimeClasspath")
+                }
+                usage("java-runtime") {
+                    fromResolutionResult()
+                }
+            }
+
+            pom {
+                name.set("BioKotlin")
+                artifactId = "biokotlin"
+                description.set("BioKotlin aims to be a high-performance bioinformatics library that brings the power and speed of compiled programming languages to scripting and big data environments.")
+                url.set("http://www.biokotlin.org/")
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("tmc46")
+                        name.set("Terry Casstevens")
+                        email.set("tmc46@cornell.edu")
+                    }
+                    developer {
+                        name.set("Ed Buckler")
+                        email.set("esb33@cornell.edu")
+                    }
+                    developer {
+                        name.set("Zack Miller")
+                        email.set("zrm22@cornell.edu")
+                    }
+                    developer {
+                        name.set("Lynn Johnson")
+                        email.set("lcj34@cornell.edu")
+                    }
+                    developer {
+                        name.set("Peter Bradbury")
+                        email.set("pjb39@cornell.edu")
+                    }
+                    developer {
+                        name.set("Brandon Monier")
+                        email.set("bm646@cornell.edu")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com/maize-genetics/BioKotlin.git")
+                    developerConnection.set("scm:git:ssh://github.com/maize-genetics/BioKotlin.git")
+                    url.set("https://github.com/maize-genetics/BioKotlin")
+                }
+            }
+        }
+    }
+
+    signing {
+        val signingKey: String? = System.getenv("JRELEASER_GPG_SECRET_KEY")
+        val signingPass: String? = System.getenv("JRELEASER_GPG_PASSPHRASE")
+        useInMemoryPgpKeys(signingKey, signingPass)
+        sign(publishing.publications["maven"])
+    }
+
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
+        }
+    }
+}
+
+signing {
+    useInMemoryPgpKeys(System.getenv("ORG_GPG_SIGNING_KEY"), System.getenv("ORG_GPG_SIGNING_PASSWORD"))
+    sign(publishing.publications["maven"])
+}
+
+jreleaser {
+    signing {
+        active.set(Active.ALWAYS)
+        armored.set(true)
+        setMode("MEMORY")
+    }
+    deploy {
+        active.set(Active.ALWAYS)
+        release {
+            github {
+                skipRelease = true
+                skipTag = true
+            }
+        }
+        maven {
+            active.set(Active.ALWAYS)
+            mavenCentral {
+                signing {
+                    active.set(Active.ALWAYS)
+                    armored.set(true)
+                    setMode("MEMORY")
+                }
+                create("sonatype") {
+                    active.set(Active.ALWAYS)
+                    url.set("https://central.sonatype.com/api/v1/publisher")
+                    stagingRepository("build/staging-deploy")
+                    sign = false
+                }
+            }
+        }
+    }
+}
+
+tasks.named("publish") {
+    dependsOn("dokkaJar", "sourcesJar")
+}
+
+

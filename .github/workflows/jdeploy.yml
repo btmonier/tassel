@@ -1,4 +1,4 @@
-name: jDeploy CI with Maven
+name: jDeploy CI with Gradle
 
 on:
   push:
