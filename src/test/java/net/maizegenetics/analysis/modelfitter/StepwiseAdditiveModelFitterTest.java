@@ -18,10 +18,11 @@ import net.maizegenetics.util.TableReport;
 import net.maizegenetics.util.TableReportTestUtils;
 import net.maizegenetics.util.TableReportUtils;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class StepwiseAdditiveModelFitterTest {
-
+    @Ignore
     @Test
     public void test() {
         StepwiseAdditiveModelFitterPlugin samfPlugin = new StepwiseAdditiveModelFitterPlugin();

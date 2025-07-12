@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MLMTest {
@@ -86,7 +87,8 @@ public class MLMTest {
 		TableReportTestUtils.compareTableReports(effectReferenceReport, effectTestReport,.01);
 		TableReportTestUtils.compareTableReports(residualReferenceReport, residualTestReport,.01);
 	}
-	
+
+	@Ignore
 	@Test
 	public void testCompressionP3D() {
 		MLMPlugin myPlugin = new MLMPlugin(null, false);

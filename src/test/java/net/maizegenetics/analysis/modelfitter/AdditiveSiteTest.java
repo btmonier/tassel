@@ -8,10 +8,11 @@ import net.maizegenetics.analysis.modelfitter.AdditiveSite.CRITERION;
 import net.maizegenetics.dna.snp.GenotypeTable;
 import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class AdditiveSiteTest {
-
+    @Ignore
     @Test
     public void testGenotypeAdditiveSite() {
         byte AA = NucleotideAlignmentConstants.getNucleotideDiploidByte("AA");

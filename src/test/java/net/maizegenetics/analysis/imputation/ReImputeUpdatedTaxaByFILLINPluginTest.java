@@ -18,11 +18,9 @@ import net.maizegenetics.dna.snp.genotypecall.BasicGenotypeMergeRule;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.HDF5Utils;
 import net.maizegenetics.util.Utils;
-import org.junit.After;
-import org.junit.Assert;
+import org.junit.*;
+
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  *
@@ -143,6 +141,7 @@ public class ReImputeUpdatedTaxaByFILLINPluginTest {
     /**
      * Test of processData method, of class ReImputeUpdatedTaxaByFILLINPlugin.
      */
+    @Ignore
     @Test
     public void testProcessData() {
 

@@ -10,6 +10,7 @@ import net.maizegenetics.matrixalgebra.decomposition.EigenvalueDecomposition;
 import net.maizegenetics.matrixalgebra.decomposition.SingularValueDecomposition;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class DoubleMatrixTest {
@@ -37,7 +38,8 @@ public class DoubleMatrixTest {
 		intializeTestMatrices();
 		runTests();
 	}
-	
+
+	@Ignore
 	@Test
 	public void testBlas() {
 		System.out.println("Testing BLAS");

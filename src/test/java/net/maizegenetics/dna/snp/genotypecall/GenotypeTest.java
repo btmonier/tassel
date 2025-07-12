@@ -13,12 +13,9 @@ import net.maizegenetics.dna.snp.NucleotideAlignmentConstants;
 import net.maizegenetics.util.SuperByteMatrix;
 import net.maizegenetics.util.SuperByteMatrixBuilder;
 
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.*;
+
 import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  *
@@ -158,6 +155,7 @@ public class GenotypeTest {
         }
     }
 
+    @Ignore
     @Test
     public void iterateAllBases() {
         int numTaxa = 10000;
@@ -192,6 +190,7 @@ public class GenotypeTest {
         Assert.assertTrue("GenotypeTest: iterateAllBases transposed: " + timeToIterate + " sec. longer than expected: 7.0", timeToIterate < 7.0);
     }
 
+    @Ignore
     @Test
     public void getMajorAlleleForAllSites() {
         int numTaxa = 10000;

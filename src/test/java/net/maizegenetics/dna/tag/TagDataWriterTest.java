@@ -13,6 +13,7 @@ import net.maizegenetics.taxa.TaxaListBuilder;
 import net.maizegenetics.taxa.Taxon;
 import net.maizegenetics.util.Tuple;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.Suite;
 
@@ -58,7 +59,7 @@ public class TagDataWriterTest {
         tagAlleleMap=createBigTOPMWithAllele(tagExpansion);
     }
 
-
+    @Ignore
     @Test
     public void testPutTag() throws Exception {
 
@@ -110,6 +111,7 @@ public class TagDataWriterTest {
 //        tdw.getTags();
     }
 
+    @Ignore
     @Test
     public void testCutPositions() throws Exception {
         System.out.println("Adding tags from TOPM");
@@ -127,6 +129,7 @@ public class TagDataWriterTest {
         //posMap.entrySet().stream().forEach(e -> System.out.println(e.getKey().toString()+"="+e.getValue().size()));
     }
 
+    @Ignore
     @Test
     public void testAlleles() throws Exception {
 

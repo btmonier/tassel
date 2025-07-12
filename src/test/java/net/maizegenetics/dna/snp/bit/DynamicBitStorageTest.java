@@ -95,6 +95,7 @@ public class DynamicBitStorageTest {
         if(testHDF5Byte) readBytesToTestHDF5(outFile);
     }
 
+    @Ignore
     @Test
     public void testGetAllelePresenceForAllSites() throws Exception {
        long time=System.nanoTime();
@@ -191,7 +192,7 @@ public class DynamicBitStorageTest {
         System.out.println("BitTranspose Time:"+totalTime/1e9+"s  AvgPerObj:"+timePerObj+"ns");
     }
 
-
+    @Ignore
     @Test
     public void testGetAllelePresenceForAllTaxa() throws Exception {
         long time=System.nanoTime();

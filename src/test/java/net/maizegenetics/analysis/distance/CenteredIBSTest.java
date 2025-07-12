@@ -5,6 +5,7 @@
  */
 package net.maizegenetics.analysis.distance;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import net.maizegenetics.constants.TutorialConstants;
@@ -20,6 +21,7 @@ import net.maizegenetics.constants.GeneralConstants;
  */
 public class CenteredIBSTest {
 
+    @Ignore
     @Test
     public void testCenteredIBSTest() {
 

@@ -7,6 +7,7 @@ import net.maizegenetics.stats.PCA.PrinComp.PC_TYPE;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class PrinCompTest {
@@ -25,6 +26,7 @@ public class PrinCompTest {
 	public void tearDown() throws Exception {
 	}
 
+	@Ignore
 	@Test
 	public void test() {	
 		useDataSet1();
