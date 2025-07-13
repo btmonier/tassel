@@ -159,8 +159,15 @@ tasks {
 
         println(jvmArgs)
     }
-}
 
+    register("printVersion") {
+        group = "help"
+        description = "Prints the current project.version"
+        doLast {
+            println(project.version)
+        }
+    }
+}
 
 kotlin {
     jvmToolchain(21)
@@ -169,11 +176,13 @@ kotlin {
 /**
  * Generates HTML files based on Javadoc-style comments. Supports automatic insertion of Jupyter notebook tutorials,
  * (see [tutorialInjector] for details). Supports insertion of images (see [imageInjector] for details).
+ *
+ * This was modified from the BioKotlin project.
  */
 val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class) {
     dokkaSourceSets {
         configureEach {
-            includes.from("src/main/kotlin/biokotlin/packages.md")
+            sourceRoot(file("src/main/java"))
         }
     }
 }
@@ -182,7 +191,7 @@ val dokkaJar by tasks.registering(Jar::class) {
     dependsOn(dokkaHtml)
     mustRunAfter(dokkaHtml)
     group = JavaBasePlugin.DOCUMENTATION_GROUP
-    description = "BioKotlin: ${project.version}"
+    description = "TASSEL: ${project.version}"
     archiveClassifier.set("javadoc")
     from(dokkaHtml.outputDirectory)
 }
@@ -191,8 +200,8 @@ publishing {
     publications {
 
         create<MavenPublication>("maven") {
-            artifactId = "biokotlin"
-            description = "org.biokotlin:biokotlin:$version"
+            artifactId = "tassel"
+            description = "net.maizegenetics:tassel:$version"
 
             from(components["java"])
             artifact(dokkaJar)
@@ -207,10 +216,10 @@ publishing {
             }
 
             pom {
-                name.set("BioKotlin")
-                artifactId = "biokotlin"
-                description.set("BioKotlin aims to be a high-performance bioinformatics library that brings the power and speed of compiled programming languages to scripting and big data environments.")
-                url.set("http://www.biokotlin.org/")
+                name.set("TASSEL")
+                artifactId = "tassel"
+                description.set("TASSEL is a software package to evaluate traits associations, evolutionary patterns, and linkage disequilibrium. ")
+                url.set("https://www.maizegenetics.net/tassel")
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
@@ -245,9 +254,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/maize-genetics/BioKotlin.git")
-                    developerConnection.set("scm:git:ssh://github.com/maize-genetics/BioKotlin.git")
-                    url.set("https://github.com/maize-genetics/BioKotlin")
+                    connection.set("scm:git:git://github.com/maize-genetics/tassel.git")
+                    developerConnection.set("scm:git:ssh://github.com/maize-genetics/tassel.git")
+                    url.set("https://github.com/maize-genetics/tassel")
                 }
             }
         }
@@ -308,5 +317,3 @@ jreleaser {
 tasks.named("publish") {
     dependsOn("dokkaJar", "sourcesJar")
 }
-
-

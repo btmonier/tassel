@@ -23,7 +23,7 @@ jobs:
 
       - name: Read version from VERSION file
         id: read_version
-        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+        run: echo "VERSION=$(./gradlew printVersion -q)" >> $GITHUB_ENV
 
       - name: Build with Gradle
         run: ./gradlew clean build -x test
