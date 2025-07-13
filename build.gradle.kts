@@ -169,6 +169,19 @@ tasks {
     }
 }
 
+kover {
+    reports {
+        verify {
+            rule {
+                "Minimal line coverage rate as a percentage"
+                bound {
+                    minValue = 15
+                }
+            }
+        }
+    }
+}
+
 kotlin {
     jvmToolchain(21)
 }

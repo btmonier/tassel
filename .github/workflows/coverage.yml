@@ -1,13 +1,21 @@
-name: Code Coverage
+name: TASSEL 5 CI
 
 on:
-  push:
+  workflow_dispatch:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types:
+      - opened
+      - synchronize
+    branches: [main, master]
+    paths: 'src/**'
 
 jobs:
-  coverage:
+  test_and_coverage:
+    name: TASSEL 5 CI
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
 
     steps:
       - name: Check out repository
@@ -54,9 +62,17 @@ jobs:
           path: build/reports/tests/
 
       - name: Upload coverage reports to Codecov
-        if: github.event_name == 'push'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_GLOBAL_TOKEN }}
           slug: maize-genetics/tassel
           files: build/reports/kover/report.xml
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: success() || failure()
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          check_name: TASSEL Test Report
+          job_summary: true
+          detailed_summary: true
