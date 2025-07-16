@@ -169,6 +169,11 @@ tasks {
     }
 }
 
+application {
+    // Replace with your real package + file name + "Kt"
+    mainClass.set("net.maizegenetics.tassel.TASSELMainApp")
+}
+
 kover {
     reports {
         verify {
