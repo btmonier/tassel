@@ -2,6 +2,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jreleaser.model.Active
 import java.util.Locale
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.jvm.application.tasks.CreateStartScripts
 
 plugins {
     kotlin("jvm") version "2.1.20"
@@ -169,11 +173,29 @@ tasks {
     }
 }
 
+// ShadowJar tasks
 application {
     // Replace with your real package + file name + "Kt"
     mainClass.set("net.maizegenetics.tassel.TASSELMainApp")
 }
 
+tasks.named<Zip>("distZip") {
+    dependsOn(tasks.named<ShadowJar>("shadowJar"))
+}
+
+tasks.named<Tar>("distTar") {
+    dependsOn(tasks.named<ShadowJar>("shadowJar"))
+}
+
+tasks.named<CreateStartScripts>("startScripts") {
+    dependsOn(tasks.named<ShadowJar>("shadowJar"))
+}
+
+tasks.named<CreateStartScripts>("startShadowScripts") {
+    dependsOn(tasks.named("jar"))
+}
+
+// Kover (coverage) tasks
 kover {
     reports {
         verify {
