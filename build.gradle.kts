@@ -27,7 +27,7 @@ java {
 }
 
 group = "net.maizegenetics"
-version = "5.2.96"
+version = "5.2.97"
 description = "TASSEL is a software package to evaluate traits associations, evolutionary patterns, and linkage disequilibrium."
 val kotlinVersion = "2.1.21"
 
