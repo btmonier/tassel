@@ -27,9 +27,11 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      - name: Read version from VERSION file
+      - name: Read version from Gradle build file
         id: read_version
-        run: echo "VERSION=$(./gradlew printVersion -q)" >> $GITHUB_ENV
+        run: |
+          VERSION=$(./gradlew printVersion -q --console=plain)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build with Gradle
         run: ./gradlew clean build -x test
