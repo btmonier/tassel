@@ -10,7 +10,7 @@
     "jdk": false,
     "javafx": false,
     "javaVersion": "21",
-    "jar": "build/lib/sTASSEL.jar",
+    "jar": "sTASSEL.jar",
     "files" : [
         {"dir" : "dist", "includes": "lib/*.dll,lib/*.so,lib/*.dylib"}
     ],
