@@ -30,7 +30,9 @@ jobs:
       - name: Read version from Gradle build file
         id: read_version
         run: |
-          VERSION=$(./gradlew printVersion -q --console=plain)
+          RAW=$(./gradlew printVersion -q)
+          # tail -n1 will skip all those progress-bar lines
+          VERSION=$(echo "$RAW" | tail -n1)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build with Gradle
