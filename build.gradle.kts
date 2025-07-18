@@ -174,6 +174,7 @@ tasks {
     }
 }
 
+
 // ShadowJar tasks
 application {
     // Replace with your real package + file name + "Kt"
@@ -196,6 +197,7 @@ tasks.named<CreateStartScripts>("startShadowScripts") {
     dependsOn(tasks.named("jar"))
 }
 
+
 // Kover (coverage) tasks
 kover {
     reports {
@@ -214,29 +216,31 @@ kotlin {
     jvmToolchain(21)
 }
 
-/**
- * Generates HTML files based on Javadoc-style comments. Supports automatic insertion of Jupyter notebook tutorials,
- * (see [tutorialInjector] for details). Supports insertion of images (see [imageInjector] for details).
- *
- * This was modified from the BioKotlin project.
- */
-val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class) {
-    dokkaSourceSets {
-        configureEach {
-            sourceRoot(file("src/main/java"))
-        }
-    }
-}
+
+// Dokka
+val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
 
 val dokkaJar by tasks.registering(Jar::class) {
     dependsOn(dokkaHtml)
-    mustRunAfter(dokkaHtml)
     group = JavaBasePlugin.DOCUMENTATION_GROUP
-    description = "TASSEL: ${project.version}"
+    description = "TASSEL 5: ${property("version")}"
     archiveClassifier.set("javadoc")
     from(dokkaHtml.outputDirectory)
 }
 
+tasks.javadoc {
+    dependsOn("dokkaJavadoc")
+    if (JavaVersion.current().isJava9Compatible) {
+        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
+    }
+}
+
+tasks.named("publish") {
+    dependsOn("dokkaJar", "sourcesJar")
+}
+
+
+// Publishing to Maven Central
 publishing {
     publications {
 
@@ -355,6 +359,4 @@ jreleaser {
     }
 }
 
-tasks.named("publish") {
-    dependsOn("dokkaJar", "sourcesJar")
-}
+
