@@ -303,8 +303,8 @@ publishing {
     }
 
     signing {
-        val signingKey: String? = System.getenv("JRELEASER_GPG_SECRET_KEY")
-        val signingPass: String? = System.getenv("JRELEASER_GPG_PASSPHRASE")
+        val signingKey: String? = System.getenv("ORG_GPG_SIGNING_KEY")
+        val signingPass: String? = System.getenv("ORG_GPG_SIGNING_PASSWORD")
         useInMemoryPgpKeys(signingKey, signingPass)
         sign(publishing.publications["maven"])
     }
