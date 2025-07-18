@@ -26,7 +26,7 @@ java {
     }
 }
 
-group = "net.maizegenetics"
+group = "org.btmonier"
 version = "5.2.97"
 description = "TASSEL is a software package to evaluate traits associations, evolutionary patterns, and linkage disequilibrium."
 val kotlinVersion = "2.1.21"
@@ -241,7 +241,7 @@ publishing {
 
         create<MavenPublication>("maven") {
             artifactId = "tassel"
-            description = "net.maizegenetics:tassel:$version"
+            description = "org.btmonier:tassel:$version"
 
             from(components["java"])
             artifact(dokkaJar)
@@ -259,7 +259,7 @@ publishing {
                 name.set("TASSEL")
                 artifactId = "tassel"
                 description.set("TASSEL is a software package to evaluate traits associations, evolutionary patterns, and linkage disequilibrium. ")
-                url.set("https://www.maizegenetics.net/tassel")
+                url.set("https://www.btmonier.com/tassel")
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
@@ -294,9 +294,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/maize-genetics/tassel.git")
-                    developerConnection.set("scm:git:ssh://github.com/maize-genetics/tassel.git")
-                    url.set("https://github.com/maize-genetics/tassel")
+                    connection.set("scm:git:git://github.com/btmonier/tassel.git")
+                    developerConnection.set("scm:git:ssh://github.com/btmonier/tassel.git")
+                    url.set("https://github.com/btmonier/tassel")
                 }
             }
         }
