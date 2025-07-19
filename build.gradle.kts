@@ -323,7 +323,7 @@ tasks.named("generateMetadataFileForMavenPublication") {
 }
 
 signing {
-    useInMemoryPgpKeys(System.getenv("JRELEASER_GPG_SECRET_KEY"), System.getenv("JRELEASER_GPG_PASSPHRASE"))
+    useInMemoryPgpKeys(System.getenv("JRELEASER_GPG_SECRET_KEY"), System.getenv("ORG_GPG_SIGNING_PASSWORD"))
     sign(publishing.publications["maven"])
 }
 
