@@ -322,10 +322,10 @@ tasks.named("generateMetadataFileForMavenPublication") {
     dependsOn(tasks.named("dokkaJar"))
 }
 
-//signing {
-//    useInMemoryPgpKeys(System.getenv("ORG_GPG_SIGNING_KEY"), System.getenv("ORG_GPG_SIGNING_PASSWORD"))
-//    sign(publishing.publications["maven"])
-//}
+signing {
+    useInMemoryPgpKeys(System.getenv("JRELEASER_GPG_SECRET_KEY"), System.getenv("JRELEASER_GPG_PASSPHRASE"))
+    sign(publishing.publications["maven"])
+}
 
 jreleaser {
     signing {
