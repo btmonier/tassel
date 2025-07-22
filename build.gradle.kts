@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jreleaser.model.Active
 import java.util.Locale
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.jvm.application.tasks.CreateStartScripts
@@ -10,7 +9,6 @@ import org.gradle.jvm.application.tasks.CreateStartScripts
 plugins {
     kotlin("jvm") version "2.1.20"
     id("org.jetbrains.dokka") version "2.0.0"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
     id("org.jreleaser") version "1.18.0"
 
@@ -28,15 +26,10 @@ java {
 }
 
 
-
 group = "org.btmonier"
-version = "5.2.97"
-description = "TASSEL is a software package to evaluate traits associations, evolutionary patterns, and linkage disequilibrium."
+version = "5.2.98"
+description = "Automated deployment tests for the TASSEL application. Please use the 'net.maizegenetics' deployment instead."
 val kotlinVersion = "2.1.21"
-
-repositories {
-    mavenCentral()
-}
 
 repositories {
     mavenCentral()
@@ -176,26 +169,22 @@ tasks {
     }
 }
 
-// ShadowJar tasks
+// Application configuration
 application {
     // Replace with your real package + file name + "Kt"
     mainClass.set("net.maizegenetics.tassel.TASSELMainApp")
 }
 
 tasks.named<Zip>("distZip") {
-    dependsOn(tasks.named<ShadowJar>("shadowJar"))
+    dependsOn(tasks.named("jar"))
 }
 
 tasks.named<Tar>("distTar") {
-    dependsOn(tasks.named<ShadowJar>("shadowJar"))
+    dependsOn(tasks.named("jar"))
 }
 
 tasks.named<CreateStartScripts>("startScripts") {
-    dependsOn(tasks.named<ShadowJar>("shadowJar"))
-}
-
-tasks.named<CreateStartScripts>("startShadowScripts") {
-    dependsOn(tasks.named("jar"))
+    dependsOn(tasks.named("jar"), tasks.named("sourcesJar"))
 }
 
 // Kover (coverage) tasks
@@ -323,7 +312,10 @@ tasks.named("generateMetadataFileForMavenPublication") {
 }
 
 signing {
-    useInMemoryPgpKeys(System.getenv("JRELEASER_GPG_SECRET_KEY"), System.getenv("JRELEASER_GPG_PASSPHRASE"))
+    useInMemoryPgpKeys(
+        System.getenv("JRELEASER_GPG_SECRET_KEY"),
+        System.getenv("JRELEASER_GPG_PASSPHRASE")
+    )
     sign(publishing.publications["maven"])
 }
 
