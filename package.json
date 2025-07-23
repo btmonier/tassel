@@ -5,7 +5,7 @@
   "main": "index.js",
   "preferGlobal": true,
   "repository": "https://www.github.com/btmonier/tassel/",
-  "version": "1.0.0",
+  "version": "5.2.98",
   "jdeploy": {
     "jdk": false,
     "javafx": false,
