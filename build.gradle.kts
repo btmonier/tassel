@@ -4,6 +4,7 @@ import org.jreleaser.model.Active
 import java.util.Locale
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.jvm.application.tasks.CreateStartScripts
 
 plugins {
@@ -25,6 +26,9 @@ java {
     withSourcesJar()
 }
 
+kotlin {
+    jvmToolchain(21)
+}
 
 group = "org.btmonier"
 version = "5.2.98"
@@ -69,10 +73,34 @@ dependencies {
     implementation("it.unimi.dsi:fastutil:8.2.2")
 }
 
+// Application configuration
+application {
+    mainClass.set("net.maizegenetics.tassel.TASSELMainApp")
+}
+
+tasks.named<Zip>("distZip") {
+    dependsOn(tasks.named("jar"))
+}
+
+tasks.named<Tar>("distTar") {
+    dependsOn(tasks.named("jar"))
+}
+
+tasks.named<CreateStartScripts>("startScripts") {
+    dependsOn(tasks.named("jar"), tasks.named("sourcesJar"))
+}
+
+// General tasks
 tasks {
-    // Set JAR file name
+    // Set JAR file name and add to manifest
     withType<Jar> {
         archiveFileName.set("sTASSEL.jar")
+
+        manifest {
+            attributes(mapOf(
+                "Main-Class" to application.mainClass.get()
+            ))
+        }
     }
 
     // Copy runtime dependencies into build/libs/lib
@@ -169,24 +197,6 @@ tasks {
     }
 }
 
-// Application configuration
-application {
-    // Replace with your real package + file name + "Kt"
-    mainClass.set("net.maizegenetics.tassel.TASSELMainApp")
-}
-
-tasks.named<Zip>("distZip") {
-    dependsOn(tasks.named("jar"))
-}
-
-tasks.named<Tar>("distTar") {
-    dependsOn(tasks.named("jar"))
-}
-
-tasks.named<CreateStartScripts>("startScripts") {
-    dependsOn(tasks.named("jar"), tasks.named("sourcesJar"))
-}
-
 // Kover (coverage) tasks
 kover {
     reports {
@@ -201,9 +211,8 @@ kover {
     }
 }
 
-kotlin {
-    jvmToolchain(21)
-}
+
+
 
 /**
  * Generates HTML files based on Javadoc-style comments. Supports automatic insertion of Jupyter notebook tutorials,
