@@ -1,31 +1,32 @@
 {
-  "bin": {"sTASSEL": "jdeploy-bundle/jdeploy.js"},
-  "author": "bucklerlab",
-  "description": "Trait Analysis by aSSociation, Evolution and Linkage",
-  "main": "index.js",
-  "preferGlobal": true,
-  "repository": "https://www.github.com/btmonier/tassel/",
-  "version": "5.2.98",
-  "jdeploy": {
-    "jdk": false,
-    "javafx": false,
-    "javaVersion": "21",
-    "jar": "dist/tassel-5-standalone/sTASSEL.jar",
-    "files" : [
-        {"dir" : "dist/tassel-5-standalone/"}
-    ],
-    "title": "TASSEL 5"
-  },
-  "dependencies": {
-    "command-exists-promise": "^2.0.2",
-    "node-fetch": "2.6.7",
-    "tar": "^4.4.8",
-    "yauzl": "^2.10.0",
-    "shelljs": "^0.8.4"
-  },
-  "name": "TASSEL 5",
-  "files": ["jdeploy-bundle"],
-  "scripts": {"test": "echo \"Error: no test specified\" && exit 1"}
+    "bin": {"sTASSEL": "jdeploy-bundle/jdeploy.js"},
+    "author": "bucklerlab",
+    "name": "TASSEL 5",
+    "description": "Trait Analysis by aSSociation, Evolution and Linkage",
+    "files": ["jdeploy-bundle"],
+    "main": "index.js",
+    "preferGlobal": true,
+    "repository": "https://www.github.com/btmonier/tassel/",
+    "scripts": {"test": "echo \"Error: no test specified\" && exit 1"},
+    "version": "0.0.1",
+    "jdeploy": {
+        "jdk": false,
+        "publishTargets": [{
+            "name": "github: TASSEL 5",
+            "type": "GITHUB",
+            "url": "https://github.com/btmonier/tassel/"
+        }],
+        "javaVersion": "21",
+        "files": [{"dir": "build/libs/lib"}],
+        "jar": "build/libs/sTASSEL.jar",
+        "javafx": false,
+        "title": "TASSEL 5"
+    },
+    "dependencies": {
+        "command-exists-promise": "^2.0.2",
+        "node-fetch": "2.6.7",
+        "tar": "^4.4.8",
+        "yauzl": "^2.10.0",
+        "shelljs": "^0.8.4"
+    }
 }
-
-

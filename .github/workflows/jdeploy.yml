@@ -132,10 +132,10 @@ jobs:
       - name: Update release note download links
         run: |
           # Find the installer files and update the release notes
-          REL_LINUX=$(ls jdeploy/github-release-files/TASSEL_5.Installer-linux-x64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
-          REL_MAC_SILICON=$(ls jdeploy/github-release-files/TASSEL_5.Installer-mac-arm64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
-          REL_MAC_INTEL=$(ls jdeploy/github-release-files/TASSEL_5.Installer-mac-x64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
-          REL_WINDOWS=$(ls jdeploy/github-release-files/TASSEL_5.Installer-win-x64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
+          REL_LINUX=$(ls jdeploy/github-release-files/TASSEL.5.Installer-linux-x64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
+          REL_MAC_SILICON=$(ls jdeploy/github-release-files/TASSEL.5.Installer-mac-arm64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
+          REL_MAC_INTEL=$(ls jdeploy/github-release-files/TASSEL.5.Installer-mac-x64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
+          REL_WINDOWS=$(ls jdeploy/github-release-files/TASSEL.5.Installer-win-x64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
 
           # Export variables for template substitution
           export REL_LINUX

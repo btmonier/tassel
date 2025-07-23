@@ -46,3 +46,7 @@ bin/
 dataFiles/
 tempDir/
 production_pipeline.properties
+
+### jDeploy ###
+jdeploy/
+jdeploy-bundle/
