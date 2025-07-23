@@ -125,8 +125,6 @@ jobs:
         run: |
           cp build/libs/sTASSEL.jar .
           cp -r build/libs/lib .
-          mkdir -p scripts
-          cp scripts/*.pl scripts/*.bat scripts/
 
       - name: Build App Installer Bundles
         uses: shannah/jdeploy@master
