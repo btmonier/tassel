@@ -121,10 +121,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare artifacts for jDeploy
-        run: |
-          cp build/libs/sTASSEL.jar .
-          cp -r build/libs/lib .
+#      - name: Prepare artifacts for jDeploy
+#        run: |
+#          cp build/libs/sTASSEL.jar .
+#          cp -r build/libs/lib .
 
       - name: Build App Installer Bundles
         uses: shannah/jdeploy@master
