@@ -121,8 +121,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Copy app contents into project root for jDeploy
-        run: cp -r dist/tassel-5-standalone/* .
+      - name: Prepare artifacts for jDeploy
+        run: |
+          cp build/libs/sTASSEL.jar .
+          cp -r build/libs/lib .
+          mkdir -p scripts
+          cp scripts/*.pl scripts/*.bat scripts/
 
       - name: Build App Installer Bundles
         uses: shannah/jdeploy@master

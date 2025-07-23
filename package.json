@@ -10,7 +10,7 @@
     "scripts": {"test": "echo \"Error: no test specified\" && exit 1"},
     "version": "0.0.1",
     "jdeploy": {
-        "jdk": false,
+        "jdk": true,
         "publishTargets": [{
             "name": "github: TASSEL 5",
             "type": "GITHUB",
