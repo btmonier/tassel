@@ -148,7 +148,7 @@ jobs:
           envsubst < .github/release_template.md > RELEASE_NOTES.md
 
           # Update the featured_downloads.html file with the updated download links
-          envsubst < docs/overrides/partials/featured_downloads.html > docs/overrides/partials/featured_downloads.html.new
+          envsubst < docs/templates/template_featured_downloads.html > docs/overrides/partials/featured_downloads.html.new
           mv docs/overrides/partials/featured_downloads.html.new docs/overrides/partials/featured_downloads.html
 
           # Update the GitHub release body
