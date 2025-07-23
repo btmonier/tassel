@@ -10,9 +10,9 @@
     "jdk": false,
     "javafx": false,
     "javaVersion": "21",
-    "jar": "sTASSEL.jar",
+    "jar": "dist/tassel-5-standalone/sTASSEL.jar",
     "files" : [
-        {"dir" : "libs", "includes": "lib/*.dll,lib/*.so,lib/*.dylib"}
+        {"dir" : "dist/tassel-5-standalone/"}
     ],
     "title": "TASSEL 5"
   },
