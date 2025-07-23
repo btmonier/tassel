@@ -2,6 +2,10 @@
 title: "Tassel 5 Change History"
 ---
 
+## (V5.2.98) July 23, 2025
+
+* Add readme
+
 ## (V5.2.96) March 31, 2025
 
 - Added checks to GenerateRCode.tableReportToVectors() to handle null values
