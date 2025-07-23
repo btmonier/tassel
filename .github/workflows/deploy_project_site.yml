@@ -1,13 +1,25 @@
 name: Site Builder and Deployment
 on:
-  push:
+  workflow_run:
+    workflows: ["jDeploy CI with Gradle"]
+    types:
+      - completed
     branches: [main, master]
 permissions:
   contents: write
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - name: Wait for Publish TASSEL to Maven Central workflow
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          check-name: 'maven-publish'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+
       - uses: actions/checkout@v4
       - name: Configure Git Credentials
         run: |
@@ -26,4 +38,3 @@ jobs:
       - run: pip install mkdocs-material 
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
-

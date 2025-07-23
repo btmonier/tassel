@@ -89,6 +89,9 @@ jobs:
           # Export for template substitution
           export NOTES="$CHANGELOG_CONTENT"
           envsubst < .github/release_template.md > RELEASE_NOTES.md
+          
+          # Save content to a temporary file
+          echo "$CHANGELOG_CONTENT" > /tmp/changelog_content.txt
 
       - name: Load processed release notes
         id: read_notes
@@ -144,7 +147,48 @@ jobs:
           # Re-generate the release notes with the updated download links
           envsubst < .github/release_template.md > RELEASE_NOTES.md
 
+          # Update the featured_downloads.html file with the updated download links
+          envsubst < docs/overrides/partials/featured_downloads.html > docs/overrides/partials/featured_downloads.html.new
+          mv docs/overrides/partials/featured_downloads.html.new docs/overrides/partials/featured_downloads.html
+
           # Update the GitHub release body
           gh release edit "v${VERSION}" --notes-file RELEASE_NOTES.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current date
+        id: date
+        run: echo "DATE=$(date +'%B %d, %Y')" >> $GITHUB_ENV
+
+      - name: Set up Git user
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Update changelog.md
+        run: |
+          # Check if changelog content exists
+          if [ ! -f /tmp/changelog_content.txt ]; then
+            echo "No changelog content to add"
+            exit 0
+          fi
+
+          CHANGELOG_CONTENT=$(cat /tmp/changelog_content.txt)
+
+          # Create new section with version and date
+          NEW_SECTION="## (V${{ env.VERSION }}) ${{ env.DATE }}\n\n$CHANGELOG_CONTENT\n"
+
+          # Insert new section after the header (line 5)
+          sed -i "5i\\$NEW_SECTION" docs/changelog.md
+
+      - name: Commit and push changes
+        run: |
+          # Check if there are changes to commit
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git add docs/changelog.md docs/overrides/partials/featured_downloads.html
+          git commit -m "Update changelog and links for version ${{ env.VERSION }}"
+          git push
