@@ -126,21 +126,25 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Rename jDeploy installer files
+      - name: Update release note download links
         run: |
-          for f in jdeploy/github-release-files/TASSEL_5.Installer-*; do
-            # Extract platform and extension
-            base=$(basename "$f")
-            platform=$(echo "$base" | sed -E 's/^TASSEL_5\.Installer-([^@]+)@.*$/\1/')
-            ext="${f##*.}"
+          # Find the installer files and update the release notes
+          REL_LINUX=$(ls jdeploy/github-release-files/TASSEL_5.Installer-linux-x64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
+          REL_MAC_SILICON=$(ls jdeploy/github-release-files/TASSEL_5.Installer-mac-arm64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
+          REL_MAC_INTEL=$(ls jdeploy/github-release-files/TASSEL_5.Installer-mac-x64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
+          REL_WINDOWS=$(ls jdeploy/github-release-files/TASSEL_5.Installer-win-x64-@master* 2>/dev/null | head -n 1 | xargs basename 2>/dev/null || echo "")
 
-            # Rename the file
-            new_name="tassel-5-installer-${platform}v${VERSION}.${ext}"
-            mv "$f" "jdeploy/github-release-files/${new_name}"
-          done
+          # Export variables for template substitution
+          export REL_LINUX
+          export REL_MAC_SILICON
+          export REL_MAC_INTEL
+          export REL_WINDOWS
+          export VERSION
 
-      - name: Upload jDeploy Installers to Existing Release
-        run: |
-          gh release upload "v${VERSION}" jdeploy/github-release-files/* --clobber
+          # Re-generate the release notes with the updated download links
+          envsubst < .github/release_template.md > RELEASE_NOTES.md
+
+          # Update the GitHub release body
+          gh release edit "v${VERSION}" --notes-file RELEASE_NOTES.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
