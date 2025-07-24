@@ -98,9 +98,11 @@ tasks {
         archiveFileName.set("sTASSEL.jar")
 
         manifest {
-            attributes(mapOf(
-                "Main-Class" to application.mainClass.get()
-            ))
+            attributes(
+                "Main-Class" to application.mainClass.get(),
+                "Class-Path" to configurations.runtimeClasspath.get()
+                    .joinToString(" ") { "lib/${it.name}" }
+            )
         }
     }
 

@@ -19,8 +19,8 @@
       }
     ],
         "javaVersion": "21",
-        "files": [{"dir": "lib", "dest":  "lib"}],
-        "jar": "sTASSEL.jar",
+        "files": [{"dir": "build/libs/lib", "dest": "lib"}],
+        "jar": "build/libs/sTASSEL.jar",
         "javafx": false,
         "title": "TASSEL 5"
     },
