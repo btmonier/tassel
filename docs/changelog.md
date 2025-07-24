@@ -6,6 +6,10 @@ title: "Tassel 5 Change History"
 
 * Add readme
 
+## (V5.2.98) July 24, 2025
+
+* Add readme
+
 ## (V5.2.98) July 23, 2025
 
 * Add readme
